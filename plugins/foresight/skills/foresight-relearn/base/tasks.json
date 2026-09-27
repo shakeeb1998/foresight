@@ -1,0 +1,901 @@
+{
+ "tasks": {
+  "list-aggregate-endpoint": {
+   "title": "Add, change or optimize a list / aggregate / dashboard / tree read endpoint",
+   "domain": "backend",
+   "keywords": [
+    "list",
+    "endpoint",
+    "serializer",
+    "queryset",
+    "aggregate",
+    "count",
+    "filter",
+    "dashboard",
+    "pagination",
+    "prefetch",
+    "annotate",
+    "tree",
+    "performance",
+    "metric"
+   ],
+   "description": "Read-side API work: list or detail serializers with per-row fields, counts/sums/rollups, dashboard metrics, new filter dimensions on a scoped list, tree/hierarchy payloads, and query-count or perf tuning of those reads."
+  },
+  "write-endpoint": {
+   "title": "Add or change a create / update / bulk write endpoint or service method",
+   "domain": "backend",
+   "keywords": [
+    "create",
+    "update",
+    "patch",
+    "bulk",
+    "batch",
+    "endpoint",
+    "serializer",
+    "service",
+    "save",
+    "upsert",
+    "validation",
+    "sync",
+    "replica",
+    "error"
+   ],
+   "description": "Write-side API work: create/PATCH/upsert handlers, bulk or batch variants of a single-row action, sync/apply services, error-to-HTTP mapping, and read-after-write paths."
+  },
+  "tenant-scoped-ids": {
+   "title": "Add an endpoint or route that resolves client-supplied ids (tenant scoping)",
+   "domain": "backend",
+   "keywords": [
+    "tenant",
+    "workspace",
+    "scoping",
+    "for_user",
+    "id",
+    "ids",
+    "nested",
+    "route",
+    "detail",
+    "idor",
+    "project",
+    "lookup",
+    "owner",
+    "linked"
+   ],
+   "description": "Any view, nested sub-route, relation/linking endpoint, move/reparent or list-of-ids write that accepts an id from the client and must resolve it inside the caller's workspace/org/location scope."
+  },
+  "permissions-auth": {
+   "title": "Change permissions, roles, RBAC codenames or auth / session gating",
+   "domain": "backend",
+   "keywords": [
+    "permission",
+    "rbac",
+    "role",
+    "codename",
+    "auth",
+    "login",
+    "session",
+    "token",
+    "rls",
+    "gate",
+    "access",
+    "admin",
+    "owner",
+    "throttle"
+   ],
+   "description": "Adding or narrowing a permission gate, changing a role's codename set, RLS policies, login/session/token-mint endpoints, permission-gated UI, and the tests that enforce them."
+  },
+  "untrusted-input-validation": {
+   "title": "Accept or parse untrusted input (bot / LLM payload, CSV, HTML, client JSON)",
+   "domain": "backend",
+   "keywords": [
+    "validate",
+    "validator",
+    "input",
+    "json",
+    "payload",
+    "csv",
+    "parse",
+    "sanitize",
+    "html",
+    "bot",
+    "untrusted",
+    "bounds",
+    "type",
+    "upload"
+   ],
+   "description": "Serializer validators or parsers that ingest client, bot, CSV, HTML or free-form input: type guards, bounds, max_length, sanitization, date sanity checks."
+  },
+  "third-party-integration": {
+   "title": "Integrate a third-party API, SDK, webhook or platform",
+   "domain": "backend",
+   "keywords": [
+    "integration",
+    "api",
+    "client",
+    "webhook",
+    "third-party",
+    "mattermost",
+    "sendgrid",
+    "twilio",
+    "provider",
+    "http",
+    "oauth",
+    "external",
+    "sso",
+    "hrms"
+   ],
+   "description": "Building or changing a client for an external system (chat platform, email/SMS provider, payment rail, HR system, AI vendor): pagination, idempotency, None bodies, trigger conditions, per-entity vs bulk calls, revoke flows."
+  },
+  "side-effects-async": {
+   "title": "Add a background task, notification, outbox, alert or cache invalidation tied to a write",
+   "domain": "backend",
+   "keywords": [
+    "celery",
+    "task",
+    "notification",
+    "outbox",
+    "queue",
+    "cache",
+    "invalidate",
+    "signal",
+    "email",
+    "alert",
+    "transaction",
+    "atomic",
+    "commit",
+    "webhook"
+   ],
+   "description": "Side effects that must be ordered against a DB commit or delivery outcome: cache deletes, provisioning chains, notification/email sends, outbox dispatch paths, sent-ledgers and alerting."
+  },
+  "schema-model-change": {
+   "title": "Add or change a model, field, constraint, soft-delete behavior or schema migration",
+   "domain": "backend",
+   "keywords": [
+    "model",
+    "field",
+    "migration",
+    "constraint",
+    "unique",
+    "soft-delete",
+    "nullable",
+    "schema",
+    "index",
+    "cascade",
+    "restore",
+    "default",
+    "column",
+    "tree"
+   ],
+   "description": "Schema-level work: new models or fields, NOT NULL/defaults on a shared DB, uniqueness constraints, soft-delete managers, cascade/restore on self-referential trees."
+  },
+  "state-transition-guard": {
+   "title": "Add or change a status transition, workflow state, lock or guard",
+   "domain": "backend",
+   "keywords": [
+    "status",
+    "state",
+    "transition",
+    "workflow",
+    "lock",
+    "guard",
+    "blocked",
+    "enum",
+    "approve",
+    "undo",
+    "retry",
+    "select_for_update",
+    "freeze",
+    "gate"
+   ],
+   "description": "State machines and guards: allowed-transition tables, blocked/paused flags, undo/retry windows, review locks, status-gated actions spanning several enum values, concurrency locks."
+  },
+  "merge-clone-dedup": {
+   "title": "Write a merge, dedup, clone or copy routine over related records",
+   "domain": "backend",
+   "keywords": [
+    "merge",
+    "dedup",
+    "duplicate",
+    "clone",
+    "copy",
+    "consolidate",
+    "remap",
+    "heal",
+    "group",
+    "key",
+    "normalize",
+    "identity",
+    "survivor",
+    "rename"
+   ],
+   "description": "Routines that combine, duplicate or re-identify records: user/account merges, org clone engines, merge-candidate detection, dedup heuristics, rename/merge sweeps and the FKs they repoint."
+  },
+  "seed-import-backfill": {
+   "title": "Write a seed, import, fixture or backfill script / data migration",
+   "domain": "backend",
+   "keywords": [
+    "seed",
+    "import",
+    "backfill",
+    "migration",
+    "fixture",
+    "demo",
+    "jira",
+    "script",
+    "management",
+    "command",
+    "populate",
+    "data",
+    "sql"
+   ],
+   "description": "Scripts and data migrations that populate or transform rows: seed/demo commands, external-system imports (Jira), backfills, delete-then-recreate migrations, create-or-reuse scripts."
+  },
+  "ledger-posting": {
+   "title": "Edit ledger / money posting logic (double-entry legs, credit polarity, amounts)",
+   "domain": "backend",
+   "keywords": [
+    "ledger",
+    "posting",
+    "debit",
+    "credit",
+    "leg",
+    "account",
+    "transaction",
+    "expense",
+    "check",
+    "deposit",
+    "payment",
+    "amount",
+    "sign",
+    "loan"
+   ],
+   "description": "Accounting write paths: posting and offsetting ledger legs, credit flags and signs, account_type resolution, denormalized totals, save() side effects, clearing/transfer links, payment validation."
+  },
+  "financial-report": {
+   "title": "Build or change a financial report or total (P&L, balance sheet, statement)",
+   "domain": "backend",
+   "keywords": [
+    "report",
+    "pnl",
+    "profit",
+    "loss",
+    "balance",
+    "sheet",
+    "total",
+    "subtotal",
+    "statement",
+    "bucket",
+    "aggregate",
+    "account",
+    "net",
+    "income"
+   ],
+   "description": "Report-side accounting: P&L and balance-sheet views, subtotal vs grand-total paths, report grouping/merge keys, shared net-income helpers, monitors that read report figures."
+  },
+  "live-data-fix-reconcile": {
+   "title": "Run a data fix, reconcile, rebuild or audit against live prod / staging data",
+   "domain": "backend",
+   "keywords": [
+    "prod",
+    "live",
+    "data",
+    "fix",
+    "cleanup",
+    "delete",
+    "rebuild",
+    "reconcile",
+    "audit",
+    "verify",
+    "balance",
+    "strip",
+    "scan",
+    "command"
+   ],
+   "description": "Operating on real data: one-off cleanup or bulk delete scripts, balance-sheet reconcile and day rebuilds, drift/violation scanners, audit reports over many locations, manage.py against prod."
+  },
+  "llm-extraction-pipeline": {
+   "title": "Build or run an LLM / OCR document extraction pipeline or agent callback",
+   "domain": "backend",
+   "keywords": [
+    "ocr",
+    "pdf",
+    "invoice",
+    "extraction",
+    "llm",
+    "agent",
+    "pipeline",
+    "rasterize",
+    "barcode",
+    "edi",
+    "callback",
+    "vision",
+    "retry"
+   ],
+   "description": "Agentic document pipelines: rasterizing PDFs, OCR/vision reads, barcode decoding, LLM-authored callback payloads, reconciliation gates before apply, retry/timeout loops."
+  },
+  "fe-state-hooks": {
+   "title": "Add or change component state, hooks, refs or URL-synced state",
+   "domain": "web-frontend",
+   "keywords": [
+    "state",
+    "hook",
+    "useeffect",
+    "usestate",
+    "ref",
+    "url",
+    "searchparams",
+    "store",
+    "context",
+    "derived",
+    "reset",
+    "debounce",
+    "remount"
+   ],
+   "description": "Client state plumbing in React: useState seeded from async data, useEffect resets, refs and one-shot flags, URL query-state patches, module-level external stores, selection registries."
+  },
+  "fe-rtk-query": {
+   "title": "Add an RTK Query endpoint or mutation (cache tags, args, response shape, errors)",
+   "domain": "web-frontend",
+   "keywords": [
+    "rtk",
+    "query",
+    "endpoint",
+    "mutation",
+    "providestags",
+    "invalidatestags",
+    "cache",
+    "transformresponse",
+    "apislice",
+    "fetch",
+    "toast",
+    "currentdata",
+    "args"
+   ],
+   "description": "Frontend data layer: injectEndpoints, tag wiring and invalidation, paginated-envelope transforms, query-arg key names, data vs currentData on arg changes, mutation error toasts."
+  },
+  "fe-list-page": {
+   "title": "Add or change a list page or table with search, filter, sort or pagination",
+   "domain": "web-frontend",
+   "keywords": [
+    "list",
+    "page",
+    "table",
+    "filter",
+    "search",
+    "sort",
+    "pagination",
+    "infinite",
+    "scroll",
+    "empty",
+    "column",
+    "usepagestate",
+    "facet"
+   ],
+   "description": "List/table screens: server round-trip filtering/sorting, pagination controls, infinite scroll, empty states, column rendering of API fields."
+  },
+  "fe-interactive-component": {
+   "title": "Build an interactive component: popover, modal, drawer, picker, form input, drag, chart",
+   "domain": "web-frontend",
+   "keywords": [
+    "popover",
+    "modal",
+    "drawer",
+    "dropdown",
+    "picker",
+    "asyncselect",
+    "form",
+    "input",
+    "keyboard",
+    "focus",
+    "escape",
+    "drag",
+    "chart",
+    "svg"
+   ],
+   "description": "Interactive UI: overlays and focus management, pickers/multi-selects, form inputs, drag-and-drop, clickable SVG/chart/timeline elements, keyboard activation and accessibility."
+  },
+  "fe-styling-layout": {
+   "title": "Style or lay out UI: CSS, theming, dark mode, responsive, print, formatting",
+   "domain": "web-frontend",
+   "keywords": [
+    "css",
+    "style",
+    "layout",
+    "theme",
+    "dark",
+    "responsive",
+    "class",
+    "classname",
+    "z-index",
+    "spacing",
+    "print",
+    "redesign",
+    "tokens",
+    "format"
+   ],
+   "description": "Visual work: CSS cascade and shared classes, dark-mode tokens, overlays' stacking, master-detail layouts, hand-rolled CSS geometry, print/PDF layouts, number/date display formatting."
+  },
+  "fe-routing-navigation": {
+   "title": "Add a route, redirect, nav guard or menu entry",
+   "domain": "web-frontend",
+   "keywords": [
+    "route",
+    "routing",
+    "redirect",
+    "guard",
+    "navigation",
+    "menu",
+    "sidebar",
+    "link",
+    "url",
+    "path",
+    "allowlist",
+    "drilldown"
+   ],
+   "description": "Router and navigation work: new routes and their path ownership, guards/redirects, production menu allowlists, view-mode resolution from URL, link builders that carry scope params."
+  },
+  "desktop-electron": {
+   "title": "Add or change a desktop (Electron / Capacitor) shell feature",
+   "domain": "web-frontend",
+   "keywords": [
+    "electron",
+    "desktop",
+    "capacitor",
+    "shortcut",
+    "window",
+    "native",
+    "tray",
+    "capture",
+    "ipc",
+    "userdata",
+    "globalshortcut",
+    "position"
+   ],
+   "description": "Desktop wrapper features: global shortcuts, native callback APIs, window positioning, capture flows, Electron build dirs in worktrees and isolated user-data profiles."
+  },
+  "mobile-screen": {
+   "title": "Add or change a mobile screen, flow or interaction (layout, keyboard, RTL, boot)",
+   "domain": "mobile",
+   "keywords": [
+    "screen",
+    "react-native",
+    "expo",
+    "layout",
+    "keyboard",
+    "safearea",
+    "tab",
+    "scrollview",
+    "tap",
+    "form",
+    "loading",
+    "rtl",
+    "arabic",
+    "i18n"
+   ],
+   "description": "React Native screen work: flex sizing, keyboard avoidance, tab-bar and safe-area clearance, focus-advance chains, loading states on slow taps, retry cards, boot gates, feed ordering, and localized/RTL/Arabic rendering (digits, lineHeight, mirroring)."
+  },
+  "mobile-offline-sync": {
+   "title": "Build offline sync, connectivity detection or local DB in the mobile app",
+   "domain": "mobile",
+   "keywords": [
+    "offline",
+    "sync",
+    "network",
+    "netinfo",
+    "connectivity",
+    "sqlite",
+    "local",
+    "database",
+    "schema",
+    "version",
+    "pull",
+    "prune"
+   ],
+   "description": "Offline-first plumbing: reachability signals, offline banners, pull/prune guards, local SQLite schema versioning across branches."
+  },
+  "mobile-native-build": {
+   "title": "Build the native mobile app locally (Xcode, Gradle, prebuild, pods)",
+   "domain": "mobile",
+   "keywords": [
+    "xcode",
+    "xcodebuild",
+    "gradle",
+    "android",
+    "ios",
+    "prebuild",
+    "pod",
+    "cocoapods",
+    "build",
+    "native",
+    "sdk",
+    "deriveddata",
+    "rebuild"
+   ],
+   "description": "Local native builds: expo prebuild, pod install, Gradle/Xcode builds, cache wipes, SDK env preflight, disk headroom, regenerating native projects after asset/config changes."
+  },
+  "mobile-store-release": {
+   "title": "Release a mobile build or change store-facing config (upload, signing, listing, in-app purchases)",
+   "domain": "mobile",
+   "keywords": [
+    "release",
+    "testflight",
+    "play",
+    "store",
+    "upload",
+    "aab",
+    "signing",
+    "version",
+    "listing",
+    "app-store",
+    "privacy",
+    "purchase",
+    "redeem",
+    "revenuecat"
+   ],
+   "description": "Anything that goes through App Store Connect / Play Console: store uploads and release scripts, build numbers, signing keys and OAuth SHA-1s, listing assets and privacy labels, offer-code/promo redemption and sandbox vs production purchases."
+  },
+  "mobile-device-verify": {
+   "title": "Verify mobile behavior on a device, simulator or emulator",
+   "domain": "mobile",
+   "keywords": [
+    "device",
+    "simulator",
+    "emulator",
+    "verify",
+    "ios",
+    "android",
+    "metro",
+    "reload",
+    "deep-link",
+    "dev-client",
+    "keyboard",
+    "manual"
+   ],
+   "description": "Checking a mobile fix: simulator vs real device, both OSes, cold vs warm deep links, Metro fast-refresh staleness, simulator keyboard settings."
+  },
+  "full-stack-contract": {
+   "title": "Wire a feature across tiers (FE / API / worker): shared fields, params, enums",
+   "domain": "cross-cutting",
+   "keywords": [
+    "contract",
+    "frontend",
+    "backend",
+    "api",
+    "payload",
+    "field",
+    "param",
+    "enum",
+    "shape",
+    "wire",
+    "serializer",
+    "type",
+    "picker",
+    "markup"
+   ],
+   "description": "Cross-tier work where producer and consumer must agree: payload field names, list filter params, response shapes, duplicated business rules, UI built for backend capability (or vice versa), markup through sanitizers."
+  },
+  "refactor-rename-shared": {
+   "title": "Refactor, rename or bulk-replace a shared symbol, component, type, label or format",
+   "domain": "cross-cutting",
+   "keywords": [
+    "refactor",
+    "rename",
+    "replace",
+    "redesign",
+    "extract",
+    "move",
+    "shared",
+    "component",
+    "symbol",
+    "label",
+    "barrel",
+    "type",
+    "tests"
+   ],
+   "description": "Changes to something many callers depend on: renaming exports, redesigning a shared component's DOM, adding required fields to shared types, copy/format swaps, extracting modules - and the tests/drivers/mocks that assert the old shape."
+  },
+  "write-e2e-spec": {
+   "title": "Write or extend a Playwright e2e spec, driver or proof screenshot",
+   "domain": "cross-cutting",
+   "keywords": [
+    "e2e",
+    "playwright",
+    "spec",
+    "driver",
+    "locator",
+    "testid",
+    "selector",
+    "assertion",
+    "screenshot",
+    "fixture",
+    "browser",
+    "proof",
+    "reproduce"
+   ],
+   "description": "Browser test authoring: locators and testids, driver classes, persistence assertions, stubbed responses and timing, seeded data dependencies, proof screenshots."
+  },
+  "write-unit-tests": {
+   "title": "Write or change unit / integration tests (pytest, vitest)",
+   "domain": "cross-cutting",
+   "keywords": [
+    "test",
+    "pytest",
+    "vitest",
+    "unit",
+    "fixture",
+    "mock",
+    "assert",
+    "coverage",
+    "tdd",
+    "factory",
+    "monkeypatch",
+    "benchmark",
+    "case"
+   ],
+   "description": "Backend and FE unit/integration tests: fixtures that reach the branch under test, independent expected values, mocks that match the real call, suite isolation, benchmark cases."
+  },
+  "run-local-verification": {
+   "title": "Run the app, dev server, tests or e2e stack locally to verify a change",
+   "domain": "cross-cutting",
+   "keywords": [
+    "local",
+    "dev",
+    "server",
+    "verify",
+    "run",
+    "e2e",
+    "stack",
+    "port",
+    "database",
+    "restart",
+    "vite",
+    "daphne",
+    "localhost",
+    "test"
+   ],
+   "description": "Standing up or reusing a local environment for verification: dev servers and autoreload, shared ports/DBs between sessions, health checks, host/IPv6/CORS bindings, test DB lifecycle."
+  },
+  "triage-failure": {
+   "title": "Debug a failure or triage red tests to a root cause",
+   "domain": "cross-cutting",
+   "keywords": [
+    "debug",
+    "failure",
+    "root",
+    "cause",
+    "triage",
+    "regression",
+    "baseline",
+    "red",
+    "flaky",
+    "reproduce",
+    "bug",
+    "traceback",
+    "investigate"
+   ],
+   "description": "Diagnosing: attributing red tests to the diff vs a pre-existing baseline, confirming root causes with direct evidence, reproducing reported bugs."
+  },
+  "start-work-branch": {
+   "title": "Start or resume work on a branch or worktree (sync base, check existing work)",
+   "domain": "cross-cutting",
+   "keywords": [
+    "start",
+    "branch",
+    "worktree",
+    "checkout",
+    "rebase",
+    "sync",
+    "base",
+    "staging",
+    "fetch",
+    "resume",
+    "existing",
+    "venv",
+    "install"
+   ],
+   "description": "The opening move of a task: choosing an isolated worktree vs the shared checkout, syncing with the latest base, checking whether the work already exists elsewhere, provisioning deps in a fresh worktree."
+  },
+  "dispatch-parallel-agents": {
+   "title": "Dispatch, monitor or resume parallel agents, subagents or worktrees",
+   "domain": "cross-cutting",
+   "keywords": [
+    "dispatch",
+    "parallel",
+    "agents",
+    "subagent",
+    "worktree",
+    "orchestrate",
+    "background",
+    "resume",
+    "sendmessage",
+    "fleet",
+    "monitor",
+    "concurrent"
+   ],
+   "description": "Orchestration: fanning work out to agents/worktrees, allocating shared ids and files, pinning base SHAs, liveness checks on background agents, resuming vs re-dispatching, cleanup."
+  },
+  "commit-push": {
+   "title": "Commit and push changes (hooks, staged files, push automation)",
+   "domain": "cross-cutting",
+   "keywords": [
+    "commit",
+    "push",
+    "hook",
+    "pre-commit",
+    "commit-msg",
+    "stage",
+    "git",
+    "add",
+    "automerge",
+    "branch",
+    "lint",
+    "format",
+    "loc"
+   ],
+   "description": "Getting work into git: pre-commit/commit-msg hooks, repo size and style rules caught at commit, staging only this session's files, pushes that are expected to trigger automerge/CI."
+  },
+  "merge-promote-branch": {
+   "title": "Merge, rebase or promote a branch (integration branches, conflicts, PRs)",
+   "domain": "cross-cutting",
+   "keywords": [
+    "merge",
+    "rebase",
+    "promote",
+    "promotion",
+    "pr",
+    "conflict",
+    "staging",
+    "main",
+    "cherry-pick",
+    "revert",
+    "integration",
+    "migration",
+    "backflow"
+   ],
+   "description": "Moving work between branches: merging or rebasing onto a moved base, promotion hops (feature to dev/test/staging/main), migration-graph collisions, phantom conflicts, reverts and cherry-picks on shared branches."
+  },
+  "deploy-release": {
+   "title": "Deploy or release the web / backend to staging or prod",
+   "domain": "cross-cutting",
+   "keywords": [
+    "deploy",
+    "release",
+    "staging",
+    "prod",
+    "pipeline",
+    "script",
+    "build",
+    "artifact",
+    "rollout",
+    "codedeploy",
+    "workflow",
+    "live",
+    "verify"
+   ],
+   "description": "Running or changing a deploy: deploy scripts and CI deploy workflows, where the build happens, what the pipeline carries, which checkout it deploys from, and checking the environment actually serves the change."
+  },
+  "env-server-config": {
+   "title": "Change env vars, settings, secrets or live server / container config",
+   "domain": "cross-cutting",
+   "keywords": [
+    "env",
+    "settings",
+    "secrets",
+    "config",
+    "server",
+    "nginx",
+    "systemd",
+    "postgres",
+    "ssh",
+    "vm",
+    "docker",
+    "container",
+    "host",
+    "credentials"
+   ],
+   "description": "Configuring where code runs: settings that read env/.env files or secret stores, host-dependent URLs and addresses, live service config (Postgres, nginx, systemd), containers/clusters, SSH sessions and cloud CLI credentials on remote boxes."
+  },
+  "ci-pipeline": {
+   "title": "Change a CI workflow, test gate or build pipeline",
+   "domain": "cross-cutting",
+   "keywords": [
+    "ci",
+    "workflow",
+    "github",
+    "actions",
+    "pipeline",
+    "gate",
+    "build",
+    "shard",
+    "cache",
+    "scan",
+    "tsc",
+    "lint",
+    "junit"
+   ],
+   "description": "CI configuration: what jobs actually run, sharding and result aggregation, pipefail, queued pipelines, schema/cache snapshots, secret scanning, typecheck coverage."
+  },
+  "shell-scripting": {
+   "title": "Run shell commands or write a shell / CLI script",
+   "domain": "cross-cutting",
+   "keywords": [
+    "shell",
+    "bash",
+    "zsh",
+    "script",
+    "command",
+    "pipe",
+    "pkill",
+    "grep",
+    "find",
+    "cwd",
+    "path",
+    "git",
+    "cli",
+    "exit"
+   ],
+   "description": "Shell mechanics: exit codes through pipes, pkill/pgrep self-matches, cwd and relative paths, quoting and word-splitting, bash versions, inline code in commands, gitignore/pathspec semantics."
+  },
+  "wrap-up-report": {
+   "title": "Wrap up: report done / pushed / deployed, or write docs and claims",
+   "domain": "cross-cutting",
+   "keywords": [
+    "done",
+    "report",
+    "summary",
+    "verify",
+    "shipped",
+    "deployed",
+    "merged",
+    "claim",
+    "docs",
+    "documentation",
+    "readme",
+    "whitepaper",
+    "follow-up",
+    "evidence"
+   ],
+   "description": "Closing a task and anything that asserts facts: done/deployed reports, TDD evidence, build checks before claiming green, reference docs and commit prose that cite other artifacts, follow-ups for held-back fixes."
+  },
+  "plan-scope": {
+   "title": "Plan or scope work from a requirement, mockup or reference UI",
+   "domain": "cross-cutting",
+   "keywords": [
+    "plan",
+    "scope",
+    "requirement",
+    "spec",
+    "ticket",
+    "acceptance",
+    "criteria",
+    "mockup",
+    "design",
+    "parity",
+    "reference",
+    "ambiguous",
+    "clarify"
+   ],
+   "description": "Before building: enumerating the full scope, resolving ambiguous terms or targets by asking, matching a mockup/reference product, modelling unusual personas (review/demo accounts)."
+  },
+  "tooling-dependency": {
+   "title": "Add or upgrade a dependency, or change dev tooling, hooks or agent memory",
+   "domain": "cross-cutting",
+   "keywords": [
+    "dependency",
+    "upgrade",
+    "package",
+    "requirements",
+    "npm",
+    "pip",
+    "toolchain",
+    "hook",
+    "tooling",
+    "interpreter",
+    "memory",
+    "install"
+   ],
+   "description": "Toolchain changes: adding/removing packages and transitive deps, major tool bumps, git/agent hooks, interpreter pinning, shared memory/config files, heavy local tooling jobs."
+  }
+ },
+ "assign": {}
+}
