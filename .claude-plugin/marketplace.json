@@ -1,12 +1,15 @@
 {
   "name": "foresight-skills",
-  "owner": { "name": "shakeeb1998" },
+  "owner": {
+    "name": "shakeeb1998"
+  },
   "plugins": [
     {
       "name": "foresight",
       "source": "./plugins/foresight",
       "description": "Predict the mistakes that usually get caught late (in review, by the user, after 'done') and guard against them before writing code. Includes foresight-relearn to mine your own Claude Code sessions and improve the graph.",
-      "version": "0.1.0"
+      "version": "0.1.0",
+      "license": "MIT"
     }
   ]
 }

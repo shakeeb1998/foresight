@@ -91,3 +91,7 @@ approved. Fork, open a PR, and wait for review.
 - `~/.claude/foresight/work/` (raw incidents) and `~/.claude/foresight/okf/` (your private
   graph with quotes) never leave your machine.
 - Only a Flow B export is meant to be shared, and only after you've read it.
+
+## License
+
+MIT. See [LICENSE](LICENSE).
