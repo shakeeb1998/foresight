@@ -1,0 +1,20 @@
+---
+description: Before planning or implementing any code change (feature, bug fix, refactor, port), before fanning out to background agents, before writing tests, and before saying done / merged / deployed — use the foresight skill to predict the mistakes that usually get caught late.
+alwaysApply: false
+---
+
+Use the **foresight** skill before you plan. Its SKILL.md is installed at
+`~/.cursor/skills/foresight/`.
+
+1. Run it in the terminal:
+   `python3 ~/.cursor/skills/foresight/fs.py match "<one line describing the work>"`.
+2. Read only the pattern nodes it returns. For a full node, use `fs.py show FS-xx`.
+3. Put a **Foresight Brief** in your plan:
+   - one table row per predicted failure;
+   - each row names the concrete file, field or endpoint, plus a guard that would fail if
+     the mistake happened: a test name, a command, or a question for the user;
+   - at most 10 rows.
+4. Re-check at the risky moments with `fs.py moment <dispatch|test-write|verify|merge|deploy>`.
+5. If something is caught after you called the work done, add one line to
+   `.foresight/catches.log`:
+   `YYYY-MM-DD | FS-xx or NEW | what broke | caught by | in the brief? yes/no`.

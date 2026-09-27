@@ -6,8 +6,13 @@
   fs.py moment deploy                                           # tripwire node
   fs.py index                                                   # entry node
 
-Bundles searched in order: $FORESIGHT_OKF, ./.claude/foresight/okf (project overlay),
-~/.claude/foresight/okf (your private graph), <this skill>/okf (shared). Stdlib only.
+Works from any agent that can run a shell command: Claude Code, Cursor, Codex, etc.
+Bundles searched in order (first hit wins for show/moment):
+  $FORESIGHT_OKF
+  project overlay:  ./.foresight/okf, ./.claude/foresight/okf, ./.cursor/foresight/okf
+  private graph:    ~/.foresight/okf, ~/.claude/foresight/okf, ~/.cursor/foresight/okf
+  shared:           <this skill>/okf
+Stdlib only.
 """
 
 import os
@@ -20,20 +25,29 @@ STOP = {"a", "an", "the", "to", "for", "of", "and", "or", "in", "on", "with", "a
 STOP |= {"make", "build", "update", "when", "is", "it", "this", "that"}
 
 
+TOOL_DIRS = (".foresight", ".claude/foresight", ".cursor/foresight")  # tool-neutral first
+PRIVATE = [Path.home() / d / "okf" for d in TOOL_DIRS]
+
+
 def bundles() -> list[Path]:
-    cands = [
-        os.environ.get("FORESIGHT_OKF", ""),
-        str(Path.cwd() / ".claude/foresight/okf"),
-        str(Path.home() / ".claude/foresight/okf"),
-        str(HERE / "okf"),
-    ]
-    return [Path(c) for c in cands if c and (Path(c) / "index.md").exists()]
+    cands = [os.environ.get("FORESIGHT_OKF", "")]
+    cands += [str(Path.cwd() / d / "okf") for d in TOOL_DIRS]
+    cands += [str(p) for p in PRIVATE]
+    cands.append(str(HERE / "okf"))
+    seen: set[Path] = set()
+    out: list[Path] = []
+    for c in cands:
+        p = Path(c).resolve() if c else None
+        if p and p not in seen and (p / "index.md").exists():
+            seen.add(p)
+            out.append(p)
+    return out
 
 
 def label(b: Path) -> str:
-    if b == HERE / "okf":
+    if b == (HERE / "okf").resolve():
         return "shared"
-    if b == Path.home() / ".claude/foresight/okf":
+    if b in {p.resolve() for p in PRIVATE}:
         return "private"
     return "overlay" if b.parent.name == "foresight" else str(b)
 

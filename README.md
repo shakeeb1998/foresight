@@ -34,14 +34,51 @@ between files are the edges (`predicts`, `related-to`, `in-domain`, `checked-at`
 agent reads `index.md`, then one task node, then only the patterns that task links to,
 never the whole catalog.
 
-## Install (Claude Code)
+## Install
+
+Two ways to install: the **one-command installer**, which covers Claude Code, Cursor and any
+agent that follows the [Agent Skills](https://agentskills.io) standard, or the Claude Code
+plugin.
+
+The installer:
+
+```bash
+git clone https://github.com/shakeeb1998/foresight && cd foresight
+./install.sh
+```
+
+With no options, it links the skill into every tool it finds:
+- `~/.claude/skills/` for Claude Code; this also adds foresight-relearn;
+- `~/.cursor/skills/` for Cursor.
+
+To pick one tool, pass `--claude`, `--cursor` or `--agents` (the last installs to
+`~/.agents/skills/`). Add `--copy` to copy instead of symlinking.
+
+The Claude Code plugin:
 
 ```bash
 /plugin marketplace add shakeeb1998/foresight
 /plugin install foresight@foresight-skills
 ```
 
-Or copy `plugins/foresight/skills/*` into `~/.claude/skills/`.
+### Use in Cursor
+
+Cursor agents discover skills in `~/.cursor/skills/`, so after `./install.sh --cursor` the
+agent can load **foresight** by itself. To make Cursor consider it on every planning turn in
+a project, also add the rule:
+
+```bash
+./install.sh --cursor --project /path/to/your/repo   # writes .cursor/rules/foresight.mdc
+```
+
+The agent runs `python3 ~/.cursor/skills/foresight/fs.py match "<task>"` in its terminal.
+`fs.py` needs Python 3 only, with no dependencies. Per-repo overlays can live in
+`.foresight/okf/` or `.cursor/foresight/okf/`.
+
+The mining half, **foresight-relearn**, currently reads Claude Code transcripts. Mining
+Cursor's own agent transcripts is on the [roadmap](ROADMAP.md).
+
+### claude.ai
 
 To use it in claude.ai, zip `plugins/foresight/skills/foresight` and upload it as a skill.
 `fs.py` needs code execution; without it, navigate `okf/index.md` by hand.
