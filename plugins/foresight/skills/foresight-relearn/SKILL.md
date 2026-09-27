@@ -1,13 +1,22 @@
 ---
 name: foresight-relearn
-description: Use when the user wants foresight to learn from their own Claude Code history: mining session transcripts for late-caught defects, adding a project or a batch of recent sessions to the anti-pattern graph, folding catches.log entries back in, exporting an anonymized contribution for others, or (as maintainer) merging contributions into the shared graph.
+description: Use when the user wants foresight to learn from their own coding-agent history — Claude Code transcripts or Cursor agent transcripts (IDE or cloud) — mining sessions for late-caught defects, adding a project or a batch of recent sessions to the anti-pattern graph, folding catches.log entries back in, exporting an anonymized contribution for others, or (as maintainer) merging contributions into the shared graph.
 ---
 
 # Foresight relearn
 
-This skill turns Claude Code transcripts (`~/.claude/projects/*/*.jsonl`) into nodes in the
-foresight OKF graph. It uses stdlib Python plus subagents. There are three flows. Pick the
-one that matches the request.
+This skill turns coding-agent transcripts into nodes in the foresight OKF graph. It uses
+stdlib Python plus subagents. There are three flows. Pick the one that matches the request.
+
+| Agent | Transcripts | Workspace `$W` | Private graph |
+|---|---|---|---|
+| Claude Code | `~/.claude/projects/<dir>/*.jsonl` | `~/.claude/foresight/work` | `~/.claude/foresight/okf` |
+| Cursor | `~/.cursor/projects/<slug>/agent-transcripts/<id>/<id>.jsonl` | `~/.cursor/foresight/work` | `~/.cursor/foresight/okf` |
+
+Cursor's IDE agent and cloud agents share that `agent-transcripts` tree once the session is
+on this machine. `condense.py --source cursor` folds each session's `subagents/` into the
+parent digest. Pass `--source claude` (the default) or `--source cursor`. `fs.py` already
+searches both private graphs.
 
 | Path | What |
 |---|---|
@@ -20,7 +29,8 @@ one that matches the request.
 | `scripts/merge_contrib.py` | maintainer: fold contribution stats into `base/` |
 | `base/` | the shared taxonomy: `clusters.json` definitions, `tasks.json`, `stats.json` |
 
-The local workspace is `W=~/.claude/foresight/work`. It is private and is never shared.
+The workspace `$W` above is private and is never shared. Use the row for the agent whose
+transcripts you are mining.
 
 ## Flow A: learn from my sessions
 
@@ -30,20 +40,21 @@ The local workspace is `W=~/.claude/foresight/work`. It is private and is never 
    cp base/clusters.json base/tasks.json $W/
    ```
    Set `"assign": {}` in the copied `clusters.json` if it isn't already.
-2. **Choose projects.** List the transcript dirs with their sizes. Ask the user which projects
-   to mine and what each one's stack is (backend / web / mobile, frameworks). Do one project
-   at a time, and name it before starting.
-3. **Condense.**
+2. **Choose projects.** List the transcript dirs with their sizes and ask which ones may be
+   read. Claude Code: `du -sh ~/.claude/projects/*`. Cursor: `du -sh ~/.cursor/projects/*/agent-transcripts`.
+   Ask what each project's stack is (backend / web / mobile, frameworks). Do one project at a
+   time, and name it before starting.
+3. **Condense.** `<source>` is `claude` or `cursor`.
    ```bash
-   python3 scripts/condense.py --project-glob '*<name>*' --out $W/<slug> [--since <last run date>]
+   python3 scripts/condense.py --source <source> --project-glob '*<name>*' --out $W/<slug> [--since <last run date>]
    ```
 4. **Mine.** Launch one subagent per batch in `$W/<slug>/batches.json`. Give it
    `briefs/MINING_BRIEF.md` with `{PROJECT}`, `{STACK}` and `{PROJECT_SLUG}` filled in, plus
    its digest paths. Its output goes to `$W/incidents/<slug>-Bnn.jsonl`. A mid-size model is
    enough. Sessions cap out at about 20 concurrent agents, so queue the rest.
-   - **catches.log lines** in the repo's `.claude/foresight/catches.log` are already
-     classified. Convert each one to an incident with `caught_by` and `evidence` taken from
-     the line, and `anti_pattern` set to the FS id.
+   - **catches.log lines** in the repo's `.foresight/catches.log`, `.claude/foresight/catches.log`,
+     or `.cursor/foresight/catches.log` are already classified. Convert each one to an incident
+     with `caught_by` and `evidence` taken from the line, and `anti_pattern` set to the FS id.
 5. **Number:** `python3 scripts/aggregate.py --out $W number`. Existing ids are kept.
 6. **Cluster (incremental).** Have one strong-model subagent follow `briefs/CLUSTER_BRIEF.md`.
    A new cluster gets the id `L-<kebab-name>`. Then run `aggregate.py report`, which must
@@ -52,10 +63,12 @@ The local workspace is `W=~/.claude/foresight/work`. It is private and is never 
    assign-only mode, in chunks of about 600 lines. Merge their `assign` maps into
    `$W/tasks.json`.
 8. **Build.**
-   - Private full graph:
-     `python3 scripts/build_okf.py --data $W --out ~/.claude/foresight/okf`
-   - Optional repo overlay the team can commit:
-     `python3 scripts/build_okf.py --data $W --project <slug> --out <repo>/.claude/foresight/okf`
+   - Private full graph (new `L-` nodes land in the graph `fs.py` searches):
+     `python3 scripts/build_okf.py --data $W --out <private graph from the table above>`
+   - Optional repo overlay the team can commit. Prefer `<repo>/.foresight/okf`. Claude-only
+     repos can use `<repo>/.claude/foresight/okf`; Cursor-only repos can use
+     `<repo>/.cursor/foresight/okf`.
+     `python3 scripts/build_okf.py --data $W --project <slug> --out <overlay dir>`
 9. **Report per project:**
    - the incident count;
    - the new `L-` clusters, each with a one-line mechanism;
@@ -103,8 +116,8 @@ code-level grounding.
 
 - Before any flow, confirm with the user which transcript directories may be read. Other
   people's or clients' projects may be off-limits.
-- Nothing from `$W` or `~/.claude/foresight/okf` leaves the machine. Only Flow B output can,
-  and only after the user has looked at it.
+- Nothing from `$W` or the private graph (`~/.claude/foresight/okf` or `~/.cursor/foresight/okf`)
+  leaves the machine. Only Flow B output can, and only after the user has looked at it.
 - Miners log only defects that surfaced after "done", plus repeated time sinks. Feature
   work is not an incident. Spot-read 10 random incidents against their digests before
   trusting a batch.

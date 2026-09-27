@@ -2,7 +2,7 @@
 # Install the foresight skill for Claude Code, Cursor and any Agent Skills compatible agent.
 #
 #   ./install.sh                     # auto-detect: links into every tool found (~/.claude, ~/.cursor)
-#   ./install.sh --cursor            # Cursor only        -> ~/.cursor/skills/foresight
+#   ./install.sh --cursor            # Cursor only        -> ~/.cursor/skills/foresight (+ foresight-relearn)
 #   ./install.sh --claude            # Claude Code only   -> ~/.claude/skills/foresight (+ foresight-relearn)
 #   ./install.sh --agents            # generic standard   -> ~/.agents/skills/foresight
 #   ./install.sh --project <dir>     # also add the Cursor rule to <dir>/.cursor/rules/foresight.mdc
@@ -57,6 +57,7 @@ for t in "${targets[@]}"; do
     cursor)
       echo "Cursor:"
       place foresight "$HOME/.cursor/skills"
+      place foresight-relearn "$HOME/.cursor/skills"   # relearn mines Cursor agent transcripts
       ;;
     agents)
       echo "Agent Skills (~/.agents):"
@@ -67,7 +68,7 @@ done
 
 if [ -n "$project" ]; then
   mkdir -p "$project/.cursor/rules"
-  cp "$REPO/integrations/cursor/foresight.mdc" "$project/.cursor/rules/foresight.mdc"
+  cp "$REPO/plugins/foresight/rules/foresight.mdc" "$project/.cursor/rules/foresight.mdc"
   echo "Cursor rule: $project/.cursor/rules/foresight.mdc"
 fi
 

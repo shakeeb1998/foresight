@@ -34,9 +34,10 @@ python3 <this skill dir>/fs.py show FS-06 FS-16                         # full p
 python3 <this skill dir>/fs.py moment verify                            # tripwire node
 ```
 
-`<this skill dir>` is the folder holding this SKILL.md. Once `install.sh` has run, that is:
+`<this skill dir>` is the folder holding this SKILL.md. Once installed, that is:
 - **Claude Code:** `~/.claude/skills/foresight`
-- **Cursor:** `~/.cursor/skills/foresight`
+- **Cursor (`./install.sh --cursor`):** `~/.cursor/skills/foresight`
+- **Cursor plugin:** the `foresight` skill directory inside the installed plugin
 - **Other agents:** `~/.agents/skills/foresight`
 
 Run `fs.py` through the agent's terminal or shell tool. If no shell is available, open
@@ -93,8 +94,8 @@ line to the repo's catches log. Use `./.foresight/catches.log`, unless the repo 
 YYYY-MM-DD | FS-xx or NEW | what broke | caught by | was it in the brief? yes/no
 ```
 
-The **foresight-relearn** skill turns these logs and your session transcripts into new or
-sharper graph nodes.
+The **foresight-relearn** skill turns these logs, plus Claude Code or Cursor session
+transcripts (IDE and cloud agents), into new or sharper graph nodes.
 
 ## Red flags
 

@@ -1,0 +1,19 @@
+{
+  "name": "foresight-skills",
+  "owner": {
+    "name": "shakeeb1998"
+  },
+  "metadata": {
+    "description": "Predict the mistakes that usually get caught late, and mine your own Cursor or Claude Code sessions to improve the graph."
+  },
+  "plugins": [
+    {
+      "name": "foresight",
+      "source": "plugins/foresight",
+      "description": "Predict late-caught coding mistakes before writing code, and mine your own Cursor or Claude Code sessions to sharpen the graph.",
+      "version": "0.2.0",
+      "license": "MIT",
+      "keywords": ["foresight", "anti-patterns", "code-review", "agents"]
+    }
+  ]
+}

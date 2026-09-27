@@ -3,11 +3,12 @@ description: Before planning or implementing any code change (feature, bug fix, 
 alwaysApply: false
 ---
 
-Use the **foresight** skill before you plan. Its SKILL.md is installed at
-`~/.cursor/skills/foresight/`.
+Use the **foresight** skill before you plan. Follow its SKILL.md.
 
-1. Run it in the terminal:
-   `python3 ~/.cursor/skills/foresight/fs.py match "<one line describing the work>"`.
+1. From the directory that contains that SKILL.md, run:
+   `python3 fs.py match "<one line describing the work>"`.
+   `./install.sh --cursor` puts that directory at `~/.cursor/skills/foresight`.
+   A Cursor plugin install uses the `foresight` skill directory inside the plugin.
 2. Read only the pattern nodes it returns. For a full node, use `fs.py show FS-xx`.
 3. Put a **Foresight Brief** in your plan:
    - one table row per predicted failure;

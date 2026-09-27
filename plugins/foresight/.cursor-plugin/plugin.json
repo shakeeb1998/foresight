@@ -1,0 +1,14 @@
+{
+  "name": "foresight",
+  "version": "0.2.0",
+  "description": "Predict late-caught coding mistakes before writing code, and mine your own Cursor or Claude Code sessions to sharpen the graph.",
+  "author": {
+    "name": "shakeeb1998"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/shakeeb1998/foresight",
+  "repository": "https://github.com/shakeeb1998/foresight",
+  "keywords": ["foresight", "anti-patterns", "code-review", "agents"],
+  "skills": "./skills",
+  "rules": "./rules"
+}

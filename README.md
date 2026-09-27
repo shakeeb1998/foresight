@@ -2,7 +2,7 @@
 
 Coding agents repeat the same mistakes. Some get caught in review, some by the user, and
 some only after the work was called "done". **foresight** is a graph of those mistakes,
-mined from real Claude Code sessions: backend, web frontend, mobile, and cross-cutting
+mined from real coding-agent sessions: backend, web frontend, mobile, and cross-cutting
 (tests, environments, deploys, agent workflow). It lets an agent predict what will break
 in a change *before* writing it, and put a guard in the plan.
 
@@ -36,9 +36,9 @@ never the whole catalog.
 
 ## Install
 
-Two ways to install: the **one-command installer**, which covers Claude Code, Cursor and any
-agent that follows the [Agent Skills](https://agentskills.io) standard, or the Claude Code
-plugin.
+Three ways to install: the **one-command installer**, which covers Claude Code, Cursor and any
+agent that follows the [Agent Skills](https://agentskills.io) standard; the **Cursor plugin**;
+or the Claude Code plugin.
 
 The installer:
 
@@ -49,10 +49,22 @@ git clone https://github.com/shakeeb1998/foresight && cd foresight
 
 With no options, it links the skill into every tool it finds:
 - `~/.claude/skills/` for Claude Code; this also adds foresight-relearn;
-- `~/.cursor/skills/` for Cursor.
+- `~/.cursor/skills/` for Cursor; this also adds foresight-relearn.
 
 To pick one tool, pass `--claude`, `--cursor` or `--agents` (the last installs to
 `~/.agents/skills/`). Add `--copy` to copy instead of symlinking.
+
+The Cursor plugin (IDE agents and cloud agents) is this repo. Import it from
+**Dashboard → Plugins & MCPs → Team Marketplaces → Import from Repo**:
+
+```text
+https://github.com/shakeeb1998/foresight
+```
+
+Cursor reads `.cursor-plugin/marketplace.json` and installs **foresight**, **foresight-relearn**,
+and the planning rule from `plugins/foresight`. To try it before a marketplace import, copy
+`plugins/foresight` to `~/.cursor/plugins/local/foresight` and reload the window. Cursor does
+not follow a symlink that points outside that folder.
 
 The Claude Code plugin:
 
@@ -63,20 +75,24 @@ The Claude Code plugin:
 
 ### Use in Cursor
 
-Cursor agents discover skills in `~/.cursor/skills/`, so after `./install.sh --cursor` the
-agent can load **foresight** by itself. To make Cursor consider it on every planning turn in
-a project, also add the rule:
+After the Cursor plugin is installed, or after `./install.sh --cursor`, the agent can load
+**foresight** and **foresight-relearn** by itself. The plugin also ships the planning rule.
+With the installer, add that rule to one repo:
 
 ```bash
 ./install.sh --cursor --project /path/to/your/repo   # writes .cursor/rules/foresight.mdc
 ```
 
-The agent runs `python3 ~/.cursor/skills/foresight/fs.py match "<task>"` in its terminal.
+The agent runs `python3 fs.py match "<task>"` from the foresight skill directory
+(`~/.cursor/skills/foresight` after the installer, or the plugin's `skills/foresight`).
 `fs.py` needs Python 3 only, with no dependencies. Per-repo overlays can live in
 `.foresight/okf/` or `.cursor/foresight/okf/`.
 
-The mining half, **foresight-relearn**, currently reads Claude Code transcripts. Mining
-Cursor's own agent transcripts is on the [roadmap](ROADMAP.md).
+**foresight-relearn** is installed next to it. A Cursor agent can mine its own transcripts
+— IDE sessions and cloud-agent sessions under `~/.cursor/projects/*/agent-transcripts` —
+the same way a Claude Code agent mines `~/.claude/projects`. Ask it to relearn foresight
+from your Cursor sessions. The private graph lands in `~/.cursor/foresight/okf/`, which
+`fs.py` already searches.
 
 ### claude.ai
 
@@ -98,17 +114,20 @@ guard: a failing test, a command, or a question.
 
 ## Make it yours: foresight-relearn
 
-Ask Claude to "relearn foresight from my sessions". The skill then:
+Ask the agent to "relearn foresight from my sessions". The skill then:
 
-1. asks which projects under `~/.claude/projects/` it may read;
-2. condenses the transcripts and fans out miner agents, one project at a time;
+1. asks which transcript dirs it may read: `~/.claude/projects/` for Claude Code, or
+   `~/.cursor/projects/*/agent-transcripts/` for Cursor (IDE and cloud agents);
+2. condenses the transcripts (`condense.py --source claude` or `--source cursor`) and fans
+   out miner agents, one project at a time;
 3. clusters the new incidents into the existing taxonomy, adding `L-…` nodes for new
    mechanisms;
-4. builds your private graph at `~/.claude/foresight/okf/`. `fs.py` searches it before
-   the shared one.
+4. builds your private graph at `~/.claude/foresight/okf/` or `~/.cursor/foresight/okf/`.
+   `fs.py` searches both before the shared one.
 
-Also append late catches to `<repo>/.claude/foresight/catches.log`. They are pre-labelled
-incidents for the next relearn.
+Also append late catches to `<repo>/.foresight/catches.log` (or the existing
+`.claude/foresight/` / `.cursor/foresight/` log). They are pre-labelled incidents for the
+next relearn.
 
 ## Contribute back
 
@@ -124,9 +143,9 @@ approved. Fork, open a PR, and wait for review.
 
 ## Privacy
 
-- Mining runs locally, on your transcripts, with your Claude session.
-- `~/.claude/foresight/work/` (raw incidents) and `~/.claude/foresight/okf/` (your private
-  graph with quotes) never leave your machine.
+- Mining runs locally, on your transcripts, in the agent you asked.
+- `~/.claude/foresight/work/` and `~/.cursor/foresight/work/` (raw incidents), and the matching
+  `okf/` private graphs (quotes included), never leave your machine.
 - Only a Flow B export is meant to be shared, and only after you've read it.
 
 ## License
