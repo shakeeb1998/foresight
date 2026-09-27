@@ -129,6 +129,11 @@ approved. Fork, open a PR, and wait for review.
   graph with quotes) never leave your machine.
 - Only a Flow B export is meant to be shared, and only after you've read it.
 
+## Roadmap
+
+Benchmarks, token-cost reduction, code-level grounding and adoption: see
+[ROADMAP.md](ROADMAP.md).
+
 ## License
 
 MIT. See [LICENSE](LICENSE).
