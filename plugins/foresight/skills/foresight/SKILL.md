@@ -10,8 +10,9 @@ description: Use when about to plan or start a code change (feature, bug fix, re
 Most late catches repeat a small set of mechanisms: problems found in review, by the user,
 or after "done". A large share are not design mistakes. Common ones: verifying against a
 stale server, sessions colliding, green signals that don't cover the claim, and deploys
-that were assumed. The graph in `okf/` holds those mechanisms, mined from real Claude Code
-sessions.
+that were assumed. The graph in `okf/` holds those mechanisms, mined from real coding-agent
+sessions. It works with any agent that can run a shell command: Claude Code, Cursor, Codex
+and others.
 
 **Core principle:** a prediction is only a guard once it becomes a failing test, a
 command, or a question, attached to the moment it matters.
@@ -33,8 +34,20 @@ python3 <this skill dir>/fs.py show FS-06 FS-16                         # full p
 python3 <this skill dir>/fs.py moment verify                            # tripwire node
 ```
 
-`fs.py` also reads a project overlay at `./.claude/foresight/okf/` and your private graph at
-`~/.claude/foresight/okf/`, if either exists. Overlay patterns are specific to that repo and
+`<this skill dir>` is the folder holding this SKILL.md. Once `install.sh` has run, that is:
+- **Claude Code:** `~/.claude/skills/foresight`
+- **Cursor:** `~/.cursor/skills/foresight`
+- **Other agents:** `~/.agents/skills/foresight`
+
+Run `fs.py` through the agent's terminal or shell tool. If no shell is available, open
+`okf/index.md` and follow its links by hand.
+
+`fs.py` also reads two optional graphs if they exist:
+- a **project overlay** at `./.foresight/okf/`, `./.claude/foresight/okf/` or
+  `./.cursor/foresight/okf/`;
+- your **private graph** at `~/.foresight/okf/`, `~/.claude/foresight/okf/` or
+  `~/.cursor/foresight/okf/`.
+ Overlay patterns are specific to that repo and
 often rank highest. If `match` finds nothing, open `okf/index.md`, choose your domain, then
 choose the task.
 
@@ -63,7 +76,7 @@ first and become plan steps.
 
 | Moment | Open | When |
 |---|---|---|
-| `dispatch` | `fs.py moment dispatch` | before fanning out to subagents or worktrees; paste each agent's brief rows into its prompt |
+| `dispatch` | `fs.py moment dispatch` | before fanning out to subagents, background agents or worktrees; paste each agent's brief rows into its prompt |
 | `test-write` | `fs.py moment test-write` | before writing e2e specs, mocks or fixtures |
 | `verify` | `fs.py moment verify` | before trusting any red or green result |
 | `merge` | `fs.py moment merge` | before a commit, merge, cherry-pick or consolidation |
@@ -72,7 +85,9 @@ first and become plan steps.
 ## 3. After a late catch: feed it back
 
 When a reviewer, the user, a hook, or a test after "done" catches something, append one
-line to `./.claude/foresight/catches.log`:
+line to the repo's catches log. Use `./.foresight/catches.log`, unless the repo already has
+`./.claude/foresight/catches.log` or `./.cursor/foresight/catches.log`; then use that one.
+
 
 ```
 YYYY-MM-DD | FS-xx or NEW | what broke | caught by | was it in the brief? yes/no
