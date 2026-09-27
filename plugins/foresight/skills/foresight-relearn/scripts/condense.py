@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
-"""Condense Claude Code session transcripts into digests an agent can mine for
+"""Condense coding-agent session transcripts into digests an agent can mine for
 late-caught defects, then pack them into batches sized for one miner agent each.
+
+Sources:
+  claude  ~/.claude/projects/<dir>/*.jsonl
+  cursor  ~/.cursor/projects/<slug>/agent-transcripts/<id>/<id>.jsonl
+          (IDE agents and cloud agents; subagents/ are folded into the parent)
 
 Keeps: human messages, assistant prose, edit/test/commit/subagent tool lines,
 failing command tails, subagent + reviewer reports. Drops: thinking, successful
@@ -8,19 +13,18 @@ tool output, attachments, injected reminders and skill bodies. Forked sessions a
 de-duplicated by record uuid so the original wins.
 
 Usage:
-  python3 condense.py --project-glob '*myapp*' --out /tmp/foresight
-  python3 condense.py --project-glob '*myapp*' --out /tmp/fs --since 2026-09-01
+  python3 condense.py --source claude --project-glob '*myapp*' --out /tmp/foresight
+  python3 condense.py --source cursor --project-glob '*myapp*' --out /tmp/fs --since 2026-09-01
 
 Writes <out>/digests/*.md, <out>/digests/_index.tsv and <out>/batches.json.
 Stdlib only.
 """
 
 import argparse
+import datetime
 import json
 import re
 from pathlib import Path
-
-PROJECTS = Path.home() / ".claude" / "projects"
 
 FAIL_RE = re.compile(
     r"(FAILED|Traceback|AssertionError|Error:|error TS\d|✘|failed|Timeout|timed out|"
@@ -33,14 +37,48 @@ KEEP_BASH = re.compile(
 )
 DROP_TOOLS = {
     "Read",
+    "ReadFile",
     "Grep",
     "Glob",
+    "rg",
     "ToolSearch",
     "TodoWrite",
     "TaskCreate",
     "TaskUpdate",
     "TaskList",
+    "GetDynamicTools",
+    "GetMcpTools",
+    "UpdateCurrentStep",
+    "SetActiveBranch",
+    "WebSearch",
+    "WebFetch",
+    "SearchConversations",
+    "SwitchMode",
+    "AskQuestion",
+    "AwaitShell",
+    "ReadLints",
 }
+EDIT_TOOLS = {"Edit", "Write", "NotebookEdit", "StrReplace", "Delete", "EditNotebook"}
+AGENT_TOOLS = {"Agent", "Task", "Subagent"}
+BASH_TOOLS = {"Bash", "Shell"}
+CURSOR_DROP_TAGS = (
+    "dynamic_tools",
+    "available_subagent_models",
+    "available_subagent_types",
+    "image_files",
+    "mcp_meta_tool_servers",
+    "mcp_meta_tools",
+    "agent_skills",
+    "user_info",
+    "rules",
+    "communication",
+    "open_and_recently_viewed_files",
+    "system-reminder",
+)
+CURSOR_TS = re.compile(
+    r"<timestamp>(?:[A-Za-z]+,\s+)?([A-Za-z]{3}\s+\d{1,2},\s+\d{4},\s+\d{1,2}:\d{2}\s*[AP]M)",
+    re.I,
+)
 INJECTED_PREFIXES = (
     "<system-reminder>",
     "<command-name>",
@@ -75,14 +113,23 @@ def result_text(c: object) -> str:
     return ""
 
 
+def file_of(inp: dict) -> str:
+    return str(inp.get("file_path") or inp.get("path") or inp.get("target_notebook") or "")
+
+
+def as_dict(inp: object) -> dict:
+    return inp if isinstance(inp, dict) else {}
+
+
 def tool_line(tu: dict) -> str | None:
     name = tu.get("name", "?")
-    inp = tu.get("input") or {}
+    raw = tu.get("input")
+    inp = as_dict(raw)
     if name in DROP_TOOLS:
         return None
-    if name == "Bash":
+    if name in BASH_TOOLS:
         cmd = inp.get("command", "")
-        if not KEEP_BASH.search(cmd):
+        if not isinstance(cmd, str) or not KEEP_BASH.search(cmd):
             return None
         if "git commit" in cmd:
             m = re.search(r"-m [\"']([^\n\"']{0,160})", cmd) or re.search(
@@ -90,23 +137,56 @@ def tool_line(tu: dict) -> str | None:
             )
             return f"$ git commit: {m.group(1) if m else clip(cmd, 160)}"
         return f"$ {clip(cmd.replace(chr(10), ' '), 160)}"
-    if name in ("Edit", "Write", "NotebookEdit"):
-        return f"{name} {inp.get('file_path', '')}"
-    if name == "Agent":
-        return f"Agent[{inp.get('subagent_type', 'gp')}] {inp.get('description', '')} :: {clip(inp.get('prompt', ''), 400)}"
+    if name == "ApplyPatch" or (isinstance(raw, str) and raw.startswith("*** Begin Patch")):
+        text = raw if isinstance(raw, str) else json.dumps(raw)
+        m = re.search(r"\*\*\* (?:Add|Update|Delete) File: (\S+)", text)
+        return f"Edit {m.group(1) if m else clip(text, 160)}"
+    if name in EDIT_TOOLS:
+        return f"Edit {file_of(inp)}"
+    if name in AGENT_TOOLS:
+        return (
+            f"Agent[{inp.get('subagent_type', 'gp')}] {inp.get('description', '')} "
+            f":: {clip(str(inp.get('prompt', '')), 400)}"
+        )
     if name == "Skill":
         return f"Skill {inp.get('skill')} {inp.get('args') or ''}"
-    if name.startswith("mcp__"):
-        return f"{name.split('__')[-1]} {clip(json.dumps(inp), 160)}"
-    return f"{name} {clip(json.dumps(inp), 120)}"
+    if name.startswith("mcp__") or name in ("CallMcpTool", "CallDynamicTool"):
+        label = name.split("__")[-1]
+        payload = raw if isinstance(raw, str) else json.dumps(raw)
+        return f"{label} {clip(payload, 160)}"
+    payload = raw if isinstance(raw, str) else json.dumps(raw if raw is not None else {})
+    return f"{name} {clip(payload, 120)}"
 
 
-def user_block(txt: str, ts: str) -> str | None:
+def unwrap_user(txt: str) -> tuple[str, str]:
+    """Drop Cursor/Claude injected wrappers. Return (text, ISO timestamp or '')."""
+    iso = ""
+    m = CURSOR_TS.search(txt)
+    if m:
+        try:
+            iso = datetime.datetime.strptime(m.group(1), "%b %d, %Y, %I:%M %p").strftime(
+                "%Y-%m-%dT%H:%M"
+            )
+        except ValueError:
+            iso = ""
+    for tag in CURSOR_DROP_TAGS:
+        txt = re.sub(rf"<{tag}\b[^>]*>.*?</{tag}>", "", txt, flags=re.S)
+    txt = re.sub(r"<timestamp>.*?</timestamp>", "", txt, flags=re.S)
+    txt = re.sub(r"</?user_query>", "", txt)
+    return txt.strip(), iso
+
+
+def user_block(txt: str, ts: str) -> tuple[str | None, str]:
     txt = strip_reminders(txt)
+    txt, iso = unwrap_user(txt)
+    ts = ts or iso
     if not txt or txt.startswith(INJECTED_PREFIXES):
-        return None
-    tag = "TASK-NOTIFY" if "<task-notification>" in txt else "USER"
-    return f"\n## {tag} [{ts[:16]}]\n{clip(txt, 3000 if tag == 'TASK-NOTIFY' else 2500)}"
+        return None, ts
+    notify = "<task-notification>" in txt or txt.startswith(
+        "Briefly inform the user about the task result"
+    )
+    tag = "TASK-NOTIFY" if notify else "USER"
+    return f"\n## {tag} [{ts[:16]}]\n{clip(txt, 3000 if tag == 'TASK-NOTIFY' else 2500)}", ts
 
 
 def condense(path: Path, seen: set[str]) -> tuple[str, dict]:
@@ -123,7 +203,11 @@ def condense(path: Path, seen: set[str]) -> tuple[str, dict]:
             if uid in seen:
                 continue
             seen.add(uid)
-        kind = r.get("type")
+        kind = r.get("type") or r.get("role")
+        if kind == "turn_ended":
+            if r.get("status") == "error":
+                out.append(f"  <= ERR: {clip(str(r.get('error') or 'turn ended'), 300)}")
+            continue
         if kind == "custom-title":
             meta["title"] = r.get("customTitle")
             continue
@@ -140,17 +224,18 @@ def condense(path: Path, seen: set[str]) -> tuple[str, dict]:
                 if not isinstance(b, dict):
                     continue
                 if b.get("type") == "text":
-                    ub = user_block(b.get("text", ""), ts)
+                    ub, ts = user_block(b.get("text", ""), ts)
+                    meta["first"] = meta["first"] or ts or None
                     if ub:
                         out.append(ub)
                 elif b.get("type") == "tool_result":
                     tname = pending.pop(b.get("tool_use_id"), "")
                     txt = result_text(b.get("content"))
-                    if tname == "Agent":
+                    if tname in AGENT_TOOLS:
                         out.append(f"  <= AGENT-REPORT: {clip(txt, 3500)}")
                     elif b.get("is_error"):
                         out.append(f"  <= ERR: {clip(txt, 500)}")
-                    elif tname == "Bash" and FAIL_RE.search(txt or ""):
+                    elif tname in BASH_TOOLS and FAIL_RE.search(txt or ""):
                         out.append(
                             f"  <= FAILISH: {clip(' | '.join(txt.strip().splitlines()[-8:]), 450)}"
                         )
@@ -183,10 +268,57 @@ def pack(sizes: dict[str, int], cap: int) -> list[list[str]]:
     return batches
 
 
+def born(path: Path) -> float:
+    st = path.stat()
+    return getattr(st, "st_birthtime", st.st_mtime)
+
+
+def default_root(source: str) -> Path:
+    if source == "cursor":
+        return Path.home() / ".cursor" / "projects"
+    if source == "claude":
+        return Path.home() / ".claude" / "projects"
+    raise SystemExit(f"unknown --source {source} (use claude or cursor)")
+
+
+def session_files(root: Path, source: str, project_glob: str) -> list[Path]:
+    files: list[Path] = []
+    for d in root.glob(project_glob):
+        if not d.is_dir():
+            continue
+        if source == "cursor":
+            at = d / "agent-transcripts"
+            if not at.is_dir():
+                continue
+            for sess in at.iterdir():
+                parent = sess / f"{sess.name}.jsonl"
+                if sess.is_dir() and parent.is_file():
+                    files.append(parent)
+        else:
+            files.extend(p for p in d.glob("*.jsonl") if p.is_file())
+    return sorted(files, key=born)
+
+
+def subagent_files(parent: Path) -> list[Path]:
+    sub = parent.parent / "subagents"
+    if not sub.is_dir():
+        return []
+    return sorted(p for p in sub.glob("*.jsonl") if p.is_file())
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
+    ap.add_argument("--source", choices=("claude", "cursor"), default="claude")
     ap.add_argument(
-        "--project-glob", required=True, help="glob under ~/.claude/projects, e.g. '*myapp*'"
+        "--project-glob",
+        required=True,
+        help="glob under the transcripts root, e.g. '*myapp*'",
+    )
+    ap.add_argument(
+        "--projects-root",
+        type=Path,
+        default=None,
+        help="override ~/.claude/projects or ~/.cursor/projects",
     )
     ap.add_argument("--out", required=True, type=Path)
     ap.add_argument("--since", default="", help="YYYY-MM-DD; skip sessions that started earlier")
@@ -195,21 +327,34 @@ def main() -> None:
 
     digests = args.out / "digests"
     digests.mkdir(parents=True, exist_ok=True)
-    files = sorted(
-        (f for d in PROJECTS.glob(args.project_glob) for f in d.glob("*.jsonl")),
-        key=lambda f: f.stat().st_birthtime,
-    )
+    root = args.projects_root or default_root(args.source)
+    files = session_files(root, args.source, args.project_glob)
     seen: set[str] = set()
     sizes: dict[str, int] = {}
     for f in files:
         body, meta = condense(f, seen)
+        parts = [body]
+        for sub in subagent_files(f):
+            sb, sm = condense(sub, seen)
+            if sb.strip():
+                parts.append(f"\n## SUBAGENT {sub.stem}\n{sb}")
+            if sm["first"] and (not meta["first"] or sm["first"] < meta["first"]):
+                meta["first"] = sm["first"]
+            meta["branches"] |= sm["branches"]
+            if not meta["title"]:
+                meta["title"] = sm["title"]
+        body = "\n".join(p for p in parts if p)
+        if not meta["first"]:
+            meta["first"] = datetime.datetime.fromtimestamp(f.stat().st_mtime).strftime(
+                "%Y-%m-%dT%H:%M"
+            )
         day = (meta["first"] or "0000-00-00")[:10]
         if len(body) < 400 or day < args.since:
             continue
         name = f"{day}_{f.stem[:8]}.md"
         header = (
-            f"# SESSION {f.stem}\n# dir: {f.parent.name}\n# title: {meta['title']}\n"
-            f"# branches: {', '.join(sorted(meta['branches']))}\n"
+            f"# SESSION {f.stem}\n# source: {args.source}\n# dir: {f.parent.name}\n"
+            f"# title: {meta['title']}\n# branches: {', '.join(sorted(meta['branches']))}\n"
         )
         target = digests / name
         # the same session id can live under two project dirs (worktree moves) — append
