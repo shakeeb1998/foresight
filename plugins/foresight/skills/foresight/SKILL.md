@@ -77,13 +77,44 @@ first and become plan steps.
 
 | Moment | Open | When |
 |---|---|---|
-| `dispatch` | `fs.py moment dispatch` | before fanning out to subagents, background agents or worktrees; paste each agent's brief rows into its prompt |
+| `dispatch` | `fs.py moment dispatch` | before fanning out to subagents, background agents or worktrees; paste each agent's brief rows into its prompt; for 2+ lanes, section 3 first |
 | `test-write` | `fs.py moment test-write` | before writing e2e specs, mocks or fixtures |
 | `verify` | `fs.py moment verify` | before trusting any red or green result |
 | `merge` | `fs.py moment merge` | before a commit, merge, cherry-pick or consolidation |
 | `deploy` | `fs.py moment deploy` | before deploying, or saying merged / deployed / live |
 
-## 3. After a late catch: feed it back
+## 3. Parallel-lane plans: build shared guards first
+
+When a plan fans out into two or more parallel lanes (worktrees, subagent waves), the
+late catches that cost the most are the ones every lane rediscovers on its own:
+deadlocks, cross-tenant leaks, 500s on bad input and perf misses at real scale. Move them
+into a **lane 0** that runs on the base branch before any lane starts:
+
+| Lane-0 guard | What it is | Pattern |
+|---|---|---|
+| Lock-order registry | One global order over every lockable resource, including hidden ones (FK/unique checks, row locks inside helpers, counters, advisory locks). A harness that checks EVERY acquisition's order, plus a threaded deadlock test template. | FS-40 |
+| Scoping table | For each parent entity, including soft-deleted parents: how a query must scope it, with a cross-tenant test template. | FS-38 |
+| Hostile-input fixtures | NUL bytes, bad encodings, deep nesting, oversize bodies, wrong content types. Every new endpoint answers 4xx, never 500. | FS-21 |
+| Spec-size seed + strict gates | Seed at the spec's scale, refresh planner stats, gate at the page size actually served, no slack. Lanes run them from their first perf-sensitive task. | FS-06 |
+| Contract parity | Client types generated from the API schema, or a parity test. | FS-39 / FS-15 |
+
+Then, for the rest of the plan:
+
+1. **Brief per lane.** Run `fs.py match` for each lane and paste that lane's rows into
+   its dispatch prompt.
+2. **Lanes merge only when green on their own branch:** their own e2e specs plus scoped
+   unit tests (FS-04).
+3. **Merge the base branch into the integration branch every wave** and re-run scoped
+   tests. A base change can break integration with no textual conflict.
+4. **Real inputs at plan time.** Get a real sample document or data file before
+   designing a parser, and run it at the first gate. Every pointer interaction in an
+   editor ships a keyboard route in the same task (FS-10).
+5. **Disk before fan-out.** Check free disk against worktrees × (checkout + dependency
+   folder + test DB). Prune merged lanes between waves.
+6. **Test-run budget.** Scoped tests during work. Reviewers run only the tests their
+   findings need. One full suite run on the integrated branch before the PR.
+
+## 4. After a late catch: feed it back
 
 When a reviewer, the user, a hook, or a test after "done" catches something, append one
 line to the repo's catches log. Use `./.foresight/catches.log`, unless the repo already has
@@ -106,3 +137,6 @@ transcripts (IDE and cloud agents), into new or sharper graph nodes.
 | "Review will catch it" | Every review catch costs a full extra round. Moving it earlier is the point of this skill. |
 | "Tests are green" | Most self-verify catches came after green. Open `moment verify`. |
 | "It pushed, so it's live" | Automation silently doesn't fire. Check the SHA on the target. |
+| "Each lane can handle its own locking / scoping / bad input" | Each lane rediscovers it in review, one fix wave at a time. Build the lane-0 guard once. |
+| "Merge the lane, we'll test on integration" | Integration then carries every lane's red at once. Lanes merge green. |
+| "Re-run the full suite to be sure" | Full reruns were a third of agent time in one epic. Scoped runs; one full run before the PR. |

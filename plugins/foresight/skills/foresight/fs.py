@@ -86,7 +86,7 @@ def match(query: str) -> None:
     for score, src, t, body in sorted(scored, key=lambda x: -x[0])[:3]:
         print(f"## {t.stem}  (score {score}, {src})")
         for line in body.splitlines():
-            m = re.match(r"- \[(FS-\d+)\]", line)
+            m = re.match(r"- \[(FS-\d+|L-[a-z0-9-]+)\]", line)
             if m:
                 fid = m.group(1)
                 guard = first_guard(t.parent.parent / "patterns" / f"{fid.lower()}.md")
