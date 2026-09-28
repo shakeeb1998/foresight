@@ -203,7 +203,7 @@ def render(stats: dict, out: Path) -> None:
     for t, td in sorted(tasks.items()):
         preds = sorted(
             ((c, k) for c, k in td["predicts"].items() if k >= 2 and c in pats), key=lambda x: -x[1]
-        )[:8]
+        )[:10]
         if not preds:
             continue
         lines = [
