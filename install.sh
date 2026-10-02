@@ -8,11 +8,12 @@
 #   ./install.sh --project <dir>     # also add the Cursor rule to <dir>/.cursor/rules/foresight.mdc
 #   ./install.sh --copy              # copy instead of symlink (e.g. synced or read-only homes)
 #   ./install.sh --force             # replace an existing non-symlink install (it is backed up first)
+#   ./install.sh --hooks             # also install the binding-guard gates into ~/.claude/settings.json
 set -euo pipefail
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SKILLS="$REPO/plugins/foresight/skills"
-targets=() project="" mode="link" force=0
+targets=() project="" mode="link" force=0 hooks=0
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -22,7 +23,8 @@ while [ $# -gt 0 ]; do
     --project) project="${2:?--project needs a directory}"; shift ;;
     --copy) mode="copy" ;;
     --force) force=1 ;;
-    -h|--help) sed -n '2,11p' "$0"; exit 0 ;;
+    --hooks) hooks=1 ;;
+    -h|--help) sed -n '2,12p' "$0"; exit 0 ;;
     *) echo "unknown option: $1" >&2; exit 2 ;;
   esac
   shift
@@ -70,6 +72,11 @@ if [ -n "$project" ]; then
   mkdir -p "$project/.cursor/rules"
   cp "$REPO/plugins/foresight/rules/foresight.mdc" "$project/.cursor/rules/foresight.mdc"
   echo "Cursor rule: $project/.cursor/rules/foresight.mdc"
+fi
+
+if [ $hooks -eq 1 ]; then
+  echo "Claude Code gates:"
+  python3 "$REPO/plugins/foresight/hooks/install_hooks.py" --fs "$HOME/.claude/skills/foresight/fs.py"
 fi
 
 echo
