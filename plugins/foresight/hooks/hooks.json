@@ -1,0 +1,20 @@
+{
+  "description": "foresight binding guards: dispatch, commit/PR and stop are gated while a flagged guard has no disposition (no-op when nothing is flagged).",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Agent|Task",
+        "hooks": [{ "type": "command", "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/skills/foresight/fs.py\" gate dispatch", "timeout": 15 }]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [{ "type": "command", "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/skills/foresight/fs.py\" gate commit", "timeout": 15 }]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [{ "type": "command", "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/skills/foresight/fs.py\" gate stop", "timeout": 15 }]
+      }
+    ]
+  }
+}
