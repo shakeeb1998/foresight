@@ -3,7 +3,7 @@ type: task
 title: Run a data fix, reconcile, rebuild or audit against live prod / staging data
 tags: [backend, prod, live, data, fix, cleanup, delete, rebuild, reconcile, audit, verify]
 resource: live-data-fix-reconcile
-timestamp: 2026-09-27
+timestamp: 2026-10-02
 ---
 
 # Task · Run a data fix, reconcile, rebuild or audit against live prod / staging data
@@ -21,3 +21,5 @@ predicts (incidents while doing this task):
 - [FS-06](../patterns/fs-06.md) Per-row queries and unbounded fetches invisible at seed scale (4)
 - [FS-03](../patterns/fs-03.md) Code written against an assumed interface instead of the real one (4)
 - [FS-53](../patterns/fs-53.md) Known fix or learned rule not made durable, so the same trap recurs (3)
+- [FS-55](../patterns/fs-55.md) Rule keyed on a proxy signal instead of the defining type, status or link (3)
+- [FS-65](../patterns/fs-65.md) Which host, checkout or branch serves an environment assumed (2)

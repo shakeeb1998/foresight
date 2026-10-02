@@ -3,7 +3,7 @@ type: task
 title: Build or run an LLM / OCR document extraction pipeline or agent callback
 tags: [backend, ocr, pdf, invoice, extraction, llm, agent, pipeline, rasterize, barcode, edi]
 resource: llm-extraction-pipeline
-timestamp: 2026-09-27
+timestamp: 2026-10-02
 ---
 
 # Task · Build or run an LLM / OCR document extraction pipeline or agent callback

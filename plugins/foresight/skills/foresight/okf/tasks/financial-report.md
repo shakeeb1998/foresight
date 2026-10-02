@@ -3,7 +3,7 @@ type: task
 title: Build or change a financial report or total (P&L, balance sheet, statement)
 tags: [backend, report, pnl, profit, loss, balance, sheet, total, subtotal, statement, bucket]
 resource: financial-report
-timestamp: 2026-09-27
+timestamp: 2026-10-02
 ---
 
 # Task · Build or change a financial report or total (P&L, balance sheet, statement)

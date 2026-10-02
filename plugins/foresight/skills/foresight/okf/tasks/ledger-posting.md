@@ -3,7 +3,7 @@ type: task
 title: Edit ledger / money posting logic (double-entry legs, credit polarity, amounts)
 tags: [backend, ledger, posting, debit, credit, leg, account, transaction, expense, check, deposit]
 resource: ledger-posting
-timestamp: 2026-09-27
+timestamp: 2026-10-02
 ---
 
 # Task · Edit ledger / money posting logic (double-entry legs, credit polarity, amounts)
@@ -21,3 +21,5 @@ predicts (incidents while doing this task):
 - [FS-26](../patterns/fs-26.md) Boundary values and NULL/join semantics not exercised (4)
 - [FS-55](../patterns/fs-55.md) Rule keyed on a proxy signal instead of the defining type, status or link (4)
 - [FS-07](../patterns/fs-07.md) Parallel code paths for one operation diverge (4)
+- [FS-57](../patterns/fs-57.md) Reconciliation tooling re-implements production posting logic and drifts (3)
+- [FS-52](../patterns/fs-52.md) Named-account get_or_create keyed on account_type forks duplicates as type strings drift (3)
