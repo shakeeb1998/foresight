@@ -162,7 +162,8 @@ def close(root: Path, reason: str, force: bool) -> dict:
 def brief_block(data: dict, lane: str | None = None) -> str:
     """The verbatim block every dispatched agent prompt must carry."""
     rows = [f for f in data["flags"] if lane is None or f.get("lane", "") in ("", lane)]
-    lines = ["<!-- foresight-brief v1 -->", "FORESIGHT GUARDS - mandatory. Apply each guard, or report it as n/a with a reason:"]
+    marker = f"<!-- foresight-brief v1 lane={lane} -->" if lane else "<!-- foresight-brief v1 -->"
+    lines = [marker, "FORESIGHT GUARDS - mandatory. Apply each guard, or report it as n/a with a reason:"]
     for f in rows:
         lines.append(f"- [{f['id']}] {f['title']} - guard: {f['guard']}")
     lines.append("Report each id's disposition in your final message (applied + evidence, or n/a + reason).")

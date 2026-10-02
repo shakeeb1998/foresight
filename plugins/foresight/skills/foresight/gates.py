@@ -131,7 +131,11 @@ def gate_dispatch(payload: dict) -> None:
         return _deny(f"foresight gate: {exc}")
     if not data:
         return
-    absent = [f for f in data["flags"] if f"[{f['id']}]" not in prompt or f["guard"][:60] not in prompt]
+    # A lane brief (`fs.py brief --lane X`) owes that lane's guards plus the
+    # lane-less ones; a plain brief owes every flag in the ledger.
+    m = re.search(r"<!-- foresight-brief v1 lane=([^ >]+) -->", prompt)
+    owed = [f for f in data["flags"] if not m or f.get("lane", "") in ("", m.group(1))]
+    absent = [f for f in owed if f"[{f['id']}]" not in prompt or f["guard"][:60] not in prompt]
     if absent:
         return _deny("foresight gate: dispatch refused, the prompt does not carry these flagged guards verbatim: "
                      + _list(absent) + ". Paste the output of `fs.py brief` (or `fs.py brief --lane <name>`) "
@@ -147,7 +151,9 @@ def gate_stop(payload: dict) -> None:
     except ledger.LedgerError as exc:
         print(json.dumps({"decision": "block", "reason": f"foresight gate: {exc}"}))
         return
-    still = ledger.open_flags(data)
+    # Lane flags belong to the agents dispatched with them; their reports resolve
+    # them, and commits / PRs stay gated until they do. Stop holds only the rest.
+    still = [f for f in ledger.open_flags(data) if not f.get("lane")]
     if not still:
         return
     msg = f"foresight gate: {len(still)} flagged guard(s) have no disposition: {_list(still)}. {_resolve_hint()}"

@@ -164,6 +164,22 @@ class GateContract(unittest.TestCase):
         self.fs("moment", "dispatch")
         self.assertEqual(self.gate("dispatch", payload), {})
 
+    def test_parallel_lanes_dispatch_with_their_own_brief(self) -> None:
+        self.assertIn("FLAGGED", self.fs("match", "--lane", "a", "widget list page with pagination").stdout)
+        self.assertIn("FLAGGED", self.fs("match", "--lane", "b", "other widget thing").stdout)
+        self.fs("moment", "dispatch")
+        for lane, mine, other in (("a", "FS-01", "FS-03"), ("b", "FS-03", "FS-01")):
+            brief = self.fs("brief", "--lane", lane).stdout
+            self.assertIn(f"lane={lane}", brief)
+            self.assertIn(mine, brief)
+            self.assertNotIn(other, brief)
+            payload = {"tool_name": "Agent", "cwd": str(self.repo), "tool_input": {"prompt": "Do lane work.\n" + brief}}
+            self.assertEqual(self.gate("dispatch", payload), {}, f"lane {lane} brief must be enough")
+        # Lane flags are the dispatched agents' to report: stop does not block on them...
+        self.assertEqual(self.gate("stop", {"cwd": str(self.repo)}), {})
+        # ...but nothing commits until every lane's flags have a disposition.
+        self.assertIn("FS-03", self.denied(self.bash("git commit -m x")))
+
     # -- stop gate -------------------------------------------------------------
     def test_stop_blocks_once_then_only_reports(self) -> None:
         self.flag()
