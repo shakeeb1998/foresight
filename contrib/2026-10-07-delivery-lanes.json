@@ -1,0 +1,388 @@
+{
+ "generated": "2026-10-07",
+ "patterns": {
+  "FS-03": {
+   "count": 3,
+   "n_projects": 1,
+   "domains": {
+    "cross-cutting": 3
+   },
+   "related": []
+  },
+  "FS-04": {
+   "count": 1,
+   "n_projects": 1,
+   "domains": {
+    "backend": 1
+   },
+   "related": []
+  },
+  "FS-14": {
+   "count": 1,
+   "n_projects": 1,
+   "domains": {
+    "cross-cutting": 1
+   },
+   "related": []
+  },
+  "FS-18": {
+   "count": 1,
+   "n_projects": 1,
+   "domains": {
+    "cross-cutting": 1
+   },
+   "related": []
+  },
+  "FS-19": {
+   "count": 1,
+   "n_projects": 1,
+   "domains": {
+    "cross-cutting": 1
+   },
+   "related": []
+  },
+  "FS-20": {
+   "count": 1,
+   "n_projects": 1,
+   "domains": {
+    "backend": 1
+   },
+   "related": []
+  },
+  "FS-22": {
+   "count": 1,
+   "n_projects": 1,
+   "domains": {
+    "backend": 1
+   },
+   "related": []
+  },
+  "FS-25": {
+   "count": 1,
+   "n_projects": 1,
+   "domains": {
+    "cross-cutting": 1
+   },
+   "related": []
+  },
+  "FS-27": {
+   "count": 1,
+   "n_projects": 1,
+   "domains": {
+    "cross-cutting": 1
+   },
+   "related": []
+  },
+  "FS-29": {
+   "count": 1,
+   "n_projects": 1,
+   "domains": {
+    "cross-cutting": 1
+   },
+   "related": []
+  },
+  "FS-31": {
+   "count": 1,
+   "n_projects": 1,
+   "domains": {
+    "web-frontend": 1
+   },
+   "related": []
+  },
+  "FS-34": {
+   "count": 1,
+   "n_projects": 1,
+   "domains": {
+    "cross-cutting": 1
+   },
+   "related": []
+  },
+  "FS-35": {
+   "count": 1,
+   "n_projects": 1,
+   "domains": {
+    "cross-cutting": 1
+   },
+   "related": []
+  },
+  "FS-36": {
+   "count": 1,
+   "n_projects": 1,
+   "domains": {
+    "cross-cutting": 1
+   },
+   "related": []
+  },
+  "FS-38": {
+   "count": 1,
+   "n_projects": 1,
+   "domains": {
+    "backend": 1
+   },
+   "related": []
+  },
+  "FS-40": {
+   "count": 1,
+   "n_projects": 1,
+   "domains": {
+    "backend": 1
+   },
+   "related": []
+  },
+  "FS-42": {
+   "count": 1,
+   "n_projects": 1,
+   "domains": {
+    "backend": 1
+   },
+   "related": []
+  },
+  "FS-45": {
+   "count": 1,
+   "n_projects": 1,
+   "domains": {
+    "cross-cutting": 1
+   },
+   "related": []
+  },
+  "FS-55": {
+   "count": 3,
+   "n_projects": 2,
+   "domains": {
+    "backend": 3
+   },
+   "related": []
+  },
+  "FS-63": {
+   "count": 1,
+   "n_projects": 1,
+   "domains": {
+    "cross-cutting": 1
+   },
+   "related": []
+  },
+  "FS-84": {
+   "count": 1,
+   "n_projects": 1,
+   "domains": {
+    "backend": 1
+   },
+   "related": []
+  },
+  "FS-85": {
+   "count": 1,
+   "n_projects": 1,
+   "domains": {
+    "backend": 1
+   },
+   "related": []
+  },
+  "FS-90": {
+   "count": 4,
+   "n_projects": 2,
+   "domains": {
+    "cross-cutting": 4
+   },
+   "related": []
+  },
+  "FS-93": {
+   "count": 1,
+   "n_projects": 1,
+   "domains": {
+    "cross-cutting": 1
+   },
+   "related": []
+  },
+  "L-semantic-conflict-from-base": {
+   "count": 2,
+   "n_projects": 1,
+   "domains": {
+    "cross-cutting": 2
+   },
+   "related": [],
+   "fold_into": "FS-97 (open PR #7)"
+  },
+  "L-uniform-gates-in-large-fanout": {
+   "count": 2,
+   "n_projects": 2,
+   "domains": {
+    "cross-cutting": 2
+   },
+   "related": [],
+   "fold_into": "FS-101 (open PR #7)"
+  },
+  "L-unattended-fleet-no-self-heal": {
+   "name": "Unattended agent fleet loses work at runtime boundaries with no durable replay, liveness sweep or idempotent recovery",
+   "family": "agent-orchestration",
+   "moment": "dispatch",
+   "mechanism": "A fleet of coding bots runs overnight: a server wakes each bot through a chat gateway, the bot runs a capped agent session in a worktree and reports back over one HTTP callback. Every boundary is fire-and-forget. A config or system-prompt re-render restarts the gateway and its drain drops inbound wakes with no replay; a 502 on the result callback leaves the session marked running and its slot held for an hour; a run hits its turn cap and waits for a human nobody is watching; the sweeper keeps retrying a known-broken path and exhausts its retry budget minutes before the fix lands. The human then recovers by hand (unassign/reassign loops, hand-written watchers), and non-idempotent recovery over-dispatches work that was already woken. Throughput is set by how fast someone notices, not by the bots.",
+   "trigger_signals": [
+    "bots woken by chat messages or webhooks with no server-side record of unacknowledged wakes",
+    "a run reports completion through a single HTTP callback with no retry, heartbeat or stale-slot reaper",
+    "a server-side change (system-prompt re-render, config) that restarts the bot gateway while lanes are live",
+    "unattended agent runs with a turn or budget cap below the task size",
+    "recovering lost work by toggling assignment or status in a loop",
+    "deploying a fix to a path an automated sweep or retry loop is still hitting",
+    "an overnight or multi-hour fleet run supervised only by a human or by ad hoc watchers"
+   ],
+   "preventive_checks": [
+    "Before the first unattended night, make every hop durable: wakes queued server-side and replayed until acknowledged, result callbacks retried, live runs heartbeated, and a timer sweep that reaps stale slots and re-wakes lost work",
+    "Recovery must be idempotent: re-wake only items confirmed lost through an explicit re-wake call, never by unassign/reassign loops; assert the wake count stays under the lane cap",
+    "Auto-continue runs that stop on a turn or budget cap up to a lane budget, then escalate to a human instead of idling",
+    "Pause the sweep or reset its retry counters before deploying a fix to the path it retries",
+    "Run one supervision loop on a schedule (launchd/systemd or a scheduled agent) that checks every lane's state, heartbeat age and queue, instead of hand-written watchers per incident"
+   ],
+   "portable": true,
+   "count": 6,
+   "n_projects": 1,
+   "domains": {
+    "cross-cutting": 6
+   },
+   "related": []
+  },
+  "L-test-result-verdict-misreported": {
+   "name": "Test-result reporting collapses, filters or duplicates results so the run's verdict misstates what executed",
+   "family": "verification-claims",
+   "moment": "implement",
+   "mechanism": "Automated test results flow from a runner (JUnit, Playwright JSON) through a push CLI into a test-management ingest that maps many tests to one case. Each hop silently reshapes the verdict: ingest keeps one result per case (highest attempt, first on tie) so a failing test hides behind a passing one; a scoped run serializes every filtered-out test as skipped, and the UI counts skipped as complete, so 6 passed out of 182 reads as 100%; the scoped command runs one runner and misses e2e specs tagged to the same case; a wrapper pushes twice and creates duplicate runs; an evidence flag uploads nothing without its companion flag. Requirements turn green on evidence that does not exist.",
+   "trigger_signals": [
+    "many automated tests mapped to one test case or requirement (case-id tags, name patterns)",
+    "a dedupe or winner-selection step in a result ingest keyed on attempt, order or timestamp",
+    "a scoped or filtered test run (-t, --grep, tag filter) whose report is pushed as a run",
+    "case tags spread across several runners (unit, API e2e, browser e2e) while the scoped command calls one",
+    "a QA bot or CI wrapper that pushes results and may retry or be invoked twice",
+    "progress or coverage percentages that count skipped as executed"
+   ],
+   "preventive_checks": [
+    "Collapse many results per case with worst-result-wins (failed > blocked > passed > skipped) within and across chunks, and test a case with one passing and one failing test",
+    "Push only executed tests from a scoped run (or flag the run as scoped); keep skipped distinct from untested and exclude skipped from pass percentages",
+    "Build the scoped command from every runner's specs tagged to the case and assert the executed count matches the tagged count",
+    "Make result pushes idempotent on an external run id and assert one run per ticket round",
+    "After a push, read the run back: totals, executed vs skipped, evidence count, and compare them with the runner's own summary"
+   ],
+   "portable": true,
+   "count": 4,
+   "n_projects": 1,
+   "domains": {
+    "backend": 1,
+    "cross-cutting": 3
+   },
+   "related": []
+  }
+ },
+ "tasks": {
+  "write-endpoint": {
+   "predicts": {
+    "FS-40": 1
+   }
+  },
+  "untrusted-input-validation": {
+   "predicts": {
+    "FS-04": 1
+   }
+  },
+  "third-party-integration": {
+   "predicts": {
+    "FS-55": 1
+   }
+  },
+  "schema-model-change": {
+   "predicts": {
+    "FS-84": 1
+   }
+  },
+  "financial-report": {
+   "predicts": {
+    "FS-55": 1
+   }
+  },
+  "write-e2e-spec": {
+   "predicts": {
+    "FS-35": 1,
+    "FS-34": 1
+   }
+  },
+  "run-local-verification": {
+   "predicts": {
+    "FS-14": 1
+   }
+  },
+  "merge-promote-branch": {
+   "predicts": {
+    "L-semantic-conflict-from-base": 2
+   }
+  },
+  "ci-pipeline": {
+   "predicts": {
+    "FS-29": 1
+   }
+  },
+  "tooling-dependency": {
+   "predicts": {
+    "FS-90": 2
+   }
+  },
+  "agent-fleet-lanes": {
+   "title": "Run or supervise a fleet of coding bots in delivery lanes (implement, review, QA) that merge PRs into a shared branch",
+   "domain": "cross-cutting",
+   "description": "Autonomous multi-bot delivery: implementer, reviewer and QA bots woken per ticket, parallel PRs merged into a shared dev/integration branch, overnight unattended runs, wake delivery, result callbacks, lane prompts, supervision and recovery.",
+   "keywords": [
+    "bots",
+    "fleet",
+    "overnight",
+    "unattended",
+    "implementer",
+    "parallel",
+    "dev",
+    "supervise",
+    "lanes",
+    "wake",
+    "reviewer",
+    "merge"
+   ],
+   "predicts": {
+    "L-unattended-fleet-no-self-heal": 6,
+    "FS-63": 1,
+    "FS-25": 1,
+    "FS-27": 1,
+    "L-uniform-gates-in-large-fanout": 2,
+    "FS-93": 1,
+    "FS-19": 1,
+    "FS-45": 1,
+    "FS-03": 3,
+    "FS-36": 1,
+    "FS-55": 1,
+    "FS-85": 1,
+    "FS-38": 1,
+    "FS-20": 1,
+    "FS-42": 1
+   }
+  },
+  "test-result-reporting": {
+   "title": "Run QA tests and push results (JUnit, evidence) into test management; ingest and report results per case",
+   "domain": "cross-cutting",
+   "description": "A QA bot or CI job runs scoped or full tests, pushes JUnit/Playwright results and evidence through a CLI, and a test-management ingest maps results to cases, runs and requirement coverage.",
+   "keywords": [
+    "qa",
+    "bot",
+    "scoped",
+    "pushes",
+    "runs",
+    "result",
+    "ingest",
+    "junit",
+    "evidence",
+    "coverage",
+    "case",
+    "test"
+   ],
+   "predicts": {
+    "L-test-result-verdict-misreported": 4,
+    "FS-31": 1,
+    "FS-22": 1,
+    "FS-18": 1,
+    "FS-90": 2
+   }
+  }
+ }
+}

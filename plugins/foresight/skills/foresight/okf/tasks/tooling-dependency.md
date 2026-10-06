@@ -16,3 +16,4 @@ predicts (incidents while doing this task):
 - [FS-29](../patterns/fs-29.md) Code assumes the host environment it was written on (8)
 - [FS-84](../patterns/fs-84.md) Dependency or toolchain change not resolved against what actually installs and runs (5)
 - [FS-02](../patterns/fs-02.md) Verification against an environment not running the code under test (4)
+- [FS-90](../patterns/fs-90.md) Repo tooling bound to one machine's interpreter or to an unprovisioned worktree (3)

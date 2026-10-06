@@ -21,3 +21,5 @@ predicts (incidents while doing this task):
 - [FS-15](../patterns/fs-15.md) Producer and consumer of the same data disagree (4)
 - [FS-03](../patterns/fs-03.md) Code written against an assumed interface instead of the real one (3)
 - [FS-36](../patterns/fs-36.md) Ambiguous or constraint-bearing ask resolved without asking (3)
+- [FS-22](../patterns/fs-22.md) Capability built in one layer but never connected to the next (3)
+- [FS-08](../patterns/fs-08.md) E2E locator or assertion coupled to incidental page content (2)

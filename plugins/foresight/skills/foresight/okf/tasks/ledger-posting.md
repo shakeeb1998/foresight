@@ -21,3 +21,5 @@ predicts (incidents while doing this task):
 - [FS-26](../patterns/fs-26.md) Boundary values and NULL/join semantics not exercised (4)
 - [FS-55](../patterns/fs-55.md) Rule keyed on a proxy signal instead of the defining type, status or link (4)
 - [FS-07](../patterns/fs-07.md) Parallel code paths for one operation diverge (4)
+- [FS-57](../patterns/fs-57.md) Reconciliation tooling re-implements production posting logic and drifts (3)
+- [FS-52](../patterns/fs-52.md) Named-account get_or_create keyed on account_type forks duplicates as type strings drift (3)

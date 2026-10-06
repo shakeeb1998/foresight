@@ -18,5 +18,6 @@ predicts (incidents while doing this task):
 - [FS-15](../patterns/fs-15.md) Producer and consumer of the same data disagree (3)
 - [FS-03](../patterns/fs-03.md) Code written against an assumed interface instead of the real one (3)
 - [FS-32](../patterns/fs-32.md) Side effects not ordered against the commit or outcome they depend on (2)
+- [FS-55](../patterns/fs-55.md) Rule keyed on a proxy signal instead of the defining type, status or link (2)
 - [FS-37](../patterns/fs-37.md) Authorization decided on a proxy instead of the real identity or entitlement (2)
 - [FS-25](../patterns/fs-25.md) Errors swallowed, conflated or silently defaulted (2)

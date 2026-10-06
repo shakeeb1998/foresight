@@ -21,3 +21,5 @@ predicts (incidents while doing this task):
 - [FS-03](../patterns/fs-03.md) Code written against an assumed interface instead of the real one (2)
 - [FS-44](../patterns/fs-44.md) Migration unsafe for code or data already in the shared DB (2)
 - [FS-35](../patterns/fs-35.md) Test depends on uncontrolled shared data or unrealistic setup (2)
+- [FS-52](../patterns/fs-52.md) Named-account get_or_create keyed on account_type forks duplicates as type strings drift (2)
+- [FS-63](../patterns/fs-63.md) Entity identity matched on a non-identifying attribute (2)

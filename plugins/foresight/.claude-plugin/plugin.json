@@ -1,6 +1,6 @@
 {
   "name": "foresight",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Anti-pattern foresight graph (OKF) mined from real late-caught defects, plus a relearn skill that mines your own Claude Code or Cursor sessions and contributes back.",
   "author": {
     "name": "shakeeb1998"

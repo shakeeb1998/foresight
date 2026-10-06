@@ -1,6 +1,6 @@
 {
   "name": "foresight",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Predict late-caught coding mistakes before writing code, and mine your own Cursor or Claude Code sessions to sharpen the graph.",
   "author": {
     "name": "shakeeb1998"

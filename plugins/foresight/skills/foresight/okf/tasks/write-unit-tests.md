@@ -21,3 +21,4 @@ predicts (incidents while doing this task):
 - [FS-15](../patterns/fs-15.md) Producer and consumer of the same data disagree (2)
 - [FS-03](../patterns/fs-03.md) Code written against an assumed interface instead of the real one (2)
 - [FS-19](../patterns/fs-19.md) Behavior change leaves dependent tests, drivers and mocks stale (2)
+- [FS-35](../patterns/fs-35.md) Test depends on uncontrolled shared data or unrealistic setup (2)

@@ -88,7 +88,8 @@
         "an ad hoc prod script or fix guesses a manager name (all_objects vs global_objects), a status value, which model an API id belongs to, or which field the FE reads",
         "copying an RN sizing/style pattern (flexGrow: 0, fixed or percentage heights) from a component with different layout constraints; wrapping a third-party RN widget (phone input, picker) with custom overlay Views",
         "an <a href> download/print link to an API route in an app whose auth is a bearer token in localStorage; a storage OPTIONS dict copied from another backend (S3 to GCS); a custom leading icon added to an <input type=date>; seeding records at a non-default workflow status that a human will look for",
-        "a plan or brief routes/filters at a downstream stage on a value (request host) computed and discarded upstream"
+        "a plan or brief routes/filters at a downstream stage on a value (request host) computed and discarded upstream",
+        "PATCHing a field by its read name (assignee vs assignee_id) against an API that ignores unknown fields"
       ],
       "preventive_checks": [
         "Print one real response, the model definition, the .d.ts signature or the router entry before writing code against it",
@@ -101,14 +102,14 @@
         "Before writing a brief that routes on a value, grep the intermediate data model (CallSite) to confirm the field is carried and populated at that stage"
       ],
       "portable": true,
-      "count": 56,
+      "count": 59,
       "domains": {
         "backend": 27,
-        "cross-cutting": 17,
+        "cross-cutting": 20,
         "web-frontend": 10,
         "mobile": 2
       },
-      "n_projects": 5,
+      "n_projects": 6,
       "related": [
         "FS-15",
         "FS-59",
@@ -146,13 +147,13 @@
         "Mutation-test the new code before done: force the branch condition (if False:), make the loop single-pass, swap before/after fixtures or remove a different enum value, and confirm some test fails; read back written artifacts and assert on parsed content, not path or existence"
       ],
       "portable": true,
-      "count": 52,
+      "count": 53,
       "domains": {
         "cross-cutting": 29,
-        "backend": 16,
+        "backend": 17,
         "web-frontend": 7
       },
-      "n_projects": 6,
+      "n_projects": 7,
       "related": [
         "FS-54",
         "FS-01",
@@ -329,7 +330,8 @@
         "a raw CSS edit checked only under the dev server/HMR; a completeness audit narrating another actor's capability; resuming another session's ticket where RED logs and screenshots already exist; a full-suite run that rewrites tracked screenshots of unrelated specs",
         "the only validator reachable in a worktree without node_modules is node --check on a JSX/ESM file",
         "an xcodebuild/gradle smoke build run without an explicitly named scheme/target and judged by exit code 0",
-        "an animation timing value copied from a design board (stagger under ~150ms) reported done without watching it run"
+        "an animation timing value copied from a design board (stagger under ~150ms) reported done without watching it run",
+        "a requirement or ticket marked green from a scoped test run"
       ],
       "preventive_checks": [
         "Run the exact project gate (npm run build, scoped pytest for touched apps) as the last step after the final change",
@@ -544,13 +546,13 @@
         "Check host-level causes first when degradation is uniform: time raw DNS lookups (dig, getent hosts) and read /etc/resolv.conf before app-level theories (sharding, pools)"
       ],
       "portable": true,
-      "count": 50,
+      "count": 51,
       "domains": {
-        "cross-cutting": 36,
+        "cross-cutting": 37,
         "backend": 13,
         "mobile": 1
       },
-      "n_projects": 4,
+      "n_projects": 5,
       "related": [
         "FS-56",
         "FS-64",
@@ -668,13 +670,13 @@
         "Hold multi-flag options in an array (opts=(-o A=b -o C=d); ssh \"${opts[@]}\") or inline them, never an unquoted string variable"
       ],
       "portable": true,
-      "count": 65,
+      "count": 66,
       "domains": {
-        "cross-cutting": 57,
+        "cross-cutting": 58,
         "backend": 5,
         "mobile": 3
       },
-      "n_projects": 8,
+      "n_projects": 9,
       "related": [
         "FS-71",
         "FS-92",
@@ -693,22 +695,24 @@
         "a default param value, permission class, or auto-provisioning behavior changes",
         "a stubbed fixture's real endpoint ships",
         "a permission class added to an existing endpoint; a patched symbol moved or renamed while tests use mock.patch string paths",
-        "swapping a field's control type (Input to Select), flipping a form's default enum value, replacing a placeholder/disabled state with the shipped feature, or a global render change (currency glyph to SVG, exotic whitespace, DS required-asterisk markup) that exact-text specs and locale-paired EN/AR specs assert on"
+        "swapping a field's control type (Input to Select), flipping a form's default enum value, replacing a placeholder/disabled state with the shipped feature, or a global render change (currency glyph to SVG, exotic whitespace, DS required-asterisk markup) that exact-text specs and locale-paired EN/AR specs assert on",
+        "a workflow stage added that generated agent prompts or run wrappers describe"
       ],
       "preventive_checks": [
         "Grep unit tests, MSW handlers, tests/e2e helpers/drivers and specs for the component/endpoint and update them in the same commit",
         "Run the dependent suites (the component's own tests plus every e2e spec that renders it) right after the edit",
         "When a stub goes live, convert fixture-based specs to live-API assertions",
-        "Grep e2e specs and drivers for fill() on the field's testid, literal glyphs and the old rendered strings; make specs select non-default branches explicitly; update and run both locale variants of every touched spec"
+        "Grep e2e specs and drivers for fill() on the field's testid, literal glyphs and the old rendered strings; make specs select non-default branches explicitly; update and run both locale variants of every touched spec",
+        "Grep generated agent system prompts, persona files and run wrappers for the old workflow wording and update them in the same change"
       ],
       "portable": true,
-      "count": 34,
+      "count": 35,
       "domains": {
-        "cross-cutting": 22,
+        "cross-cutting": 23,
         "web-frontend": 8,
         "backend": 4
       },
-      "n_projects": 3,
+      "n_projects": 4,
       "related": [
         "FS-23",
         "FS-08",
@@ -740,12 +744,12 @@
         "Suspect a concurrent writer (pre-commit stashes unstaged files); check git status for files you didn't touch before trusting a build failure, and move the work to a worktree"
       ],
       "portable": true,
-      "count": 35,
+      "count": 36,
       "domains": {
         "cross-cutting": 34,
-        "backend": 1
+        "backend": 2
       },
-      "n_projects": 4,
+      "n_projects": 5,
       "related": [
         "FS-36",
         "FS-70",
@@ -813,14 +817,14 @@
         "Add a render test asserting that the formatted value of every new sort/business field appears on the card"
       ],
       "portable": true,
-      "count": 22,
+      "count": 23,
       "domains": {
         "web-frontend": 13,
-        "backend": 5,
+        "backend": 6,
         "cross-cutting": 3,
         "mobile": 1
       },
-      "n_projects": 3,
+      "n_projects": 4,
       "related": [
         "FS-31",
         "FS-10",
@@ -911,7 +915,8 @@
         "a ?? / or-default / fallback-to-fixture on a value that is persisted or user-visible",
         "a retry loop around an unrecoverable input; a CI cache miss that silently falls back to a slow full build; try/except around ledger posting in save()",
         "a readiness flag set only inside .then() with a .catch that only logs; an async redeem/apply action with more than one success-like outcome; an env-prefix resolver that returns None when its env var is missing; an email/SMS send wrapped in log-and-continue",
-        "a catch block issues ROLLBACK or other cleanup before rethrowing"
+        "a catch block issues ROLLBACK or other cleanup before rethrowing",
+        "scripted API writes (curl/POST/PATCH) whose output is redirected to /dev/null or never parsed"
       ],
       "preventive_checks": [
         "Test a mocked 400 with field errors and assert the field message renders; test the shared error helper against every DRF body shape",
@@ -919,17 +924,18 @@
         "Await persisting mutations, revert optimistic state and toast on rejection",
         "Make resolvers/fallbacks raise under test, and read config back after setting it",
         "Force init to reject in a test and assert the UI reaches an error/retry state; enumerate backend response codes and map each to a UI outcome; make config resolvers raise at boot on missing inputs; alert, not only log, on provider auth/4xx failures",
-        "Wrap cleanup inside error handlers in its own try/catch, log its failure, and always rethrow the original error"
+        "Wrap cleanup inside error handlers in its own try/catch, log its failure, and always rethrow the original error",
+        "Read and assert every API write response (id, status, changed field) and print it; a write whose response was not read did not happen"
       ],
       "portable": true,
-      "count": 28,
+      "count": 29,
       "domains": {
         "backend": 15,
-        "cross-cutting": 4,
+        "cross-cutting": 5,
         "web-frontend": 7,
         "mobile": 2
       },
-      "n_projects": 4,
+      "n_projects": 5,
       "related": [
         "FS-32",
         "FS-44",
@@ -1001,14 +1007,14 @@
         "Copy the permissions: block and PR-creation action from sibling workflows; match the non-obvious fields of sibling fixtures, not only the literal expected value"
       ],
       "portable": true,
-      "count": 26,
+      "count": 27,
       "domains": {
         "backend": 7,
         "web-frontend": 11,
-        "cross-cutting": 7,
+        "cross-cutting": 8,
         "mobile": 1
       },
-      "n_projects": 5,
+      "n_projects": 6,
       "related": [
         "FS-32",
         "FS-40",
@@ -1047,14 +1053,14 @@
         "Make helpers import optional dependencies inside try/except and fall straight through to the next working renderer or a Pillow/stdlib-only path, and bake native libs (poppler, zbar) into the sandbox image instead of installing them mid-task"
       ],
       "portable": true,
-      "count": 42,
+      "count": 43,
       "domains": {
-        "cross-cutting": 37,
+        "cross-cutting": 38,
         "backend": 3,
         "web-frontend": 1,
         "mobile": 1
       },
-      "n_projects": 7,
+      "n_projects": 8,
       "related": [
         "FS-18",
         "FS-21",
@@ -1108,23 +1114,25 @@
         "a mutation with server-side effects on fields other than the one sent",
         "introducing a backend cache, or adding pagination/filters to a cached endpoint",
         "several databases (dev/e2e/worktrees) sharing one Redis with id-only keys",
-        "a CI schema-snapshot or build cache shared across branches whose migration graphs diverge"
+        "a CI schema-snapshot or build cache shared across branches whose migration graphs diverge",
+        "a list whose rows are created by other actors (bots, CI, workers) while the page is open"
       ],
       "preventive_checks": [
         "List every field the mutation changes and every cached view that shows it; add each to invalidatesTags and test by reading the view after the mutation",
         "Reconcile the full mutation response into caches instead of hand-patching one field",
         "Include every value-shaping dimension in backend cache keys (view kind, filters, DB/env namespace) and test that two variants don't collide",
         "Reuse existing hook argument shapes so RTK Query can dedupe",
-        "Key snapshot restores by an exact migration-set hash and branch, and purge the whole prefix (not one key) when poisoned"
+        "Key snapshot restores by an exact migration-set hash and branch, and purge the whole prefix (not one key) when poisoned",
+        "For lists written by other actors, refetch on mount/focus or push invalidation; test by creating a row out-of-band and reopening the page"
       ],
       "portable": true,
-      "count": 19,
+      "count": 20,
       "domains": {
-        "web-frontend": 9,
+        "web-frontend": 10,
         "backend": 6,
         "cross-cutting": 4
       },
-      "n_projects": 2,
+      "n_projects": 3,
       "related": [
         "FS-01",
         "FS-22",
@@ -1215,13 +1223,13 @@
         "Compute dates relative to a pinned page.clock and page the calendar to the target month; poll for the incoming node (route-scoped id or last()) across remounts; wait for focus inside the dialog before sending dialog-scoped keys"
       ],
       "portable": true,
-      "count": 21,
+      "count": 22,
       "domains": {
-        "cross-cutting": 16,
+        "cross-cutting": 17,
         "web-frontend": 4,
         "backend": 1
       },
-      "n_projects": 3,
+      "n_projects": 4,
       "related": [
         "FS-09",
         "FS-08",
@@ -1252,12 +1260,12 @@
         "Use synthetic reserved values for 'not yet supported' fixtures; default seeded integration flags to the disconnected state; pin SECRET_KEY in the local env and use a fresh browser context after restarts or earlier auth flows"
       ],
       "portable": true,
-      "count": 21,
+      "count": 22,
       "domains": {
-        "cross-cutting": 17,
+        "cross-cutting": 18,
         "backend": 4
       },
-      "n_projects": 3,
+      "n_projects": 4,
       "related": [
         "FS-10",
         "FS-01",
@@ -1277,24 +1285,26 @@
         "an irreversible bulk write targeted by an informal name, or 'copy the front end from repo Y'",
         "an ambiguous domain term that already names a distinct feature; the orchestration/visibility model for a multi-hour fan-out",
         "choosing the sort direction/tiebreaker for a to-do-like feed; a complaint that a prefilled field 'shouldn't be editable'",
-        "building backend endpoints for a design-parity feature before the frames are available; replacing a free-text field with a fixed-enum picker; a list's primary decision (accept/reject) reachable only from a details modal"
+        "building backend endpoints for a design-parity feature before the frames are available; replacing a free-text field with a fixed-enum picker; a list's primary decision (accept/reject) reachable only from a details modal",
+        "fanning out UI or auth work to parallel lanes before the user has picked the approach"
       ],
       "preventive_checks": [
         "State the chosen interpretation and the alternatives in one line and ask before building, or ship one small representative slice first",
         "Re-read earlier rejections/ADRs and the constraints of the model the feature layers onto; spike the blocking assumption",
         "Confirm the exact target (id, domain) before irreversible writes",
         "Ask whether a prefilled scaffold value should stay locked or disappear; confirm FIFO vs newest-first for task lists and write the ordering test first",
-        "Keep the API shape provisional until frames are captured; ask whether the value space is really closed (offer Other plus free text); ask whether the primary decision must be a row action"
+        "Keep the API shape provisional until frames are captured; ask whether the value space is really closed (offer Other plus free text); ask whether the primary decision must be a row action",
+        "Lock design and auth decisions with the user before fanning out lanes; superseded lanes are the cost of skipping this"
       ],
       "portable": true,
-      "count": 21,
+      "count": 22,
       "domains": {
-        "cross-cutting": 13,
+        "cross-cutting": 14,
         "web-frontend": 5,
         "backend": 1,
         "mobile": 2
       },
-      "n_projects": 4,
+      "n_projects": 5,
       "related": [
         "FS-20",
         "FS-44",
@@ -1347,7 +1357,8 @@
         "deleting an entity that owns related rows (membership, synthetic user, children)",
         "a constraint meant as 'one active X' written as 'one X ever'",
         "a get-or-restore or create path that revives a soft-deleted row a merge deliberately removed; callbacks that can write to a terminal-state task",
-        "a serializer inlines a Prefetch of a soft-deletable model in a payload that an offline-sync pull persists to devices"
+        "a serializer inlines a Prefetch of a soft-deletable model in a payload that an offline-sync pull persists to devices",
+        "re-entering work through a chat/run thread whose session already completed"
       ],
       "preventive_checks": [
         "Test soft-delete then re-create with the same key; look up all_objects by natural key and revive before create",
@@ -1355,14 +1366,15 @@
         "Use conditional unique constraints scoped to active status; cascade soft-delete to children with a batch id",
         "Test deleting the parent and assert dependent rows/seats are released",
         "Check the merge log and deletion reason before reviving; reject writes to terminal states",
-        "Filter deleted_at in every Prefetch/inline queryset of a soft-deletable model and add a sync test that a soft-deleted child disappears on the other device"
+        "Filter deleted_at in every Prefetch/inline queryset of a soft-deletable model and add a sync test that a soft-deleted child disappears on the other device",
+        "Treat completed sessions as terminal: re-entry starts a new round, never resumes a finished one"
       ],
       "portable": true,
-      "count": 17,
+      "count": 18,
       "domains": {
-        "backend": 17
+        "backend": 18
       },
-      "n_projects": 3,
+      "n_projects": 4,
       "related": [
         "FS-40",
         "FS-07",
@@ -1429,12 +1441,12 @@
         "Write a two-concurrent-request or kill-between-steps test, and run seeds twice"
       ],
       "portable": true,
-      "count": 17,
+      "count": 18,
       "domains": {
-        "backend": 16,
+        "backend": 17,
         "cross-cutting": 1
       },
-      "n_projects": 2,
+      "n_projects": 3,
       "related": [
         "FS-38",
         "FS-16",
@@ -1501,13 +1513,13 @@
         "On a placeholder-secret cluster treat every platform feature whose images come from the authenticated registry as untested: check builder/CSI image registries first, plan an external build (podman) and static/hostPath volumes up front, and after any DiskPressure or eviction event confirm CSI, registry and ingress pods are Running before relying on them"
       ],
       "portable": true,
-      "count": 23,
+      "count": 24,
       "domains": {
-        "backend": 10,
+        "backend": 11,
         "cross-cutting": 9,
         "mobile": 4
       },
-      "n_projects": 7,
+      "n_projects": 8,
       "related": [
         "FS-71",
         "FS-18",
@@ -1557,7 +1569,8 @@
         "a background poll/loop shells out to a helper under /tmp or a scratch dir; resuming after hours or a session boundary on a background task's result; a long unattended release run on a laptop",
         "dispatching three or more long-running worktree agents at once",
         "an implementer has run many consecutive fix rounds in one session without committing (provider session/rate limits end it mid-round)",
-        "background implementer agents running when the parent session may hit a usage limit; planning to resume a subagent via SendMessage"
+        "background implementer agents running when the parent session may hit a usage limit; planning to resume a subagent via SendMessage",
+        "a long-lived local service (mock server, dev app) started as an agent-harness background shell"
       ],
       "preventive_checks": [
         "Instruct workers to run verification synchronously or poll results themselves, never ending a turn on their own watcher",
@@ -1567,15 +1580,16 @@
         "Keep automation helpers in the repo's scripts/, make poll loops exit non-zero when a helper is missing, check a dispatched agent's output file size/mtime shortly after launch, treat a missing completion record as unknown and re-verify against the target system (ASC/Play), and run caffeinate for long unattended runs",
         "Arm a per-worktree file-write staleness watch and check the session/rate budget before the fan-out",
         "Commit after each discrete fix and write self-contained round briefs so a fresh agent can resume a round if the previous one dies",
-        "After any session restart check each in-flight worktree's git status before assuming work landed; hand off through a persisted report file a fresh agent reads, since SendMessage may be disabled"
+        "After any session restart check each in-flight worktree's git status before assuming work landed; hand off through a persisted report file a fresh agent reads, since SendMessage may be disabled",
+        "Run long-lived services under launchd/systemd or in the user's terminal; harness background shells die at the harness time limit"
       ],
       "portable": true,
-      "count": 29,
+      "count": 30,
       "domains": {
-        "cross-cutting": 27,
+        "cross-cutting": 28,
         "mobile": 2
       },
-      "n_projects": 6,
+      "n_projects": 7,
       "related": [
         "FS-73",
         "FS-64",
@@ -1884,7 +1898,8 @@
         "a business rule says 'only bank-type accounts' / 'only merchandise rows' / 'only REVIEWED' and the function never references that field",
         "a lock or invariant check reads a denormalized copy on the mutated model",
         "a build/config guard greps a whole file for a placeholder string instead of reading the one key it validates; a test-data cleanup selects rows by guessing their generated naming pattern",
-        "a cache-hit or fast-path early return tests only the fields one writer fills (transcript present) while the response promises more fields (summary, scores) that another path derives"
+        "a cache-hit or fast-path early return tests only the fields one writer fills (transcript present) while the response promises more fields (summary, scores) that another path derives",
+        "a bot loop suppresses events it authored, keyed on the record's reporter or owner"
       ],
       "preventive_checks": [
         "Filter on the defining field (account_type, department_type, status, the counterpart FK resolved in both directions) and add a fixture with the same text/shape but a different type/status that must be excluded",
@@ -1892,16 +1907,17 @@
         "Enumerate every status/lifecycle value of the source model and state which ones the rule covers",
         "Key cleanups and lookups on the canonical identity the sync writer uses ((source_type, source_id)) and resolve the real linked rows, not copies",
         "Read the exact key path (plutil/jq) in config guards and test with a filled value plus a stale comment; mark test rows at creation and clean up by exact match, not by regex",
-        "Make the early-return condition list every field the response promises, and test with only the webhook-written fields populated"
+        "Make the early-return condition list every field the response promises, and test with only the webhook-written fields populated",
+        "Key self-trigger suppression on the actor of the triggering event, not the record's author; test a bot-filed item woken by a human"
       ],
       "portable": true,
-      "count": 14,
+      "count": 17,
       "domains": {
-        "backend": 12,
+        "backend": 15,
         "mobile": 1,
         "cross-cutting": 1
       },
-      "n_projects": 3,
+      "n_projects": 5,
       "related": [
         "FS-45"
       ]
@@ -2119,11 +2135,12 @@
         "Include the tenant key in dedup group-bys and test the same canonical id present in two tenants in different states"
       ],
       "portable": true,
-      "count": 8,
+      "count": 9,
       "domains": {
-        "backend": 8
+        "backend": 8,
+        "cross-cutting": 1
       },
-      "n_projects": 2,
+      "n_projects": 3,
       "related": []
     },
     "FS-64": {
@@ -2699,7 +2716,8 @@
         "bumping @playwright/test, Next, ESLint or another tool whose runtime assets or config format are coupled to its version",
         "provisioning a host where Node/corepack is installed separately from the repo's .nvmrc and packageManager field",
         "replacing a framework-scoped command (next lint) with a bare tool invocation (eslint .)",
-        "removing a package from requirements to escape a native-extension crash (cryptography SIGILL on an arm64 VM) while another installed package still imports it transitively (pymysql _auth)"
+        "removing a package from requirements to escape a native-extension crash (cryptography SIGILL on an arm64 VM) while another installed package still imports it transitively (pymysql _auth)",
+        "a major-version upgrade of an ORM or codegen tool whose migrate step may no longer run generate"
       ],
       "preventive_checks": [
         "Write overrides as a caret range within the patched major (^4.3.2) and confirm the resolved version with pnpm why or the lockfile before committing",
@@ -2709,12 +2727,12 @@
         "After removing a dependency, pip show / pip list inside the built image to confirm it is gone and run a bare import smoke test in a throwaway container on the target arch"
       ],
       "portable": true,
-      "count": 5,
+      "count": 6,
       "domains": {
         "cross-cutting": 4,
-        "backend": 1
+        "backend": 2
       },
-      "n_projects": 2,
+      "n_projects": 3,
       "related": []
     },
     "FS-85": {
@@ -2737,13 +2755,13 @@
         "Test per failure kind that retry invokes the matching action"
       ],
       "portable": true,
-      "count": 5,
+      "count": 6,
       "domains": {
         "web-frontend": 3,
-        "backend": 1,
+        "backend": 2,
         "mobile": 1
       },
-      "n_projects": 2,
+      "n_projects": 3,
       "related": []
     },
     "FS-86": {
@@ -2856,20 +2874,22 @@
         "a committed git hook or script references an absolute interpreter path (/Library/Frameworks/Python.framework/..., /opt/homebrew/bin/python3.x)",
         "the first git push from this machine or worktree in the session",
         "starting work in a fresh .claude/worktrees/* checkout with no .venv and no `python` on PATH, on a host with several system Pythons",
-        "the hook needs native extension wheels (tree_sitter parsers) that only one installed interpreter has"
+        "the hook needs native extension wheels (tree_sitter parsers) that only one installed interpreter has",
+        "bot lanes or hooks running repo commands under the host's default node/python instead of the repo pin; a fresh per-lane DB used by the test command"
       ],
       "preventive_checks": [
         "Make hooks resolve the interpreter in order (repo .venv, then PATH python3) and check required imports up front with a clear message instead of a silent block",
         "Ship one bootstrap command (make venv / scripts/setup) that builds the pinned-version venv with requirements plus test deps, and run it as step 0 in every new worktree",
         "Before any documented --no-verify escape, run the exact gate the hook would run with the working venv and paste its green result into the PR body",
-        "After the second bypass, fix the hook on main instead of bypassing it again (FS-53)"
+        "After the second bypass, fix the hook on main instead of bypassing it again (FS-53)",
+        "Pin the runtime per repo (.nvmrc, .python-version) in every lane env and hook, and make the lane test command provision its DB (migrate deploy) first"
       ],
       "portable": true,
-      "count": 5,
+      "count": 9,
       "domains": {
-        "cross-cutting": 5
+        "cross-cutting": 9
       },
-      "n_projects": 1,
+      "n_projects": 3,
       "related": []
     },
     "FS-91": {
@@ -2944,12 +2964,12 @@
         "Assert each loaded secret's length/prefix at startup (log the length, never the value) and lint .env files for text after the value before deploying"
       ],
       "portable": true,
-      "count": 4,
+      "count": 5,
       "domains": {
         "backend": 3,
-        "cross-cutting": 1
+        "cross-cutting": 2
       },
-      "n_projects": 2,
+      "n_projects": 3,
       "related": []
     },
     "FS-94": {
@@ -3021,6 +3041,73 @@
       },
       "n_projects": 1,
       "related": []
+    },
+    "FS-105": {
+      "name": "Unattended agent fleet loses work at runtime boundaries with no durable replay, liveness sweep or idempotent recovery",
+      "family": "agent-orchestration",
+      "moment": "dispatch",
+      "mechanism": "A fleet of coding bots runs overnight: a server wakes each bot through a chat gateway, the bot runs a capped agent session in a worktree and reports back over one HTTP callback. Every boundary is fire-and-forget. A config or system-prompt re-render restarts the gateway and its drain drops inbound wakes with no replay; a 502 on the result callback leaves the session marked running and its slot held for an hour; a run hits its turn cap and waits for a human nobody is watching; the sweeper keeps retrying a known-broken path and exhausts its retry budget minutes before the fix lands. The human then recovers by hand (unassign/reassign loops, hand-written watchers), and non-idempotent recovery over-dispatches work that was already woken. Throughput is set by how fast someone notices, not by the bots.",
+      "trigger_signals": [
+        "bots woken by chat messages or webhooks with no server-side record of unacknowledged wakes",
+        "a run reports completion through a single HTTP callback with no retry, heartbeat or stale-slot reaper",
+        "a server-side change (system-prompt re-render, config) that restarts the bot gateway while lanes are live",
+        "unattended agent runs with a turn or budget cap below the task size",
+        "recovering lost work by toggling assignment or status in a loop",
+        "deploying a fix to a path an automated sweep or retry loop is still hitting",
+        "an overnight or multi-hour fleet run supervised only by a human or by ad hoc watchers"
+      ],
+      "preventive_checks": [
+        "Before the first unattended night, make every hop durable: wakes queued server-side and replayed until acknowledged, result callbacks retried, live runs heartbeated, and a timer sweep that reaps stale slots and re-wakes lost work",
+        "Recovery must be idempotent: re-wake only items confirmed lost through an explicit re-wake call, never by unassign/reassign loops; assert the wake count stays under the lane cap",
+        "Auto-continue runs that stop on a turn or budget cap up to a lane budget, then escalate to a human instead of idling",
+        "Pause the sweep or reset its retry counters before deploying a fix to the path it retries",
+        "Run one supervision loop on a schedule (launchd/systemd or a scheduled agent) that checks every lane's state, heartbeat age and queue, instead of hand-written watchers per incident"
+      ],
+      "portable": true,
+      "count": 6,
+      "n_projects": 1,
+      "domains": {
+        "cross-cutting": 6
+      },
+      "related": [
+        "FS-45",
+        "FS-20",
+        "FS-25",
+        "FS-24"
+      ]
+    },
+    "FS-106": {
+      "name": "Test-result reporting collapses, filters or duplicates results so the run's verdict misstates what executed",
+      "family": "verification-claims",
+      "moment": "implement",
+      "mechanism": "Automated test results flow from a runner (JUnit, Playwright JSON) through a push CLI into a test-management ingest that maps many tests to one case. Each hop silently reshapes the verdict: ingest keeps one result per case (highest attempt, first on tie) so a failing test hides behind a passing one; a scoped run serializes every filtered-out test as skipped, and the UI counts skipped as complete, so 6 passed out of 182 reads as 100%; the scoped command runs one runner and misses e2e specs tagged to the same case; a wrapper pushes twice and creates duplicate runs; an evidence flag uploads nothing without its companion flag. Requirements turn green on evidence that does not exist.",
+      "trigger_signals": [
+        "many automated tests mapped to one test case or requirement (case-id tags, name patterns)",
+        "a dedupe or winner-selection step in a result ingest keyed on attempt, order or timestamp",
+        "a scoped or filtered test run (-t, --grep, tag filter) whose report is pushed as a run",
+        "case tags spread across several runners (unit, API e2e, browser e2e) while the scoped command calls one",
+        "a QA bot or CI wrapper that pushes results and may retry or be invoked twice",
+        "progress or coverage percentages that count skipped as executed"
+      ],
+      "preventive_checks": [
+        "Collapse many results per case with worst-result-wins (failed > blocked > passed > skipped) within and across chunks, and test a case with one passing and one failing test",
+        "Push only executed tests from a scoped run (or flag the run as scoped); keep skipped distinct from untested and exclude skipped from pass percentages",
+        "Build the scoped command from every runner's specs tagged to the case and assert the executed count matches the tagged count",
+        "Make result pushes idempotent on an external run id and assert one run per ticket round",
+        "After a push, read the run back: totals, executed vs skipped, evidence count, and compare them with the runner's own summary"
+      ],
+      "portable": true,
+      "count": 4,
+      "n_projects": 1,
+      "domains": {
+        "backend": 1,
+        "cross-cutting": 3
+      },
+      "related": [
+        "FS-09",
+        "FS-92",
+        "FS-04"
+      ]
     }
   },
   "tasks": {
@@ -3091,7 +3178,7 @@
         "FS-54": 1,
         "FS-07": 9,
         "FS-26": 3,
-        "FS-40": 3,
+        "FS-40": 4,
         "FS-04": 2,
         "FS-16": 1,
         "FS-03": 3,
@@ -3198,7 +3285,8 @@
         "FS-15": 3,
         "FS-26": 2,
         "FS-03": 1,
-        "FS-48": 1
+        "FS-48": 1,
+        "FS-04": 1
       }
     },
     "third-party-integration": {
@@ -3225,7 +3313,7 @@
         "FS-32": 2,
         "FS-06": 3,
         "FS-42": 15,
-        "FS-55": 1,
+        "FS-55": 2,
         "FS-26": 1,
         "FS-15": 3,
         "FS-40": 1,
@@ -3307,7 +3395,8 @@
         "FS-51": 1,
         "FS-53": 2,
         "FS-39": 5,
-        "FS-21": 2
+        "FS-21": 2,
+        "FS-84": 1
       }
     },
     "state-transition-guard": {
@@ -3499,7 +3588,8 @@
         "FS-14": 1,
         "FS-54": 2,
         "FS-27": 1,
-        "FS-49": 1
+        "FS-49": 1,
+        "FS-55": 1
       }
     },
     "live-data-fix-reconcile": {
@@ -4043,10 +4133,10 @@
       "description": "Browser test authoring: locators and testids, driver classes, persistence assertions, stubbed responses and timing, seeded data dependencies, proof screenshots.",
       "predicts": {
         "FS-08": 29,
-        "FS-34": 15,
+        "FS-34": 16,
         "FS-14": 1,
         "FS-26": 2,
-        "FS-35": 11,
+        "FS-35": 12,
         "FS-27": 2,
         "FS-03": 10,
         "FS-09": 6,
@@ -4134,7 +4224,7 @@
         "FS-81": 4,
         "FS-31": 1,
         "FS-34": 1,
-        "FS-14": 2,
+        "FS-14": 3,
         "FS-45": 1,
         "FS-09": 1,
         "FS-70": 1,
@@ -4405,7 +4495,8 @@
         "FS-42": 1,
         "FS-27": 1,
         "FS-94": 1,
-        "FS-25": 1
+        "FS-25": 1,
+        "FS-29": 1
       }
     },
     "shell-scripting": {
@@ -4524,12 +4615,73 @@
       "predicts": {
         "FS-21": 1,
         "FS-05": 1,
-        "FS-90": 1,
+        "FS-90": 3,
         "FS-12": 1,
         "FS-02": 4,
         "FS-20": 1,
         "FS-84": 5,
         "FS-29": 8
+      }
+    },
+    "agent-fleet-lanes": {
+      "title": "Run or supervise a fleet of coding bots in delivery lanes (implement, review, QA) that merge PRs into a shared branch",
+      "domain": "cross-cutting",
+      "description": "Autonomous multi-bot delivery: implementer, reviewer and QA bots woken per ticket, parallel PRs merged into a shared dev/integration branch, overnight unattended runs, wake delivery, result callbacks, lane prompts, supervision and recovery.",
+      "keywords": [
+        "bots",
+        "fleet",
+        "overnight",
+        "unattended",
+        "implementer",
+        "parallel",
+        "dev",
+        "supervise",
+        "lanes",
+        "wake",
+        "reviewer",
+        "merge"
+      ],
+      "predicts": {
+        "FS-105": 6,
+        "FS-63": 1,
+        "FS-25": 1,
+        "FS-27": 1,
+        "FS-93": 1,
+        "FS-19": 1,
+        "FS-45": 1,
+        "FS-03": 3,
+        "FS-36": 1,
+        "FS-55": 1,
+        "FS-85": 1,
+        "FS-38": 1,
+        "FS-20": 1,
+        "FS-42": 1
+      }
+    },
+    "test-result-reporting": {
+      "title": "Run QA tests and push results (JUnit, evidence) into test management; ingest and report results per case",
+      "domain": "cross-cutting",
+      "description": "A QA bot or CI job runs scoped or full tests, pushes JUnit/Playwright results and evidence through a CLI, and a test-management ingest maps results to cases, runs and requirement coverage.",
+      "keywords": [
+        "qa",
+        "bot",
+        "scoped",
+        "pushes",
+        "runs",
+        "result",
+        "ingest",
+        "junit",
+        "evidence",
+        "coverage",
+        "case",
+        "test"
+      ],
+      "predicts": {
+        "FS-106": 4,
+        "FS-31": 1,
+        "FS-22": 1,
+        "FS-18": 1,
+        "FS-90": 2
       }
     }
   }

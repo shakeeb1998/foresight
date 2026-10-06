@@ -10,8 +10,8 @@ timestamp: 2026-09-27
 
 Before trusting a red/green result. Re-check before moving on:
 
-- [FS-09](../patterns/fs-09.md) Green signal whose scope doesn't cover the claim — Run the exact project gate (npm run build, scoped pytest for touched apps) as the last step after the final change
 - [FS-14](../patterns/fs-14.md) Failure cause attributed without a controlled comparison — Run the identical failing set on a clean origin/<base> worktree and diff failing-test sets before attributing either way
+- [FS-09](../patterns/fs-09.md) Green signal whose scope doesn't cover the claim — Run the exact project gate (npm run build, scoped pytest for touched apps) as the last step after the final change
 - [FS-05](../patterns/fs-05.md) Concurrent sessions contend for one local DB, port, cache or CPU — Give every parallel workstream its own PGDATABASE_TEST / e2e DB, explicit free ports and Redis prefix before dispatch
 - [FS-02](../patterns/fs-02.md) Verification against an environment not running the code under test — Restart BE/FE servers (or confirm the process start time is newer than the last edit) before trusting any red/green result
 - [FS-56](../patterns/fs-56.md) Ledger-wide change verified only where it was aimed — Snapshot per-day balances (day_delta walk) and period-end totals for the whole affected range plus adjacent and closed periods, apply, then diff against the snapshot before calling it done

@@ -19,5 +19,6 @@ predicts (incidents while doing this task):
 - [FS-18](../patterns/fs-18.md) Shell and CLI step semantics assumed (5)
 - [FS-35](../patterns/fs-35.md) Test depends on uncontrolled shared data or unrealistic setup (4)
 - [FS-81](../patterns/fs-81.md) Next.js build output (.next) shared between dev and e2e, or served stale by next start (4)
+- [FS-14](../patterns/fs-14.md) Failure cause attributed without a controlled comparison (3)
 - [FS-20](../patterns/fs-20.md) Concurrent sessions share one working tree or branch (2)
-- [FS-14](../patterns/fs-14.md) Failure cause attributed without a controlled comparison (2)
+- [FS-67](../patterns/fs-67.md) On-device check runs a stale JS bundle or a dev-client path unlike the shipped build (2)
