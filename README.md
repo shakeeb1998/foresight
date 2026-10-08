@@ -73,6 +73,26 @@ The Claude Code plugin:
 /plugin install foresight@foresight-skills
 ```
 
+### Binding guards (Claude Code gates)
+
+`fs.py match` records what it predicted for the work as **flags** in a per-checkout
+ledger (`~/.foresight/ledgers/`, never committed). Each flag must end as
+`fs.py resolve <ID> applied "<evidence>"` or `fs.py resolve <ID> na "<reason>"`, and
+`fs.py brief` prints the flagged guards verbatim for subagent prompts. Install the gates
+so Claude Code enforces it:
+
+```bash
+./install.sh --claude --hooks     # merges three hooks into ~/.claude/settings.json (backed up first)
+```
+
+- **dispatch** (`PreToolUse` Agent/Task): the prompt must carry every flagged guard verbatim, and `fs.py moment dispatch` must have been opened.
+- **commit** (`PreToolUse` Bash): `git commit` / `git push` / `gh pr create|merge` are refused while a flag is open, or while the `verify` / `merge` (and for merges, `deploy`) tripwires were skipped.
+- **stop**: ending the turn with open flags is refused once.
+
+Nothing is enforced while nothing is flagged. An unreadable ledger fails closed.
+`python3 plugins/foresight/hooks/install_hooks.py --uninstall` removes the gates.
+Contract tests: `python3 -m unittest discover -s plugins/foresight/skills/foresight/tests`.
+
 ### Use in Cursor
 
 After the Cursor plugin is installed, or after `./install.sh --cursor`, the agent can load
