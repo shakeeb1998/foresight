@@ -3,7 +3,7 @@ type: task
 title: Add a route, redirect, nav guard or menu entry
 tags: [web-frontend, route, routing, redirect, guard, navigation, menu, sidebar, link, url, path]
 resource: fe-routing-navigation
-timestamp: 2026-09-27
+timestamp: 2026-10-02
 ---
 
 # Task · Add a route, redirect, nav guard or menu entry
@@ -18,3 +18,4 @@ predicts (incidents while doing this task):
 - [FS-22](../patterns/fs-22.md) Capability built in one layer but never connected to the next (2)
 - [FS-03](../patterns/fs-03.md) Code written against an assumed interface instead of the real one (2)
 - [FS-10](../patterns/fs-10.md) Interaction verified only on the mouse happy path (2)
+- [FS-01](../patterns/fs-01.md) Async client state read at the wrong moment or outliving its scope (2)

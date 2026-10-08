@@ -3,7 +3,7 @@ type: task
 title: Build the native mobile app locally (Xcode, Gradle, prebuild, pods)
 tags: [mobile, xcode, xcodebuild, gradle, android, ios, prebuild, pod, cocoapods, build, native]
 resource: mobile-native-build
-timestamp: 2026-09-27
+timestamp: 2026-10-02
 ---
 
 # Task · Build the native mobile app locally (Xcode, Gradle, prebuild, pods)
