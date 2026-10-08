@@ -3,15 +3,17 @@ type: index
 title: Foresight anti-pattern graph
 tags: [foresight]
 resource: index
-timestamp: 2026-09-27
+timestamp: 2026-10-08
 ---
 
-# Foresight graph — 95 patterns, 1796 late-caught incidents
+# Foresight graph — 103 patterns, 2239 late-caught incidents
 
 Navigate, don't read everything: pick the task node matching the work you're about to do,
 follow its `predicts` links, read only those patterns. Or: `fs.py match "<task>"`.
 
 ## [backend](domains/backend.md)
+- [concurrent-write-locking](tasks/concurrent-write-locking.md) Add or change row locking / concurrent write paths (lock order, select_for_update, advisory locks)
+- [document-parser-import](tasks/document-parser-import.md) Build or change a document parser / converter / importer (HTML, Word, Markdown, transcript to blocks; re-index or align versions)
 - [financial-report](tasks/financial-report.md) Build or change a financial report or total (P&L, balance sheet, statement)
 - [ledger-posting](tasks/ledger-posting.md) Edit ledger / money posting logic (double-entry legs, credit polarity, amounts)
 - [list-aggregate-endpoint](tasks/list-aggregate-endpoint.md) Add, change or optimize a list / aggregate / dashboard / tree read endpoint

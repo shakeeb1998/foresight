@@ -3,7 +3,7 @@ type: task
 title: Run a data fix, reconcile, rebuild or audit against live prod / staging data
 tags: [backend, prod, live, data, fix, cleanup, delete, rebuild, reconcile, audit, verify]
 resource: live-data-fix-reconcile
-timestamp: 2026-09-27
+timestamp: 2026-10-08
 ---
 
 # Task · Run a data fix, reconcile, rebuild or audit against live prod / staging data

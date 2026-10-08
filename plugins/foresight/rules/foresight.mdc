@@ -15,7 +15,11 @@ Use the **foresight** skill before you plan. Follow its SKILL.md.
    - each row names the concrete file, field or endpoint, plus a guard that would fail if
      the mistake happened: a test name, a command, or a question for the user;
    - at most 10 rows.
-4. Re-check at the risky moments with `fs.py moment <dispatch|test-write|verify|merge|deploy>`.
-5. If something is caught after you called the work done, add one line to
+4. Every flagged guard is binding: `match` records the top task's predictions in a
+   ledger. Resolve each one with `fs.py resolve <ID> applied "<evidence>"` or
+   `fs.py resolve <ID> na "<why it does not apply>"`. Never paraphrase or drop a guard.
+   Paste `fs.py brief` verbatim into any background or cloud agent's prompt.
+5. Re-check at the risky moments with `fs.py moment <dispatch|test-write|verify|merge|deploy>`.
+6. If something is caught after you called the work done, add one line to
    `.foresight/catches.log`:
    `YYYY-MM-DD | FS-xx or NEW | what broke | caught by | in the brief? yes/no`.

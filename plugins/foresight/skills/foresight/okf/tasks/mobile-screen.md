@@ -3,7 +3,7 @@ type: task
 title: Add or change a mobile screen, flow or interaction (layout, keyboard, RTL, boot)
 tags: [mobile, screen, react-native, expo, layout, keyboard, safearea, tab, scrollview, tap, form]
 resource: mobile-screen
-timestamp: 2026-09-27
+timestamp: 2026-10-08
 ---
 
 # Task · Add or change a mobile screen, flow or interaction (layout, keyboard, RTL, boot)

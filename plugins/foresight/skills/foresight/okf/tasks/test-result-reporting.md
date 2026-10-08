@@ -3,7 +3,7 @@ type: task
 title: Run QA tests and push results (JUnit, evidence) into test management; ingest and report results per case
 tags: [cross-cutting, qa, bot, scoped, pushes, runs, result, ingest, junit, evidence, coverage]
 resource: test-result-reporting
-timestamp: 2026-09-27
+timestamp: 2026-10-08
 ---
 
 # Task · Run QA tests and push results (JUnit, evidence) into test management; ingest and report results per case

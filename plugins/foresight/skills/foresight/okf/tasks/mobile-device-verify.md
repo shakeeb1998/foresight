@@ -3,7 +3,7 @@ type: task
 title: Verify mobile behavior on a device, simulator or emulator
 tags: [mobile, device, simulator, emulator, verify, ios, android, metro, reload, deep-link, dev-client]
 resource: mobile-device-verify
-timestamp: 2026-09-27
+timestamp: 2026-10-08
 ---
 
 # Task · Verify mobile behavior on a device, simulator or emulator

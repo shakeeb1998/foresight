@@ -895,6 +895,84 @@
     "install"
    ],
    "description": "Toolchain changes: adding/removing packages and transitive deps, major tool bumps, git/agent hooks, interpreter pinning, shared memory/config files, heavy local tooling jobs."
+  },
+  "concurrent-write-locking": {
+   "title": "Add or change row locking / concurrent write paths (lock order, select_for_update, advisory locks)",
+   "domain": "backend",
+   "keywords": [
+    "lock",
+    "locking",
+    "deadlock",
+    "select_for_update",
+    "concurrent",
+    "race",
+    "advisory",
+    "transaction",
+    "lock order",
+    "atomic",
+    "undo",
+    "retry"
+   ],
+   "description": "Any write path that takes row, parent-row, counter or advisory locks, or that must stay correct under concurrent requests, workers or bot callbacks: adding a lock, reordering locks, or adding a new operation to an entity family that other paths already lock."
+  },
+  "document-parser-import": {
+   "title": "Build or change a document parser / converter / importer (HTML, Word, Markdown, transcript to blocks; re-index or align versions)",
+   "domain": "backend",
+   "keywords": [
+    "parser",
+    "parse",
+    "converter",
+    "import",
+    "upload",
+    "docx",
+    "markdown",
+    "html",
+    "transcript",
+    "heading",
+    "section",
+    "align",
+    "reindex",
+    "document"
+   ],
+   "description": "Turning uploaded or converted documents into structured sections/blocks, re-aligning a new version against an old one, or extracting speakers/labels from text; the work is heuristic and must hold across real documents, not one sample."
+  },
+  "agent-fleet-lanes": {
+   "title": "Run or supervise a fleet of coding bots in delivery lanes (implement, review, QA) that merge PRs into a shared branch",
+   "domain": "cross-cutting",
+   "keywords": [
+    "bots",
+    "fleet",
+    "overnight",
+    "unattended",
+    "implementer",
+    "parallel",
+    "dev",
+    "supervise",
+    "lanes",
+    "wake",
+    "reviewer",
+    "merge"
+   ],
+   "description": "Autonomous multi-bot delivery: implementer, reviewer and QA bots woken per ticket, parallel PRs merged into a shared dev/integration branch, overnight unattended runs, wake delivery, result callbacks, lane prompts, supervision and recovery."
+  },
+  "test-result-reporting": {
+   "title": "Run QA tests and push results (JUnit, evidence) into test management; ingest and report results per case",
+   "domain": "cross-cutting",
+   "keywords": [
+    "qa",
+    "bot",
+    "scoped",
+    "pushes",
+    "runs",
+    "result",
+    "ingest",
+    "junit",
+    "evidence",
+    "coverage",
+    "case",
+    "test"
+   ],
+   "description": "A QA bot or CI job runs scoped or full tests, pushes JUnit/Playwright results and evidence through a CLI, and a test-management ingest maps results to cases, runs and requirement coverage."
   }
  },
  "assign": {}
