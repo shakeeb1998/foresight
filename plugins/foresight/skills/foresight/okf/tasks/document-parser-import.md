@@ -3,7 +3,7 @@ type: task
 title: Build or change a document parser / converter / importer (HTML, Word, Markdown, transcript to blocks; re-index or align versions)
 tags: [backend, parser, parse, converter, import, upload, docx, markdown, html, transcript, heading]
 resource: document-parser-import
-timestamp: 2026-10-02
+timestamp: 2026-10-08
 ---
 
 # Task · Build or change a document parser / converter / importer (HTML, Word, Markdown, transcript to blocks; re-index or align versions)

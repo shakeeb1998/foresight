@@ -3,7 +3,7 @@ type: task
 title: Add an RTK Query endpoint or mutation (cache tags, args, response shape, errors)
 tags: [web-frontend, rtk, query, endpoint, mutation, providestags, invalidatestags, cache, transformresponse, apislice, fetch]
 resource: fe-rtk-query
-timestamp: 2026-10-02
+timestamp: 2026-10-08
 ---
 
 # Task · Add an RTK Query endpoint or mutation (cache tags, args, response shape, errors)

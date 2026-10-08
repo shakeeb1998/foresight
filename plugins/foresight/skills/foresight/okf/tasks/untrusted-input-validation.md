@@ -3,7 +3,7 @@ type: task
 title: Accept or parse untrusted input (bot / LLM payload, CSV, HTML, client JSON)
 tags: [backend, validate, validator, input, json, payload, csv, parse, sanitize, html, bot]
 resource: untrusted-input-validation
-timestamp: 2026-10-02
+timestamp: 2026-10-08
 ---
 
 # Task · Accept or parse untrusted input (bot / LLM payload, CSV, HTML, client JSON)

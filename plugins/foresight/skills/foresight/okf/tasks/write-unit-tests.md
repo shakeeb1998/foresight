@@ -3,7 +3,7 @@ type: task
 title: Write or change unit / integration tests (pytest, vitest)
 tags: [cross-cutting, test, pytest, vitest, unit, fixture, mock, assert, coverage, tdd, factory]
 resource: write-unit-tests
-timestamp: 2026-10-02
+timestamp: 2026-10-08
 ---
 
 # Task · Write or change unit / integration tests (pytest, vitest)

@@ -3,7 +3,7 @@ type: domain
 title: mobile
 tags: [mobile]
 resource: mobile
-timestamp: 2026-10-02
+timestamp: 2026-10-08
 ---
 
 # Domain · mobile
@@ -18,9 +18,9 @@ tasks:
 - [mobile-store-release](../tasks/mobile-store-release.md) Release a mobile build or change store-facing config (upload, signing, listing, in-app purchases)
 
 patterns (most frequent first):
-- [FS-18](../patterns/fs-18.md) Shell and CLI step semantics assumed (83)
+- [FS-18](../patterns/fs-18.md) Shell and CLI step semantics assumed (84)
 - [FS-13](../patterns/fs-13.md) Styling correct only in the context that was eyeballed (43)
-- [FS-42](../patterns/fs-42.md) Third-party system semantics not honored (24)
+- [FS-42](../patterns/fs-42.md) Third-party system semantics not honored (25)
 - [FS-67](../patterns/fs-67.md) On-device check runs a stale JS bundle or a dev-client path unlike the shipped build (9)
 - [FS-68](../patterns/fs-68.md) User-facing copy, enum labels or digits bypass the localization layer (8)
 - [FS-70](../patterns/fs-70.md) Mobile behavior verified on one OS or only on the Simulator (8)

@@ -3,7 +3,7 @@ type: task
 title: Add a route, redirect, nav guard or menu entry
 tags: [web-frontend, route, routing, redirect, guard, navigation, menu, sidebar, link, url, path]
 resource: fe-routing-navigation
-timestamp: 2026-10-02
+timestamp: 2026-10-08
 ---
 
 # Task · Add a route, redirect, nav guard or menu entry

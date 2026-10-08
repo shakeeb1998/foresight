@@ -3,7 +3,7 @@ type: task
 title: Release a mobile build or change store-facing config (upload, signing, listing, in-app purchases)
 tags: [mobile, release, testflight, play, store, upload, aab, signing, version, listing, app-store]
 resource: mobile-store-release
-timestamp: 2026-10-02
+timestamp: 2026-10-08
 ---
 
 # Task · Release a mobile build or change store-facing config (upload, signing, listing, in-app purchases)

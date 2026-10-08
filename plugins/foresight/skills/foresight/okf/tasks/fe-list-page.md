@@ -3,7 +3,7 @@ type: task
 title: Add or change a list page or table with search, filter, sort or pagination
 tags: [web-frontend, list, page, table, filter, search, sort, pagination, infinite, scroll, empty]
 resource: fe-list-page
-timestamp: 2026-10-02
+timestamp: 2026-10-08
 ---
 
 # Task · Add or change a list page or table with search, filter, sort or pagination

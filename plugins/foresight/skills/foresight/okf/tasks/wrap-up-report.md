@@ -3,7 +3,7 @@ type: task
 title: Wrap up: report done / pushed / deployed, or write docs and claims
 tags: [cross-cutting, done, report, summary, verify, shipped, deployed, merged, claim, docs, documentation]
 resource: wrap-up-report
-timestamp: 2026-10-02
+timestamp: 2026-10-08
 ---
 
 # Task · Wrap up: report done / pushed / deployed, or write docs and claims

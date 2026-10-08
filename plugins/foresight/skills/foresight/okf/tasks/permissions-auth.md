@@ -3,7 +3,7 @@ type: task
 title: Change permissions, roles, RBAC codenames or auth / session gating
 tags: [backend, permission, rbac, role, codename, auth, login, session, token, rls, gate]
 resource: permissions-auth
-timestamp: 2026-10-02
+timestamp: 2026-10-08
 ---
 
 # Task · Change permissions, roles, RBAC codenames or auth / session gating

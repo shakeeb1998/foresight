@@ -3,7 +3,7 @@ type: task
 title: Deploy or release the web / backend to staging or prod
 tags: [cross-cutting, deploy, release, staging, prod, pipeline, script, build, artifact, rollout, codedeploy]
 resource: deploy-release
-timestamp: 2026-10-02
+timestamp: 2026-10-08
 ---
 
 # Task · Deploy or release the web / backend to staging or prod

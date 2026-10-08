@@ -3,7 +3,7 @@ type: task
 title: Build offline sync, connectivity detection or local DB in the mobile app
 tags: [mobile, offline, sync, network, netinfo, connectivity, sqlite, local, database, schema, version]
 resource: mobile-offline-sync
-timestamp: 2026-10-02
+timestamp: 2026-10-08
 ---
 
 # Task · Build offline sync, connectivity detection or local DB in the mobile app

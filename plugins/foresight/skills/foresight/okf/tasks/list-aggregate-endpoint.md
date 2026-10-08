@@ -3,7 +3,7 @@ type: task
 title: Add, change or optimize a list / aggregate / dashboard / tree read endpoint
 tags: [backend, list, endpoint, serializer, queryset, aggregate, count, filter, dashboard, pagination, prefetch]
 resource: list-aggregate-endpoint
-timestamp: 2026-10-02
+timestamp: 2026-10-08
 ---
 
 # Task · Add, change or optimize a list / aggregate / dashboard / tree read endpoint

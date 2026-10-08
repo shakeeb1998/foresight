@@ -3,7 +3,7 @@ type: task
 title: Refactor, rename or bulk-replace a shared symbol, component, type, label or format
 tags: [cross-cutting, refactor, rename, replace, redesign, extract, move, shared, component, symbol, label]
 resource: refactor-rename-shared
-timestamp: 2026-10-02
+timestamp: 2026-10-08
 ---
 
 # Task · Refactor, rename or bulk-replace a shared symbol, component, type, label or format

@@ -3,7 +3,7 @@ type: task
 title: Add an endpoint or route that resolves client-supplied ids (tenant scoping)
 tags: [backend, tenant, workspace, scoping, for_user, id, ids, nested, route, detail, idor]
 resource: tenant-scoped-ids
-timestamp: 2026-10-02
+timestamp: 2026-10-08
 ---
 
 # Task · Add an endpoint or route that resolves client-supplied ids (tenant scoping)

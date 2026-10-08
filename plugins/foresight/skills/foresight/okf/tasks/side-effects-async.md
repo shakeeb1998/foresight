@@ -3,7 +3,7 @@ type: task
 title: Add a background task, notification, outbox, alert or cache invalidation tied to a write
 tags: [backend, celery, task, notification, outbox, queue, cache, invalidate, signal, email, alert]
 resource: side-effects-async
-timestamp: 2026-10-02
+timestamp: 2026-10-08
 ---
 
 # Task · Add a background task, notification, outbox, alert or cache invalidation tied to a write

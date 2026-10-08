@@ -3,7 +3,7 @@ type: task
 title: Dispatch, monitor or resume parallel agents, subagents or worktrees
 tags: [cross-cutting, dispatch, parallel, agents, subagent, worktree, orchestrate, background, resume, sendmessage, fleet]
 resource: dispatch-parallel-agents
-timestamp: 2026-10-02
+timestamp: 2026-10-08
 ---
 
 # Task · Dispatch, monitor or resume parallel agents, subagents or worktrees

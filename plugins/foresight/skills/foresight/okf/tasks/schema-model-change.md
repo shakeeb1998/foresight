@@ -3,7 +3,7 @@ type: task
 title: Add or change a model, field, constraint, soft-delete behavior or schema migration
 tags: [backend, model, field, migration, constraint, unique, soft-delete, nullable, schema, index, cascade]
 resource: schema-model-change
-timestamp: 2026-10-02
+timestamp: 2026-10-08
 ---
 
 # Task · Add or change a model, field, constraint, soft-delete behavior or schema migration

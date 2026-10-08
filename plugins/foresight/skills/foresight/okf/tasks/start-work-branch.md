@@ -3,7 +3,7 @@ type: task
 title: Start or resume work on a branch or worktree (sync base, check existing work)
 tags: [cross-cutting, start, branch, worktree, checkout, rebase, sync, base, staging, fetch, resume]
 resource: start-work-branch
-timestamp: 2026-10-02
+timestamp: 2026-10-08
 ---
 
 # Task · Start or resume work on a branch or worktree (sync base, check existing work)

@@ -3,7 +3,7 @@ type: task
 title: Build an interactive component: popover, modal, drawer, picker, form input, drag, chart
 tags: [web-frontend, popover, modal, drawer, dropdown, picker, asyncselect, form, input, keyboard, focus]
 resource: fe-interactive-component
-timestamp: 2026-10-02
+timestamp: 2026-10-08
 ---
 
 # Task · Build an interactive component: popover, modal, drawer, picker, form input, drag, chart

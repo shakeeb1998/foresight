@@ -3,7 +3,7 @@ type: task
 title: Run shell commands or write a shell / CLI script
 tags: [cross-cutting, shell, bash, zsh, script, command, pipe, pkill, grep, find, cwd]
 resource: shell-scripting
-timestamp: 2026-10-02
+timestamp: 2026-10-08
 ---
 
 # Task · Run shell commands or write a shell / CLI script

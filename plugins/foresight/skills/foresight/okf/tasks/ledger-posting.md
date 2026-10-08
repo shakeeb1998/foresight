@@ -3,7 +3,7 @@ type: task
 title: Edit ledger / money posting logic (double-entry legs, credit polarity, amounts)
 tags: [backend, ledger, posting, debit, credit, leg, account, transaction, expense, check, deposit]
 resource: ledger-posting
-timestamp: 2026-10-02
+timestamp: 2026-10-08
 ---
 
 # Task · Edit ledger / money posting logic (double-entry legs, credit polarity, amounts)

@@ -3,7 +3,7 @@ type: task
 title: Wire a feature across tiers (FE / API / worker): shared fields, params, enums
 tags: [cross-cutting, contract, frontend, backend, api, payload, field, param, enum, shape, wire]
 resource: full-stack-contract
-timestamp: 2026-10-02
+timestamp: 2026-10-08
 ---
 
 # Task · Wire a feature across tiers (FE / API / worker): shared fields, params, enums

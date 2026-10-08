@@ -3,7 +3,7 @@ type: moment
 title: deploy
 tags: [tripwire]
 resource: deploy
-timestamp: 2026-10-02
+timestamp: 2026-10-08
 ---
 
 # Moment · deploy
@@ -19,7 +19,7 @@ Before deploying or saying merged / deployed / live. Re-check before moving on:
 - [FS-71](../patterns/fs-71.md) Store build inputs taken from local state instead of asserted against the release target — Before archiving, query ASC appStoreVersions/builds (and Play tracks) for the highest approved/READY_FOR_SALE version and highest build, and bump the marketing version strictly above any closed train
 - [FS-65](../patterns/fs-65.md) Which host, checkout or branch serves an environment assumed — Read the service's systemd unit WorkingDirectory and venv, then check git -C <that dir> rev-parse HEAD and its branch before verifying or restarting
 - [FS-73](../patterns/fs-73.md) Native build started without a host preflight (SDK path, UTF-8 locale, disk, gitignored config) — Run a preflight before every native build: ANDROID_HOME/adb set and android/local.properties has sdk.dir, LANG=en_US.UTF-8 and LC_ALL=en_US.UTF-8 exported, df -h shows headroom, and every required gitignored file exists
-- [FS-75](../patterns/fs-75.md) Generated native project or build cache not regenerated after a config, asset or cache change — After any asset/config/plugin change or cache wipe, run expo prebuild --clean for BOTH ios and android (then pod install) before building; never trust incremental xcodebuild for assets
 - [FS-93](../patterns/fs-93.md) Live service config edited without a parse check and a post-restart re-read — Write config through a script file or a drop-in copied to the host, not multi-layer quoted inline commands
+- [FS-75](../patterns/fs-75.md) Generated native project or build cache not regenerated after a config, asset or cache change — After any asset/config/plugin change or cache wipe, run expo prebuild --clean for BOTH ios and android (then pod install) before building; never trust incremental xcodebuild for assets
 - [FS-88](../patterns/fs-88.md) Mobile OAuth client bound to a signing key or cloud project other than the one real installs use — Record the GCP project id of the webClientId and create every Android/iOS OAuth client in that same project; check it before registering any SHA-1
 - [FS-104](../patterns/fs-104.md) Smoke or verification write run against a live production target — Smoke-test writes against a dedicated throwaway target; use read-only probes on live targets

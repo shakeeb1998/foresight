@@ -3,7 +3,7 @@ type: task
 title: Write a seed, import, fixture or backfill script / data migration
 tags: [backend, seed, import, backfill, migration, fixture, demo, jira, script, management, command]
 resource: seed-import-backfill
-timestamp: 2026-10-02
+timestamp: 2026-10-08
 ---
 
 # Task · Write a seed, import, fixture or backfill script / data migration

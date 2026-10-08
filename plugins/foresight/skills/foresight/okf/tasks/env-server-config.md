@@ -3,7 +3,7 @@ type: task
 title: Change env vars, settings, secrets or live server / container config
 tags: [cross-cutting, env, settings, secrets, config, server, nginx, systemd, postgres, ssh, vm]
 resource: env-server-config
-timestamp: 2026-10-02
+timestamp: 2026-10-08
 ---
 
 # Task · Change env vars, settings, secrets or live server / container config

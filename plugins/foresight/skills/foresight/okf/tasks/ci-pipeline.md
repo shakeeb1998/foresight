@@ -3,7 +3,7 @@ type: task
 title: Change a CI workflow, test gate or build pipeline
 tags: [cross-cutting, ci, workflow, github, actions, pipeline, gate, build, shard, cache, scan]
 resource: ci-pipeline
-timestamp: 2026-10-02
+timestamp: 2026-10-08
 ---
 
 # Task · Change a CI workflow, test gate or build pipeline

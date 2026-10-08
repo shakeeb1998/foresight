@@ -3,7 +3,7 @@ type: task
 title: Add or change row locking / concurrent write paths (lock order, select_for_update, advisory locks)
 tags: [backend, lock, locking, deadlock, select_for_update, concurrent, race, advisory, transaction, lock order, atomic]
 resource: concurrent-write-locking
-timestamp: 2026-10-02
+timestamp: 2026-10-08
 ---
 
 # Task · Add or change row locking / concurrent write paths (lock order, select_for_update, advisory locks)

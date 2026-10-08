@@ -3,7 +3,7 @@ type: task
 title: Run the app, dev server, tests or e2e stack locally to verify a change
 tags: [cross-cutting, local, dev, server, verify, run, e2e, stack, port, database, restart]
 resource: run-local-verification
-timestamp: 2026-10-02
+timestamp: 2026-10-08
 ---
 
 # Task · Run the app, dev server, tests or e2e stack locally to verify a change
@@ -21,5 +21,5 @@ predicts (incidents while doing this task):
 - [FS-35](../patterns/fs-35.md) Test depends on uncontrolled shared data or unrealistic setup (5)
 - [FS-81](../patterns/fs-81.md) Next.js build output (.next) shared between dev and e2e, or served stale by next start (4)
 - [FS-34](../patterns/fs-34.md) Nondeterministic test timing and ordering (4)
+- [FS-14](../patterns/fs-14.md) Failure cause attributed without a controlled comparison (3)
 - [FS-20](../patterns/fs-20.md) Concurrent sessions share one working tree or branch (2)
-- [FS-31](../patterns/fs-31.md) Cache identity or invalidation misses a dependency (2)

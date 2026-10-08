@@ -3,10 +3,10 @@ type: index
 title: Foresight anti-pattern graph
 tags: [foresight]
 resource: index
-timestamp: 2026-10-02
+timestamp: 2026-10-08
 ---
 
-# Foresight graph — 101 patterns, 2194 late-caught incidents
+# Foresight graph — 103 patterns, 2239 late-caught incidents
 
 Navigate, don't read everything: pick the task node matching the work you're about to do,
 follow its `predicts` links, read only those patterns. Or: `fs.py match "<task>"`.
@@ -47,6 +47,7 @@ follow its `predicts` links, read only those patterns. Or: `fs.py match "<task>"
 - [mobile-store-release](tasks/mobile-store-release.md) Release a mobile build or change store-facing config (upload, signing, listing, in-app purchases)
 
 ## [cross-cutting](domains/cross-cutting.md)
+- [agent-fleet-lanes](tasks/agent-fleet-lanes.md) Run or supervise a fleet of coding bots in delivery lanes (implement, review, QA) that merge PRs into a shared branch
 - [ci-pipeline](tasks/ci-pipeline.md) Change a CI workflow, test gate or build pipeline
 - [commit-push](tasks/commit-push.md) Commit and push changes (hooks, staged files, push automation)
 - [deploy-release](tasks/deploy-release.md) Deploy or release the web / backend to staging or prod
@@ -59,6 +60,7 @@ follow its `predicts` links, read only those patterns. Or: `fs.py match "<task>"
 - [run-local-verification](tasks/run-local-verification.md) Run the app, dev server, tests or e2e stack locally to verify a change
 - [shell-scripting](tasks/shell-scripting.md) Run shell commands or write a shell / CLI script
 - [start-work-branch](tasks/start-work-branch.md) Start or resume work on a branch or worktree (sync base, check existing work)
+- [test-result-reporting](tasks/test-result-reporting.md) Run QA tests and push results (JUnit, evidence) into test management; ingest and report results per case
 - [tooling-dependency](tasks/tooling-dependency.md) Add or upgrade a dependency, or change dev tooling, hooks or agent memory
 - [triage-failure](tasks/triage-failure.md) Debug a failure or triage red tests to a root cause
 - [wrap-up-report](tasks/wrap-up-report.md) Wrap up: report done / pushed / deployed, or write docs and claims

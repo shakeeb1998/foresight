@@ -3,7 +3,7 @@ type: task
 title: Debug a failure or triage red tests to a root cause
 tags: [cross-cutting, debug, failure, root, cause, triage, regression, baseline, red, flaky, reproduce]
 resource: triage-failure
-timestamp: 2026-10-02
+timestamp: 2026-10-08
 ---
 
 # Task · Debug a failure or triage red tests to a root cause
