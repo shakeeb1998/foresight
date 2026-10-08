@@ -8,7 +8,7 @@ Status legend: 🔲 planned · 🔨 in progress · ✅ done
 
 ---
 
-## 1. Benchmarks — does foresight actually prevent late catches?
+## 1. Benchmarks - does foresight actually prevent late catches?
 
 As of September 2026, none of the closest tools publish effectiveness numbers:
 - Claude Code `/insights`
@@ -94,7 +94,7 @@ and the reverse. Look at SkillLearnBench-style setups for continual-learning com
 
 ---
 
-## 2. Token consumption — cheaper to build, cheaper to use
+## 2. Token consumption - cheaper to build, cheaper to use
 
 ### Baseline (first run, September 2026)
 
@@ -156,7 +156,7 @@ incidents.
 
 - A README hero section: one GIF of `fs.py match` producing a brief, plus the benchmark
   headline once §1.1 exists.
-- `examples/`: two or three real briefs — backend ledger, mobile paywall, web list page —
+- `examples/`: two or three real briefs - backend ledger, mobile paywall, web list page -
   shown next to what the agent predicted without foresight.
 - Listings in plugin and skill directories: Anthropic Directory, claudemarketplaces,
   agentskills, skillsmp.

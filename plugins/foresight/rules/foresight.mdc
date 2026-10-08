@@ -1,5 +1,5 @@
 ---
-description: Before planning or implementing any code change (feature, bug fix, refactor, port), before fanning out to background agents, before writing tests, and before saying done / merged / deployed — use the foresight skill to predict the mistakes that usually get caught late.
+description: Before planning or implementing any code change (feature, bug fix, refactor, port), before fanning out to background agents, before writing tests, and before saying done / merged / deployed - use the foresight skill to predict the mistakes that usually get caught late.
 alwaysApply: false
 ---
 

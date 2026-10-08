@@ -6,7 +6,7 @@ resource: index
 timestamp: 2026-10-08
 ---
 
-# Foresight graph — 103 patterns, 2239 late-caught incidents
+# Foresight graph - 103 patterns, 2239 late-caught incidents
 
 Navigate, don't read everything: pick the task node matching the work you're about to do,
 follow its `predicts` links, read only those patterns. Or: `fs.py match "<task>"`.

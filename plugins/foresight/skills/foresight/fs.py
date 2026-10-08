@@ -93,7 +93,7 @@ def match(query: str, lane: str = "", record: bool = True) -> None:
             if score:
                 scored.append((score, label(b), t, body))
     if not scored:
-        print("no task node matched — open index.md and pick by domain")
+        print("no task node matched - open index.md and pick by domain")
         return
     top = sorted(scored, key=lambda x: -x[0])[:3]
     flags: list[dict] = []
