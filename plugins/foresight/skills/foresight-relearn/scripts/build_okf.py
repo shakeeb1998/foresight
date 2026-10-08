@@ -163,7 +163,7 @@ def render(stats: dict, out: Path) -> None:
         tags = [*doms, p["family"], p["moment"], "portable" if p["portable"] else "repo"]
         seen = f"seen: {p['count']} incidents in {p['n_projects']} project(s)"
         if "projects" in p:
-            seen += " — " + ", ".join(
+            seen += " - " + ", ".join(
                 f"{k} {v}" for k, v in sorted(p["projects"].items(), key=lambda x: -x[1])
             )
         lines = [
@@ -258,7 +258,7 @@ def render(stats: dict, out: Path) -> None:
             mdesc + ". Re-check before moving on:",
             "",
             *[
-                f"- [{c}](../patterns/{c.lower()}.md) {pats[c]['name']} — {pats[c]['preventive_checks'][0]}"
+                f"- [{c}](../patterns/{c.lower()}.md) {pats[c]['name']} - {pats[c]['preventive_checks'][0]}"
                 for c in mp
             ],
         ]
@@ -274,7 +274,7 @@ def render(stats: dict, out: Path) -> None:
             timestamp=today,
         ),
         "",
-        f"# Foresight graph — {len(pats)} patterns, {n_inc} late-caught incidents",
+        f"# Foresight graph - {len(pats)} patterns, {n_inc} late-caught incidents",
         "",
         "Navigate, don't read everything: pick the task node matching the work you're about to do,",
         'follow its `predicts` links, read only those patterns. Or: `fs.py match "<task>"`.',

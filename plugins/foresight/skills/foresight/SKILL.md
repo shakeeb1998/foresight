@@ -60,7 +60,7 @@ choose the task.
 3. Put the brief in the plan, in this shape:
 
 ```markdown
-## Foresight — <ticket or task>
+## Foresight - <ticket or task>
 Tasks matched: <task node names>
 | FS | What breaks in THIS change | Guard (test name / command / question) | Lands in |
 |----|----------------------------|----------------------------------------|----------|

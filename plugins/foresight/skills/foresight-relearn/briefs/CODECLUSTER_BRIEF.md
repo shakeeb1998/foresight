@@ -1,4 +1,4 @@
-# Code-cluster brief — construct records → code-pattern nodes
+# Code-cluster brief - construct records → code-pattern nodes
 
 This step turns the output of the deepen pass into **code patterns**. You get one JSONL line per
 incident, each with construct, trap, bad/good snippets and signature. Group them into
@@ -25,7 +25,7 @@ concrete, framework-level traps that an agent can recognise in a diff.
 - Ids: `CP-nn` when told `canonical: true`, otherwise `CPL-<kebab-name>`. In incremental
   mode, keep existing ids and append members.
 
-## Output — `code_patterns.json`
+## Output - `code_patterns.json`
 
 ```json
 {

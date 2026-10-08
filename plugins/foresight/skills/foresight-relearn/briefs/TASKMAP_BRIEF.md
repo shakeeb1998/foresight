@@ -1,4 +1,4 @@
-# Task-map brief — incidents → task nodes
+# Task-map brief - incidents → task nodes
 
 This builds the `task` layer of the foresight OKF graph. A **task** is the kind of work a developer
 describes *before* starting it ("add a list endpoint with per-row counts", "add a screen to the
@@ -31,7 +31,7 @@ columns: id, domain, area, anti_pattern, trigger_signal.
 - Include process and moment tasks too: "dispatch parallel agents or worktrees", "write or
   extend an e2e spec", "wrap up and report done / deployed", "deploy or release".
 
-## Output — `tasks.json` (fresh mode)
+## Output - `tasks.json` (fresh mode)
 
 ```json
 {

@@ -1,9 +1,9 @@
-# Mining brief — late-caught defects
+# Mining brief - late-caught defects
 
 Given to each miner agent along with its digest file list and an output path.
 
 You mine condensed coding-agent session transcripts ("digests") from **{PROJECT}**
-({STACK — e.g. "Django + DRF backend, React + RTK Query frontend, Playwright e2e, multi-tenant"}).
+({STACK - e.g. "Django + DRF backend, React + RTK Query frontend, Playwright e2e, multi-tenant"}).
 Digests come from Claude Code or from Cursor (IDE agents and cloud agents).
 Goal: a catalog of **anti-patterns that keep getting caught late**, so a future agent can
 predict and avoid them BEFORE writing code.
@@ -33,17 +33,17 @@ Exclude:
 
 ## Digest format
 
-- `## USER [...]` — the human. Their pushback is the strongest signal ("still not rendering",
+- `## USER [...]` - the human. Their pushback is the strongest signal ("still not rendering",
   "you missed", "why is this slow", "this is flaky again").
-- `### A:` — implementing assistant's prose (fix announcements: "Root cause:", "Fixed", "Found").
-- `  -> ` — tool calls kept: edits, test/lint runs, git commits, subagent dispatches.
-- `  <= AGENT-REPORT:` and `## TASK-NOTIFY` — subagent results. **Reviewer findings live here.**
-- `## SUBAGENT <id>` — a Cursor subagent transcript folded into the parent. Reviewer findings
+- `### A:` - implementing assistant's prose (fix announcements: "Root cause:", "Fixed", "Found").
+- `  -> ` - tool calls kept: edits, test/lint runs, git commits, subagent dispatches.
+- `  <= AGENT-REPORT:` and `## TASK-NOTIFY` - subagent results. **Reviewer findings live here.**
+- `## SUBAGENT <id>` - a Cursor subagent transcript folded into the parent. Reviewer findings
   often live here, because the parent transcript records the dispatch but not the tool result.
-- `  <= FAILISH:` / `  <= ERR:` — failing command output tails. Cursor parent transcripts omit
+- `  <= FAILISH:` / `  <= ERR:` - failing command output tails. Cursor parent transcripts omit
   tool results, so a failure there shows up as assistant prose, a `TASK-NOTIFY`, or a `SUBAGENT`
   section rather than a `FAILISH` line.
-- `  -> Edit <path>` — a file write. Cursor's StrReplace, Write, Delete and ApplyPatch are
+- `  -> Edit <path>` - a file write. Cursor's StrReplace, Write, Delete and ApplyPatch are
   normalized to this line.
 
 ## How to read

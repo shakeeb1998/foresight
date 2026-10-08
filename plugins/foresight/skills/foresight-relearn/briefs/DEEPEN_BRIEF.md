@@ -1,4 +1,4 @@
-# Deepen brief — ground code-level incidents in real fix commits
+# Deepen brief - ground code-level incidents in real fix commits
 
 Mined incidents describe what went wrong in prose. This pass turns each code-level one into a
 **code pattern**: the concrete construct, its silent trap, a bad/good snippet taken from the

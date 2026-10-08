@@ -109,7 +109,7 @@ The agent runs `python3 fs.py match "<task>"` from the foresight skill directory
 `.foresight/okf/` or `.cursor/foresight/okf/`.
 
 **foresight-relearn** is installed next to it. A Cursor agent can mine its own transcripts
-— IDE sessions and cloud-agent sessions under `~/.cursor/projects/*/agent-transcripts` —
+(IDE sessions and cloud-agent sessions under `~/.cursor/projects/*/agent-transcripts`)
 the same way a Claude Code agent mines `~/.claude/projects`. Ask it to relearn foresight
 from your Cursor sessions. The private graph lands in `~/.cursor/foresight/okf/`, which
 `fs.py` already searches.

@@ -1,4 +1,4 @@
-# Cluster brief — incidents → foresight catalog
+# Cluster brief - incidents → foresight catalog
 
 Given to one strong-model agent after `aggregate.py number` has produced
 `incidents.compact.tsv` (id, project, domain, layer, anti_pattern, trigger_signal, root_cause;
@@ -27,7 +27,7 @@ A catalog an implementing agent consults BEFORE and DURING work. Clusters must b
 "N+1 in ticket list" are one cluster. Target 30–45 clusters. Merge aggressively, and split
 only when the preventive check differs.
 
-## Output — `clusters.json`
+## Output - `clusters.json`
 
 ```json
 {

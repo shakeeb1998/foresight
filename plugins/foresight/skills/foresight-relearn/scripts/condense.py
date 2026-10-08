@@ -357,7 +357,7 @@ def main() -> None:
             f"# title: {meta['title']}\n# branches: {', '.join(sorted(meta['branches']))}\n"
         )
         target = digests / name
-        # the same session id can live under two project dirs (worktree moves) — append
+        # the same session id can live under two project dirs (worktree moves) - append
         with target.open("a" if target.exists() else "w") as fh:
             fh.write(("\n\n" if target.exists() else "") + header + body)
         sizes[name] = sizes.get(name, 0) + len(body)

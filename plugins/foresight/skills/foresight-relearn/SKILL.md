@@ -1,6 +1,6 @@
 ---
 name: foresight-relearn
-description: Use when the user wants foresight to learn from their own coding-agent history — Claude Code transcripts or Cursor agent transcripts (IDE or cloud) — mining sessions for late-caught defects, adding a project or a batch of recent sessions to the anti-pattern graph, folding catches.log entries back in, exporting an anonymized contribution for others, or (as maintainer) merging contributions into the shared graph.
+description: Use when the user wants foresight to learn from their own coding-agent history - Claude Code transcripts or Cursor agent transcripts (IDE or cloud) - mining sessions for late-caught defects, adding a project or a batch of recent sessions to the anti-pattern graph, folding catches.log entries back in, exporting an anonymized contribution for others, or (as maintainer) merging contributions into the shared graph.
 ---
 
 # Foresight relearn
