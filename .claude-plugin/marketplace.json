@@ -8,7 +8,7 @@
       "name": "foresight",
       "source": "./plugins/foresight",
       "description": "Predict the mistakes that usually get caught late (in review, by the user, after 'done') and guard against them before writing code. Includes foresight-relearn to mine your own Claude Code or Cursor sessions and improve the graph.",
-      "version": "0.2.0",
+      "version": "0.3.0",
       "license": "MIT"
     }
   ]
