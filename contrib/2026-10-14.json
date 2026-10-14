@@ -1,0 +1,2956 @@
+{
+ "generated": "2026-10-14",
+ "patterns": {
+  "FS-02": {
+   "name": "Verification against an environment not running the code under test",
+   "family": "test-env",
+   "moment": "verify",
+   "mechanism": "Tests or manual checks run against a server, bundle, dependency set, DB schema or measurement config that predates or differs from the code being verified: daphne/--noreload servers never restarted, Vite from another branch, reuseExistingServer adopting a foreign process, deps not reinstalled after a rebase, symlinked node_modules, unmigrated DB, Silk-enabled dev settings for query counts. The pass/fail reflects the stale environment, not the change.",
+   "trigger_signals": [
+    "backend code edited, branch switched or migration added while a dev/e2e server started earlier is still running",
+    "Playwright config uses reuseExistingServer or a fixed port another worktree may hold",
+    "just rebased/merged onto a base that may add packages; fresh worktree with symlinked or missing node_modules/venv/build dirs",
+    "measuring query counts or latency via a running dev server or a bench harness with its own settings",
+    "a --keepdb test database kept across a pull that added migrations; a fresh worktree without the non-committed env file",
+    "a live e2e suite run against a backend that is 'already up' on the expected port; a fresh branch/worktree after main merged a Playwright or tooling bump; several worktrees pointing at one local sqlite file",
+    "a server for a worktree launched from another checkout's cwd while worktrees share one venv (cwd at sys.path[0] beats PYTHONPATH)"
+   ],
+   "preventive_checks": [
+    "Restart BE/FE servers (or confirm the process start time is newer than the last edit) before trusting any red/green result",
+    "Before e2e: confirm the ports are free or owned by this worktree (lsof -iTCP -sTCP:LISTEN), run migrate plus a health check, and reinstall deps (npm ci, pip install -e .) after any base change",
+    "Give each worktree its own real node_modules/venv; never symlink across worktrees",
+    "Measure query counts under settings.test with Silk off, assert the active settings module, and repeat timing runs",
+    "Drop/recreate the --keepdb test DB after pulling migrations, and diff a fresh worktree's env file against a known-good one before trusting a blank screen",
+    "Curl a version/health endpoint (or check the listening process's cwd and git SHA) before running a live suite against an existing server; run migrate after every branch/worktree switch; run a fresh install and `playwright install` whenever the installed versions differ from package.json",
+    "Launch servers from the worktree cwd and assert `python -c 'import pkg; print(pkg.__file__)'` points into it"
+   ],
+   "portable": true,
+   "count": 11,
+   "domains": {
+    "cross-cutting": 6,
+    "backend": 5
+   },
+   "n_projects": 1,
+   "related": [
+    "FS-27"
+   ]
+  },
+  "FS-03": {
+   "name": "Code written against an assumed interface instead of the real one",
+   "family": "contract-logic",
+   "moment": "implement",
+   "mechanism": "Code, fixtures, scripts, selectors or plan snippets are written from memory or by analogy (a sibling model, a similarly named component, a library's default DOM, a unit-test mock) rather than from the actual definition: response shape, model fields, route params, hook return type, primitive API (Radix vs base-ui), field units/semantics, rendered DOM. It looks plausible, often type-checks, and fails only at runtime or in the browser.",
+   "trigger_signals": [
+    "writing a parser, fixture or script against an endpoint without having printed one real response",
+    "copying a pattern from a sibling model/component whose underlying type, import path or markup differs",
+    "hand-building a route, deep link or e2e selector for a page not inspected this session",
+    "a plan snippet calls a library API or hardcodes a URL/regex/selector with no source citation",
+    "deriving a flag or scaling factor from an API field whose unit/semantics aren't documented",
+    "an ad hoc prod script or fix guesses a manager name (all_objects vs global_objects), a status value, which model an API id belongs to, or which field the FE reads",
+    "copying an RN sizing/style pattern (flexGrow: 0, fixed or percentage heights) from a component with different layout constraints; wrapping a third-party RN widget (phone input, picker) with custom overlay Views",
+    "an <a href> download/print link to an API route in an app whose auth is a bearer token in localStorage; a storage OPTIONS dict copied from another backend (S3 to GCS); a custom leading icon added to an <input type=date>; seeding records at a non-default workflow status that a human will look for",
+    "a plan or brief routes/filters at a downstream stage on a value (request host) computed and discarded upstream",
+    "a brief or plan carries verbatim implementation code the implementer is expected to paste, written in parallel with other lanes",
+    "a waitForResponse URL predicate written from the route name instead of the page's API slice endpoint"
+   ],
+   "preventive_checks": [
+    "Print one real response, the model definition, the .d.ts signature or the router entry before writing code against it",
+    "For e2e, inspect the real rendered DOM (roles, labels, testids) of the production component, never its unit-test mock",
+    "Trace the route to the exact component file that renders the page before editing by filename",
+    "Reuse existing URL/route builders and shared formatters instead of reconstructing them",
+    "Before a data fix or new filter, pull one real record in the target state and grep the model's managers, the serializer and the exact FE filter/conditional it must satisfy",
+    "Screenshot a new RN component, and any wrapped third-party widget against the library's own default render, before adding overlays or trusting copied sizing",
+    "Fetch protected downloads with the Authorization header into a blob URL and make the e2e follow the link; instantiate the configured storage backend with its OPTIONS in a settings test; say which tab/filter shows seeded records, or seed at the status the default view shows",
+    "Before writing a brief that routes on a value, grep the intermediate data model (CallSite) to confirm the field is carried and populated at that stage",
+    "Treat plan code as a draft: grep each cited hook, type and API in the real codebase, run the RED test first, and apply the repo's size, tenancy and lock-order rules before pasting"
+   ],
+   "portable": true,
+   "count": 18,
+   "domains": {
+    "cross-cutting": 6,
+    "backend": 12
+   },
+   "n_projects": 1,
+   "related": [
+    "FS-18"
+   ]
+  },
+  "FS-04": {
+   "name": "Tests pass without proving the requirement",
+   "family": "test-design",
+   "moment": "test-write",
+   "mechanism": "A green test cannot fail for the defect it is meant to catch: only the happy path or one of N call sites/variants is exercised, the oracle is derived from the code under test or an assumed policy, the spec adds steps the criterion doesn't allow, it asserts presence instead of content, or it encodes the current buggy behavior. Coverage numbers and green runs create false confidence until a user or reviewer hits the gap.",
+   "trigger_signals": [
+    "a helper/param/pattern used at several call sites or view variants while the test plan names one",
+    "an acceptance criterion names literal text, an immediate UI change, several surfaces or several close methods",
+    "an RBAC test strips a role instead of one codename, or the permission helper has OR/tiered/owner-bypass branches",
+    "expected value computed by the same function under test, or a test comment carving out a known bug as expected",
+    "an except/error branch no existing test reaches",
+    "a spec line enumerates cases with 'or', or a test claims to exercise all N legs/branches/reasons",
+    "a unit test reads component source text or asserts a function name with toMatch(/name/); a sync pipeline carries several entity types (parent plus attached photos, voice notes, tags) through separate push/pull branches",
+    "action buttons in a fixed-width table row covered only by a click (Playwright click auto-scrolls); a spec asserting literal copy not found in the requirement it cites",
+    "a sort/order test whose fixture's insertion order already resembles the expected order; a .map(...).sort(...) chain whose comparator reads fields the mapped shape dropped",
+    "a new branch beside an existing path, a fixpoint while-changed loop, a resolver handling several AST shapes (f-string and concat), or a benchmark case labelled with a dimension (enum value, reorder) the pipeline may not capture",
+    "a plan that defers running e2e specs to a final lane, or parallel lanes merging into one integration branch",
+    "a dispatch that lists required behaviours or negative tests (audit fields, soft-delete, tenancy, sibling project, bad id) in prose",
+    "a test.skip conditioned on seed data, or a smoke test whose only assertions are URL shape and a global object",
+    "the same rule text duplicated in a doc or prompt and in a server constant"
+   ],
+   "preventive_checks": [
+    "Build a criterion/risk -> test table before declaring done; one test per call site and per view variant, including empty/loading/error/keyboard states",
+    "Make each acceptance e2e perform exactly the criterion's user action and assert rendered content, not element presence; an extra needed step is a product gap to report",
+    "Derive expected values from independent fixtures and cite the spec section for policy/security assertions",
+    "For permission tests read the view's permission helper and strip exactly one codename; cover OR and prerequisite branches",
+    "Force every error branch once and confirm the test fails with the fix reverted",
+    "Assert the count of legs/branches actually exercised and the exact reason string per case; build RED tests from the exact prod entity state, not a simplified repro",
+    "Assert observable output, never source-grep; require one cross-device round-trip test per synced entity type, not only the primary one",
+    "Assert toBeInViewport or a bounding box for row actions and review a full-width screenshot; source every literal copy assertion from the cited requirement or design, and flag it for clarification if absent",
+    "Give every ordering test a fixture whose insertion order contradicts the expected order, so a no-op sort fails",
+    "Mutation-test the new code before done: force the branch condition (if False:), make the loop single-pass, swap before/after fixtures or remove a different enum value, and confirm some test fails; read back written artifacts and assert on parsed content, not path or existence",
+    "Each parallel lane runs its own e2e specs and scoped tests on its own branch before merging into the integration branch; never defer all e2e execution to a final lane",
+    "Turn every behaviour a dispatch lists into named test stubs the implementer must fill, and check the names exist before accepting the task",
+    "Replace data-dependent test.skip with a fixture that creates the case; count a skipped test as missing coverage",
+    "Assert every copy of a duplicated rule (or derive one from the other) and mutation-probe by rewording each copy"
+   ],
+   "portable": true,
+   "count": 5,
+   "domains": {
+    "backend": 4,
+    "cross-cutting": 1
+   },
+   "n_projects": 1,
+   "related": []
+  },
+  "FS-06": {
+   "name": "Per-row queries and unbounded fetches invisible at seed scale",
+   "family": "data-query",
+   "moment": "implement",
+   "mechanism": "List, bulk and tree code issues a query per row (SerializerMethodField .count()/.values_list() bypassing prefetch, per-item loops inside 'bulk' endpoints, recursive per-node aggregates, per-entity external API calls), multiplies joins (sibling Count(distinct)), or fetches whole collections unpaginated. Seed data has about ten rows, so it passes review and tests until real tenants load it.",
+   "trigger_signals": [
+    "a serializer gains a SerializerMethodField or helper that touches a related manager",
+    "a new bulk endpoint loops an existing per-item helper; save()/create() inside a for-loop",
+    "a queryset annotates two or more Count() over different reverse relations",
+    "tree/hierarchy aggregate, per-status count loop, or per-user external API call on a page",
+    "a new UI panel calls a list endpoint without page_size, or a response serializes the same rows twice",
+    "an org-wide scan, drift detector or batch loop over prod-scale tables (subprocess per item, __contains on an unindexed column, a full report builder called for one scalar)",
+    "a spec states a perf budget or page size while lane gates run on small or freshly bulk-inserted tables, or with a slack multiplier (a perf-slack env variable)",
+    "a save path that renumbers ordered rows (bulk_update CASE/WHEN), a heavy column written for every row of a shared save path, or FE code that generates one CSS rule per element on hundreds of nodes",
+    "an integration client that re-fetches misses with no negative cache, or a platform-wide lookup inside a per-workspace path"
+   ],
+   "preventive_checks": [
+    "Write a query-count test at two sizes (N=1 vs N=10) asserting it stays flat before implementing",
+    "Resolve per-row data via annotate/prefetch and iterate prefetched .all(); never .values_list() in a hot serializer path",
+    "Replace per-item loops with pk__in batch fetches, bulk_create and one GROUP BY; use Subquery instead of sibling Count(distinct)",
+    "Default new list consumers to paginated fetches, check the largest real tenant's row count, and measure real per-request latency, not only query count",
+    "EXPLAIN new filters on large tables, write detectors as one set-based query, and loop batch work inside one warm process",
+    "Seed perf fixtures at the spec's size, refresh planner statistics (ANALYZE) after seeding, gate at the page size the endpoint actually serves, no slack multipliers; keep the row mix constant across sizes in flatness checks",
+    "Run perf gates from the first perf-sensitive task onward, not in a final lane; cover insert-shaped writes as well as order-preserving ones",
+    "Frontend: toggle a class or data attribute per element instead of generating per-element selectors, and measure style recalc at spec size"
+   ],
+   "portable": true,
+   "count": 11,
+   "domains": {
+    "backend": 8,
+    "cross-cutting": 3
+   },
+   "n_projects": 1,
+   "related": []
+  },
+  "FS-07": {
+   "name": "Parallel code paths for one operation diverge",
+   "family": "contract-logic",
+   "moment": "implement",
+   "mechanism": "The same operation or number is implemented in more than one place (single vs bulk, API create vs seed/import/duplicate, preview vs apply, immediate vs polled dispatch, list vs detail serializer, per-row cell vs summary tile). A guard, side effect, lock, scope filter or display rule added to one path is missing or different in the others, and tests cover only the primary path.",
+   "trigger_signals": [
+    "adding a guard, side effect, lock or scope filter to a create/transition/update method",
+    "a bulk, seed, import, duplicate or management-command path exists alongside the primary one",
+    "a preview/count endpoint or summary tile computes the same quantity as the action or list next to it",
+    "a requirement says 'applies to all X' but X gets wired one input or one surface at a time",
+    "Django bulk_create/bulk_update/queryset.update() on a model whose save() or pre_save signals carry side effects (ledger sync, audit stamping, auto_now)",
+    "single-match vs multi-match handlers, or a required field/alert added to one caller of a shared function",
+    "adding a new state/segment variant to a list row that renders a different icon per variant",
+    "a feature adds a model or file field that a page renders while a seed/demo script builds the same data separately; a multi-write service function called from both a view (ATOMIC_REQUESTS) and a shell/command/task",
+    "adding a second resolver for the same binding kind next to one that already handles scope/shadowing",
+    "a new subtype, hold/lock state or rollout flag that must be protected across a module whose write routes (callback, retry, upload, generic CRUD, bot endpoints, service callers) all reach the same downstream path",
+    "a bulk move/visibility/delete endpoint added next to single-item actions that write audit entries",
+    "a test harness gains a new execution mode (per-worker DBs, shards, pooled seeding) while helpers resolve their own DB URL, interpreter or seed flags",
+    "a scrub, profile or sandbox applied where an artifact or CLI argv is first built, while other writers or launchers (resume and follow-up turns, group copies) build their own"
+   ],
+   "preventive_checks": [
+    "Grep every path that creates or mutates the model (views, bulk, seed, import, duplicate, commands) and route them through the same service method",
+    "Extract the shared rule into one function used by preview and apply; assert preview == outcome and summary == sum(rows)",
+    "Add one test per path for any new guard or side effect, and decide explicitly which side effects bulk/import paths must fire",
+    "Grep bulk_create/bulk_update/.update( on affected models and call the same sync explicitly (include auto_now fields in bulk_update); add a parity test for every sibling entry point",
+    "Give every variant the same fixed-size wrapper as its siblings and compare alignment in one screenshot",
+    "Extend the seed for every demo account and state in the same change, generate seeded files through the product's real builder, and add a reconciliation test; apply the transaction.atomic decorator on the service function itself and test it by calling it directly",
+    "When adding a sibling resolver, reuse the existing one's scope/shadow guard and test the shadowed case on both",
+    "Enumerate every write entry point that reaches the guarded state (grep URL routes and service callers), put the guard at the shared service/write entry rather than per endpoint or at a later transition, and add one test per entry point",
+    "Test that each bulk action writes one audit row per touched item, exactly like the single-item path",
+    "Resolve DB name, interpreter and seed routing in one shared harness helper used by every fixture and subprocess, and smoke every mode (1 worker, N workers, pool) asserting the DB each worker actually used",
+    "Grep every writer of the artifact and every argv builder, route them through the one function that applies the scrub or profile, and test each launcher's output"
+   ],
+   "portable": true,
+   "count": 11,
+   "domains": {
+    "backend": 9,
+    "cross-cutting": 2
+   },
+   "n_projects": 1,
+   "related": [
+    "FS-29"
+   ]
+  },
+  "FS-09": {
+   "name": "Green signal whose scope doesn't cover the claim",
+   "family": "verification-claims",
+   "moment": "verify",
+   "mechanism": "A check reports success without observing the claimed property: CI that lints but never builds or tests, tsc --noEmit on a references-only root, e2e files outside the type-check, a 302/200 probe answered by an SPA fallback, curl http_code on a WebSocket upgrade, a stale CI badge, a suite run before the last change, a fabricated RED step, proof screenshots overwritten or misleading. The claim ships on the strength of the signal.",
+   "trigger_signals": [
+    "about to report 'verified' or 'green' from a status code, redirect, CI badge or a scoped/filtered run",
+    "the type-check/lint command differs from the project's real build command (npm run build / tsc -b)",
+    "another change landed after the last full verification run",
+    "proof screenshots written into test-results/ or a docs/qa path other runs also write",
+    "reporting a location balanced from a dry run over stored ledger rows, a single-day detector, a job's exit code, or a balance-sheet delta of 0",
+    "declaring an infra cutover or deploy done from a /health endpoint that doesn't touch the DB; reporting a multi-leg pipeline (store SDK -> backend -> app UI) as 'verified on device' after injecting synthetic data for one leg",
+    "a raw CSS edit checked only under the dev server/HMR; a completeness audit narrating another actor's capability; resuming another session's ticket where RED logs and screenshots already exist; a full-suite run that rewrites tracked screenshots of unrelated specs",
+    "the only validator reachable in a worktree without node_modules is node --check on a JSX/ESM file",
+    "an xcodebuild/gradle smoke build run without an explicitly named scheme/target and judged by exit code 0",
+    "an animation timing value copied from a design board (stagger under ~150ms) reported done without watching it run",
+    "specs that call page.screenshot({ path }) with a path inside a tracked QA-docs folder, overwriting tracked files, run by a full or sharded suite",
+    "deciding pass/fail by grepping a test runner's colored output for a summary line ('N failed', 'N passed')"
+   ],
+   "preventive_checks": [
+    "Run the exact project gate (npm run build, scoped pytest for touched apps) as the last step after the final change",
+    "Probe the actual property end to end: POST reaches the backend, WS returns 101 via curl -v, OAuth round-trips through the real proxy",
+    "Confirm the gate runs at all: CI has build/test jobs without continue-on-error, e2e specs are in the type-check include, a canary failure blocks",
+    "Copy proof screenshots to a unique dir immediately and git status for clobbered docs/qa files before committing",
+    "Re-run the authoritative full-range check (full rebuild / day_delta walk) and confirm expected source types (opening balances) are present before saying balanced",
+    "After cutovers hit one authenticated, DB-touching endpoint end to end and make health checks touch the DB; report verification per leg (real data / injected / unit test only)",
+    "Run the production build (next build) after CSS edits and before every deploy; cite a file:line in that actor's own code for each journey step; re-run the target suite before estimating remaining work; stage only the current change's own proof screenshots",
+    "Sanity-test any fallback validator against deliberately broken input before trusting it; treat node --check as no signal for JSX and use a real parser (esbuild/babel/eslint, or the main tree's node_modules)",
+    "Print and assert the built scheme/target and the expected output artifact, not just the exit code",
+    "Watch timed or staggered animations at runtime (screen-record or slow-mo) and map spec values to perceptible motion tokens before calling them done",
+    "Write run screenshots to testInfo.outputPath() and copy into the tracked QA-docs folder only in a deliberate proof step; run git status on that folder after every full run",
+    "Strip ANSI escapes first (sed 's/\\x1b\\[[0-9;]*[A-Za-z]//g') or use a machine reporter (JSON/JUnit), then read the list of failed specs, not just the count; treat 'no match' as unknown, not green"
+   ],
+   "portable": true,
+   "count": 8,
+   "domains": {
+    "backend": 5,
+    "web-frontend": 1,
+    "cross-cutting": 2
+   },
+   "n_projects": 1,
+   "related": []
+  },
+  "FS-11": {
+   "name": "Enumerable scope silently shrinks between ask and done",
+   "family": "requirements-scope",
+   "moment": "plan",
+   "mechanism": "The scope source is a list (AC items, the sub-surfaces one criterion names, a mock's render functions and interactions, features of the component being replaced, approved-but-unbuilt specs), but the work is checked against a mental summary. Items are dropped, reduced, placeholdered or traded away and the report doesn't say so; the user finds the gap. The same gap appears as substitution: the implementer swaps in a different path or mechanism than the one the user stated, widens a guard beyond the requirement, or treats the reporter's examples as the full extent of an org-wide problem.",
+   "trigger_signals": [
+    "an AC list with 6+ items, or one criterion naming several surfaces/call sites",
+    "porting from a designs/ mock or reference product, or replacing an existing page/component wholesale",
+    "a redesign that merges fields/filters or refactors shared page state with multiple URL modes",
+    "a broad go-ahead ('lets go', 'do the rest') over several approved items; a trade-off noted only in implementer notes",
+    "the user specifies an exact mechanism or scope (rebuild-only, one agent per location); a guard's docstring reads broader than the requirement; the reporter lists example entities for an org-wide issue",
+    "a store-listing or rebrand task that says 'images' or 'screenshots' (icon, feature graphic and template logos are separate slots); a 'design parity' ask with a design screenshot or jsx available"
+   ],
+   "preventive_checks": [
+    "Keep a literal AC -> task -> spec checklist from planning through the exit audit",
+    "Diff the build element-by-element and interaction-by-interaction against the mock render function for every view/mode before reporting done",
+    "Before replacing or consolidating UI, list every existing field, filter, affordance and mode and confirm each survives",
+    "Report any deferred, reduced or placeholder item as an explicit scope cut and ask before trading away a capability",
+    "State any deviation from an explicit directive and get one line of confirmation; wire guards against the requirement text, not the helper's docstring; run discovery unfiltered before narrowing to the reporter's examples",
+    "Enumerate every asset slot the store console exposes and every static image a template references, check each against the new brand, and bump cache-busters on swapped assets"
+   ],
+   "portable": true,
+   "count": 8,
+   "domains": {
+    "backend": 5,
+    "cross-cutting": 3
+   },
+   "n_projects": 1,
+   "related": []
+  },
+  "FS-12": {
+   "name": "Deploy pipeline doesn't carry or match what the change needs",
+   "family": "deploy-infra",
+   "moment": "deploy",
+   "mechanism": "The change depends on infra the deploy doesn't provision or sync (nginx location, worker/beat unit, firewall port, env var, cache headers), or the live host has drifted from the repo (hand patches, root- or CI-user-owned files, wrong gcloud account, FE bundle built from the wrong branch, builds on the shared prod VM). The code is correct but the environment silently doesn't run it.",
+   "trigger_signals": [
+    "the diff adds a URL prefix, route, service/port, Celery task or env var",
+    "the deploy script only reloads nginx/services instead of installing repo config",
+    "manual deploy on a host where CI previously ran as another OS user, or after a Docker-to-native cutover",
+    "local-build-then-ship FE deploy, or staging and prod sharing one host",
+    "a feature adds a Django migration while the target's deploy (CodeDeploy) skips migrate; a deploy hook deletes everything except an allowlist; an env var used by several systemd units; a log path change",
+    "changing a Secret-Manager-backed variable or a settings default on a VM that may also carry a local .env; rotating a secret that the service reads only at boot",
+    "settings call environ.Env.read_env() on a fixed path while deploy.sh sources the .env into the shell; a DB server provisioned on a network with a broad existing firewall rule for its port",
+    "the diff edits the deploy script that will run this very deploy (the shell executes the copy loaded before git pull)",
+    "a Node entry point calls dotenv.config() with an implicit relative path and the repo holds more than one .env file",
+    "a host migration rebuilds a venv from requirements files on a box whose old venv had hand-installed packages; several env files (admin.env, portal.env) define the same DB credential",
+    "a deploy step restores a built entrypoint from git (git checkout -- dist/index.html) instead of rebuilding, on a host where nginx serves dist/ directly; the step comes from a remembered 'standard flow' of an earlier session",
+    "a provider API key (SendGrid, SMTP2GO) is rotated or first set in prod and judged working because it authenticates",
+    "periodic or scheduled work (a Celery beat entry, a cron line) added for hosts whose deploy runs only web units and systemd timers (recurs: a scheduled sync and later an alert were both wired to a scheduler no host runs)"
+   ],
+   "preventive_checks": [
+    "For every new route/port/unit/env var, confirm the deploy script installs it and curl the real public path after deploy",
+    "Diff the live nginx/env config on the box against the repo before debugging routing; commit or remove hand patches",
+    "Chown deploy dirs to the deploying user and pin the gcloud account before starting",
+    "Build the FE from an explicit checkout of the target ref and verify the served asset hash; never build on the prod box (SKIP_FE_BUILD=1)",
+    "Run showmigrations / migrate --plan on the target box after any deploy carrying a migration; provision env vars into every unit that calls the helper; add a post-deploy health check that fails the pipeline",
+    "grep the live VM's .env for the same key and confirm the runtime value after restart with an authenticated request; restart every consumer right after rotating a boot-time secret",
+    "Put or symlink the .env where the library reads it as the first deploy step and run deploy.sh end to end; after provisioning, probe the DB port from outside the VM and grep postgresql.auto.conf for listen_addresses",
+    "After changing the deploy script, re-exec it after git pull or run the new step explicitly, then verify each new step's effect (query the role/table it creates) rather than a green health check",
+    "Log the resolved .env path and injected-variable count at boot, and confirm the process cwd before editing a live server's env",
+    "Before a host migration diff pip freeze on the old host against every requirements file; confirm which env file the running unit loads before provisioning a DB role, then smoke-test the real end-to-end login",
+    "Rebuild dist/ as part of the deploy, never git checkout build output, then fetch / and every asset hash it references and require 200",
+    "After rotating a provider key, fire one real call of the exact operation (send a test email) and read the key's scope list from the provider's key-info endpoint; alert on send failures rather than only logging them",
+    "Before wiring periodic work, read which scheduler the target hosts actually run (systemctl list-timers, the deploy's unit files) and register the job there; a test or deploy check asserts that scheduler invokes the entrypoint"
+   ],
+   "portable": true,
+   "count": 4,
+   "domains": {
+    "cross-cutting": 3,
+    "backend": 1
+   },
+   "n_projects": 1,
+   "related": []
+  },
+  "FS-14": {
+   "name": "Failure cause attributed without a controlled comparison",
+   "family": "verification-claims",
+   "moment": "verify",
+   "mechanism": "A failure is blamed on, or cleared from, the current diff, or a root cause is declared, without evidence that isolates it: no baseline run on a pristine base, truncated output read as absence, correlation instead of tracing the render path, host contention read as a regression, prod 500s with no traceback because logging isn't configured. Time is burned, or a wrong fix or claim ships.",
+   "trigger_signals": [
+    "failures in files/specs the diff never touched, or right after a rebase/merge",
+    "about to say 'pre-existing', 'baseline' or 'root cause confirmed'",
+    "diagnosing from head/tail snippets, status codes, or timings on a shared machine",
+    "a prod/staging 500 or outage with no traceback or alert available",
+    "a new imbalance or residual pattern-matches a previously seen anomaly class; several subagents agree on a diagnosis",
+    "about to write a subagent's or a workaround's causal claim ('platform X can't do Y', 'the branch lacks Z') into memory or a skill; a bug report names a specific screen/flow while exploration found a similar-looking bug elsewhere",
+    "every CI job on a self-hosted host slows by a similar percentage after a network change, with no related code change",
+    "a batch of red tests labelled with one shared cause from each spec's first error line before any was reproduced or its worker DB inspected",
+    "an e2e suite carrying a known-red or baseline-red list with no owner; a flake that 'goes away' on a fresh DB or cold template and gets worked around",
+    "diagnosing from a proxy cue: a raw row count in a log/outbox table, or an ellipsis in a label read as truncation"
+   ],
+   "preventive_checks": [
+    "Run the identical failing set on a clean origin/<base> worktree and diff failing-test sets before attributing either way",
+    "Quote the actual traceback/log line when declaring a root cause; without one, call it a hypothesis and add logging/health checks",
+    "Grep full output instead of truncating; repeat timing measurements and check load average",
+    "Check memory for known baseline-red suites and fix them at repo level instead of re-proving them each session",
+    "Attribute the exact residual to specific ledger rows and read the posting function before naming the class; treat subagent consensus as shared anchoring, not independent evidence",
+    "Verify a causal claim against the actual branch/device before persisting it, or label it an untested hypothesis; reproduce the user's exact reported flow before fixing a look-alike",
+    "Check host-level causes first when degradation is uniform: time raw DNS lookups (dig, getent hosts) and read /etc/resolv.conf before app-level theories (sharding, pools)",
+    "For each red spec open its error-context/trace and query the worker DB at the failing step before writing a cause into a brief; label anything not reproduced as a hypothesis",
+    "Triage every red spec within the wave: fix it, or fixme it with a filed defect; never carry an unowned baseline-red list (three shipped UI regressions hid behind one)",
+    "If fresh data fixes a failure, look for pagination, ordering or accumulation over rows before blaming environment drift",
+    "Measure the user-visible unit (distinct post/message ids, not rows that include edits) and check the source/design string plus scrollWidth > clientWidth before calling a label truncated"
+   ],
+   "portable": true,
+   "count": 16,
+   "domains": {
+    "backend": 7,
+    "cross-cutting": 9
+   },
+   "n_projects": 1,
+   "related": [
+    "FS-18"
+   ]
+  },
+  "FS-15": {
+   "name": "Producer and consumer of the same data disagree",
+   "family": "contract-logic",
+   "moment": "implement",
+   "mechanism": "Two sides of one data flow are defined independently and drift: FE/BE/daemon field names and envelopes, a mock's params vs the real filter, OAuth scopes in console vs code, enums duplicated across files, write-path HTML vs read-path renderer, sanitizer allowlists vs newly emitted markup, imported records vs what the read path filters on. Each side passes its own tests; only a round trip exposes the mismatch.",
+   "trigger_signals": [
+    "a feature spans FE + BE (+ worker/daemon), or the FE merges ahead of its BE slice",
+    "content written into a rich-text or sanitized field, or new tags/attributes emitted",
+    "the same list of values (scopes, verbs, options, params) maintained in more than one file or system",
+    "an import/migration creates records the UI will display",
+    "a filter validates against a label map the tagger doesn't share; instructions and a helper script share a numeric parameter; parallel FE/BE agents assume a URL prefix",
+    "seeding or backfilling rows by shell script for an organization/workspace-scoped model that a mobile client pulls",
+    "a business status shown on several screens or clients (attendance Late/Absent) is reported wrong while only one client repo is open",
+    "a dataclass with to_dict/from_dict gains a field; hand-authored fixtures for a scorer that treats an unknown key as a silent non-match",
+    "FE and BE lanes or fix waves running in parallel against one contract; the FE reading a field the frozen contract doesn't have yet",
+    "one endpoint emits references (links, packets, manifests) that another endpoint resolves or validates",
+    "the same figure computed on server and client (rounding, percentages)"
+   ],
+   "preventive_checks": [
+    "Write a round-trip test: produce via the real producer (exact FE payload keys, the editor API), then read via the real consumer (GET, read-only renderer)",
+    "Derive enums/options/scopes from one source of truth (schema endpoint, catalogue module) instead of duplicating",
+    "Assert every FE model field is populated from a realistic API fixture; map DRF envelopes in transformResponse",
+    "When emitting new markup, check the sanitizer allowlist and renderer parity on every pipeline the field passes through",
+    "Set every scoping field the client read path filters on (organization_id) and confirm one seeded row appears end to end in the app before debugging sync",
+    "Grep where the flag is SET (not just read) across the server and every client, and fix the decision in the layer that owns it",
+    "Round-trip every new field (to_dict then from_dict) in a test, and run every new fixture through the real scorer/consumer, not only the producer-side diff",
+    "Generate TS types from the OpenAPI schema or add a parity test (codes, fields, enums) so drift fails CI; amend the contract before the FE reads a new field",
+    "Share one visibility/liveness filter between the endpoint that emits a reference and the one that resolves it, and test that every emitted reference resolves",
+    "Compute shared figures once on the server and send them; never re-derive with a different rounding rule"
+   ],
+   "portable": true,
+   "count": 13,
+   "domains": {
+    "backend": 13
+   },
+   "n_projects": 1,
+   "related": [
+    "FS-90",
+    "FS-18"
+   ]
+  },
+  "FS-18": {
+   "name": "Shell and CLI step semantics assumed",
+   "family": "test-env",
+   "moment": "implement",
+   "mechanism": "Multi-step shell work assumes semantics that don't hold: persisted cwd, bash word-splitting under zsh, GNU vs BSD tools, pipes that buffer until exit, nohup without stdin redirect, SSH jobs not detached, one stdin shared by bash -s commands, wrapper exit codes that don't propagate, git add silently staging nothing. The step 'succeeds' or appears hung and the agent proceeds on a false outcome.",
+   "trigger_signals": [
+    "chained cd/source && command, or relative paths after a background/long-running command",
+    "an unquoted $VAR holding several paths in zsh; multi-line awk -v; timeout on macOS",
+    "a long remote job over SSH/gcloud, or ssh ... | bash -s with several docker exec -T calls",
+    "judging success from a wrapper's exit code, or git add with a long explicit path list",
+    "vite/vitest started in the background or piped through grep",
+    "a manage.py shell -c / < script gated on sys.argv; git add -A inside a worktree; pkill -f whose pattern is in its own argv; bash-4 syntax under macOS bash 3.2; a first command that searches from / instead of the given path",
+    "a background release/build step (gradle, xcodebuild, altool, Play upload) judged by its task notification or exit code; a script writing into a computed per-run output directory; build commands run with relative paths late in a long session",
+    "a test harness judged through `cmd | tail -N`, or a pass/fail taken from grep -c on a command's output; file tools given relative paths after Bash ran inside a worktree",
+    "a command composed as timeout N ... on a macOS host (recurs: zsh has no GNU timeout)",
+    "a GitHub Actions run: step pipes a test command into tee/grep; a shell loop over gh/git commands that prints one summary line; a python -c one-liner with quoted f-strings inside a double-quoted shell arg; a pg_restore/pg_dump flag not smoke-tested; a django.setup() one-liner run from an arbitrary cwd; git checkout -- as a mutation-test revert before any commit exists",
+    "the task prompt already gives the absolute path of the skill/context file, yet the first command is a find / or a relative path (the agent's skills directory) inside a per-run sandbox whose cwd differs from the usual checkout (recurs across parallel runs of one task, each burning the full tool timeout)",
+    "a command line interpolates a string variable holding several flags ($SSHO, $OPTS) and runs under zsh, the macOS default shell",
+    "an unquoted *, ? or [..] in a zsh command (grep --include=*.py, ls dir/*, a glob over a maybe-empty dir): zsh NOMATCH aborts the whole command instead of passing the literal through (recurs: 5x in one session)",
+    "a quoted glob handed to a program that opens paths literally (node fs, a custom script); a verification probe that regex-scrapes a port out of free-form argv/log text",
+    "a regex filter (git log --grep, grep -E) using \\b or another PCRE-only escape; a reset --soft, squash or split onto a base branch tip that keeps moving; a desktop-managed shared service relaunched with open -a",
+    "supervisor code classifies a child process's run (stopped, failed, done) from its exit code after signalling it",
+    "running the repo's lint snippet (JS=$(git diff ...); eslint $JS / ruff $PY) in zsh (recurs 13x in one repo even after the trap was hit once in the same session)"
+   ],
+   "preventive_checks": [
+    "Use absolute paths and git -C <worktree>; never rely on the persisted cwd",
+    "Verify each step's effect, not its exit code: git diff --cached --stat, git log -1, grep remote logs for ERROR",
+    "Detach remote jobs with nohup/setsid plus a log file and poll; run background vite/vitest with </dev/null and --pool=forks --maxWorkers=1",
+    "Use ${=VAR} or arrays in zsh, and check command -v and the platform before relying on GNU-only tools",
+    "Gate apply flags on env vars and start prod scripts from one saved template; stage explicit paths; use bracketed pgrep patterns; read a task's given path directly and bound any search with a timeout",
+    "In build wrappers propagate child exit codes (set -e -o pipefail, PIPESTATUS), grep the output tail for BUILD FAILED/ERROR, and confirm uploads through the store API (list builds); mkdir -p output dirs before writing; run platform builds from an explicit absolute directory and make background-wait patterns match any error/failed line",
+    "Use set -o pipefail or PIPESTATUS[0] before trusting a piped result, and re-run a suspicious 'zero' without the pipe; pass absolute paths to every file tool; check git diff --cached --stat for build/output dirs before committing",
+    "On macOS never prefix with timeout; use the tool's own limit (ssh -o ConnectTimeout, jest --testTimeout) or a documented wrapper",
+    "Add set -o pipefail explicitly to piped CI run: steps and prove it by making the test fail once; print and re-verify each loop iteration's real result (gh pr view --json state); put throwaway scripts in a .py file; check unfamiliar flags with --help and verify row counts after a restore; save a commit or patch before reverting a mutation",
+    "Make the first action a Read/Skill call on the exact absolute path in the prompt; run pwd before any relative path; if discovery is unavoidable, scope find to the project or scratch dir with -maxdepth",
+    "Hold multi-flag options in an array (opts=(-o A=b -o C=d)) and pass them to ssh with quoted array expansion of all elements, or inline them; never an unquoted string variable",
+    "Quote every glob passed as an argument ('--include=*.py'), prefer rg -g, and use the (N) qualifier or setopt nullglob before listing maybe-empty paths",
+    "Never type `timeout` on this host: use the Bash tool's own timeout parameter or the runner's --timeout, and check ${pipestatus} rather than $? after a pipe",
+    "Have servers print one machine-readable line (LISTENING <port>) or pass the port explicitly; glob inside scripts rather than relying on shell expansion",
+    "Prove a search filter on a known-positive input before trusting a no-match (-P or -w instead of \\b in ERE); split or squash against git merge-base HEAD origin/<base> and check git diff origin/<base>...HEAD is unchanged; after relaunching a shared local service poll its health (docker info, pg_isready) and kill leftover helper PIDs if the relaunch did nothing",
+    "Record the stop reason before signalling a child process and classify the outcome from that record; test children that exit 0 and non-zero after SIGINT",
+    "Run the CI lint recipe through bash -c '...' or use ${=JS} / xargs; never pass an unquoted file-list var under zsh. Detach long jobs with nohup/setsid since agent-shell & jobs die when the tool call ends"
+   ],
+   "portable": true,
+   "count": 27,
+   "domains": {
+    "cross-cutting": 27
+   },
+   "n_projects": 1,
+   "related": [
+    "FS-33",
+    "FS-90",
+    "FS-66",
+    "L-capacity-without-platform-math"
+   ]
+  },
+  "FS-19": {
+   "name": "Behavior change leaves dependent tests, drivers and mocks stale",
+   "family": "test-design",
+   "moment": "implement",
+   "mechanism": "A component's interaction model, a response shape, a default value, a permission class or a shared fixture changes, but the unit tests, MSW handlers, e2e drivers, seed helpers and specs that encoded the old behavior are not updated in the same change. With CI not running those suites they go silently red, and later sessions misread them as their own regressions or as baseline noise.",
+   "trigger_signals": [
+    "a shared component gains a hook, a confirm/apply step, a new underlying library, or a new default layout/copy",
+    "a response shape changes (bare list -> paginated envelope) or a query hook moves to a scoped endpoint",
+    "a default param value, permission class, or auto-provisioning behavior changes",
+    "a stubbed fixture's real endpoint ships",
+    "a permission class added to an existing endpoint; a patched symbol moved or renamed while tests use mock.patch string paths",
+    "swapping a field's control type (Input to Select), flipping a form's default enum value, replacing a placeholder/disabled state with the shipped feature, or a global render change (currency glyph to SVG, exotic whitespace, DS required-asterisk markup) that exact-text specs and locale-paired EN/AR specs assert on",
+    "adding a server guard or reordering error precedence on an endpoint that e2e helpers call or refusal specs assert error codes on; removing a navigation control specs drive"
+   ],
+   "preventive_checks": [
+    "Grep unit tests, MSW handlers, tests/e2e helpers/drivers and specs for the component/endpoint and update them in the same commit",
+    "Run the dependent suites (the component's own tests plus every e2e spec that renders it) right after the edit",
+    "When a stub goes live, convert fixture-based specs to live-API assertions",
+    "Grep e2e specs and drivers for fill() on the field's testid, literal glyphs and the old rendered strings; make specs select non-default branches explicitly; update and run both locale variants of every touched spec",
+    "grep the e2e spec directory for callers of the endpoint, its error codes and the removed control's role/testid, and run those specs in the same PR"
+   ],
+   "portable": true,
+   "count": 6,
+   "domains": {
+    "cross-cutting": 2,
+    "backend": 4
+   },
+   "n_projects": 1,
+   "related": []
+  },
+  "FS-21": {
+   "name": "External or untrusted input accepted without bounds, sanitization or isolation",
+   "family": "contract-logic",
+   "moment": "implement",
+   "mechanism": "Client, bot, import or upload input reaches validators, DB columns, parsers and renderers with only happy-path handling: missing numeric/type bounds on JSON, isdigit gates, varchar overflow, one bad unit aborting a batch, over-broad regex/substring matches, heuristics that under-fit real noise, sanitizer bypasses, tar path traversal, ReDoS, verbatim text into agent-parsed documents, permissive security defaults (CORS, no throttle). Malformed input 500s or becomes a vulnerability.",
+   "trigger_signals": [
+    "a serializer/validator accepts nested JSON, id strings, amounts/counts, or bot-writable fields",
+    "an import/sync from an external export or API, or a batch loop over many independent units",
+    "a regex or substring match over free text, HTML, URLs or transcripts",
+    "extracting archives, rendering stored HTML, embedding user text into markdown/LLM input, a new auth endpoint or a new settings default",
+    "user-entered or imported dates and quantities that drive ledger posting (payment_date, purchase date, bank statement date, gallons_sold); ids and list items in LLM-authored JSON",
+    "a single-item recovery/retry helper with early return reused inside a batch loop (bulk export to device contacts)",
+    "a template literal inserts any variable, even a trusted constant, into SQL text",
+    "csv.DictReader header keys matched by exact string (lowered but not stripped) in an upload/import validator, and the parser exists in more than one method",
+    "a new endpoint or parser taking free-form strings, ids, markdown, uploaded bytes or bot-written JSON, especially when several lanes each add such endpoints",
+    "bot/LLM-written JSON with int- or list-typed fields (bool passes isinstance(int)), or a guard that checks only the container type before a destructive step",
+    "a large body processed inside a transaction with locks, relying on the global request-size limit"
+   ],
+   "preventive_checks": [
+    "Parametrize malformed-input tests per field (nested dict/list/bool, negative, oversized, non-ASCII digits) asserting 400, not 500",
+    "Isolate each import unit in its own transaction/try and log failures; validate/truncate to column bounds; normalize names before matching",
+    "Anchor and bound regexes; scope URL matchers to the external domain and test that own-domain URLs are excluded",
+    "Route all HTML through the shared sanitizer, use safe archive extraction, flatten newlines in agent-parsed text, add throttles and an explicit prod CORS allowlist",
+    "Add plausible-range date validators and cross-field checks (amount > 0 requires quantity > 0); clip to the minimum width of every column a value propagates into; coerce LLM-supplied ids and guard list item types",
+    "Collect per-item results in batch loops and test N>1 where item 1 fails and items 2..N still succeed",
+    "Route every dynamic SQL value through a $N placeholder and grep for template-literal SQL in review",
+    "Test CSV input with header whitespace, a BOM, case variants and a blank extra column; grep for every sibling copy of the parser and fix them together (FS-62)",
+    "Lane 0: build one shared hostile-input fixture set (NUL bytes, invalid UTF-8 and other bad encodings, deep nesting, numeric strings beyond int parse limits, oversize bodies, wrong content types, bool-for-int, unclosed tags and prose < >, structural markdown tokens in titles) plus a parametrized runner; every new endpoint and parser must pass it with 4xx, never 500, before merge",
+    "Keep escaping, tag stripping, id coercion and JSON element-shape validation in one shared helper and reuse it; grep sibling lanes for private copies",
+    "Cap the body size per endpoint before taking any lock, decode bytes strictly, and validate before the first side effect"
+   ],
+   "portable": true,
+   "count": 9,
+   "domains": {
+    "backend": 9
+   },
+   "n_projects": 1,
+   "related": [
+    "L-llm-call-params-unsized",
+    "L-runtime-or-dialect-mismatch"
+   ]
+  },
+  "FS-22": {
+   "name": "Capability built in one layer but never connected to the next",
+   "family": "contract-logic",
+   "moment": "implement",
+   "mechanism": "One layer implements a capability and the adjacent one never consumes it: PATCH exists but no edit UI, backend search/pagination not exposed, a filter param in the cache key but not the queryset, persisted settings the runtime ignores, audit fields not serialized, a cap computed but not enforced, a label prop never supplied, a specialized mutation imported but unused behind a silently succeeding fallback. Each layer's tests pass.",
+   "trigger_signals": [
+    "the backend accepts params or returns fields the FE component doesn't read or render",
+    "a spec item is a cap, breaker, limit or setting whose enforcement lives in another code path",
+    "a prop/arg/param is threaded through types but its source or sink isn't in the diff",
+    "an unused hook/mutation import, or a control labeled as a toggle with no handler",
+    "a field drives sorting or overdue logic in a selector but has zero JSX usages"
+   ],
+   "preventive_checks": [
+    "For every accepted param or setting, test that the output actually changes when it is supplied",
+    "Trace each new field DB -> serializer -> FE render (and back for edits) as one checklist",
+    "Test the enforcement branch of any cap/breaker/guard, not only the computation",
+    "Add a render test asserting that the formatted value of every new sort/business field appears on the card"
+   ],
+   "portable": true,
+   "count": 3,
+   "domains": {
+    "backend": 3
+   },
+   "n_projects": 1,
+   "related": []
+  },
+  "FS-23": {
+   "name": "Shared identifier changed or claimed without enumerating its users",
+   "family": "contract-logic",
+   "moment": "implement",
+   "mechanism": "A name or contract used across the codebase (route path, testid, barrel export, codename, query-param key, RTK endpoint name, function signature, row-dict schema, global client config, shared primitive default) is renamed, extended or newly claimed, and only the obvious consumers are updated. Hardcoded strings in other components, tests, exporters, nginx or parallel workstreams keep the old meaning or collide.",
+   "trigger_signals": [
+    "renaming a route, testid, export, codename or label",
+    "adding a query-param key, RTK endpoint name or URL path in a shared namespace (router, nginx, apiSlice)",
+    "adding a parameter or field to a function/row dict consumed elsewhere; changing a shared primitive or global client default for one feature",
+    "a form-state path or local name reused for a second meaning (row id field, handler param shadowing a prop); a new package named like an existing module; a changed sentinel value; a list repointed to a new entity",
+    "an infra migration stops or replaces a VM, zone or IP that deploy/ops scripts reference by name",
+    "an e2e driver references a testid string with zero matches in src/; a copy/label rename done only in message catalogs",
+    "a shared pure helper's return shape changes (one array split into two) while a parallel branch also consumes it, and git reports no conflict"
+   ],
+   "preventive_checks": [
+    "Grep the whole repo (src, tests/e2e, helpers, docs, nginx conf) for the old and new identifier before and after the change",
+    "Reference routes and codenames through shared constants and add a registry-vs-usage contract test",
+    "Change shared primitives via a new variant/prop rather than the default",
+    "Run the real build (npm run build) after any rename",
+    "Grep the whole repo (deploy/, scripts/, docs) for old instance names, zones and IPs in the migration change and smoke-run the deploy right after",
+    "Add a check that fails on driver/spec testid strings with no match in application source; grep e2e/ for the literal old copy, not only messages/*.json",
+    "Before merging a helper contract change, grep every call site across open branches and add a characterization test per consumer"
+   ],
+   "portable": true,
+   "count": 12,
+   "domains": {
+    "backend": 12
+   },
+   "n_projects": 1,
+   "related": []
+  },
+  "FS-25": {
+   "name": "Errors swallowed, conflated or silently defaulted",
+   "family": "contract-logic",
+   "moment": "implement",
+   "mechanism": "Error handling collapses distinct failure classes or hides them: 4xx treated like transient 5xx, a generic isError triggering logout, config errors surfacing as 500, IntegrityError instead of 400, only top-level detail read so field errors vanish, fire-and-forget mutations dropping 400s, silent fallbacks (resolver defaults, a ?? b, dev mock on any error, 'non-fatal' config set). The UI or report looks fine while the real failure disappears. On mobile a boot gate's .catch only logs, so its readiness flag is never set and the app freezes on the splash, and an idempotent 'already applied' response arrives on the same rejected branch as a real failure.",
+   "trigger_signals": [
+    "try/except or catch around external calls or mutations with a single broad fallback",
+    "code branches on isError/non-2xx without inspecting the status or error code",
+    "a form or toast shows one generic message; a mutation called without await/catch",
+    "a ?? / or-default / fallback-to-fixture on a value that is persisted or user-visible",
+    "a retry loop around an unrecoverable input; a CI cache miss that silently falls back to a slow full build; try/except around ledger posting in save()",
+    "a readiness flag set only inside .then() with a .catch that only logs; an async redeem/apply action with more than one success-like outcome; an env-prefix resolver that returns None when its env var is missing; an email/SMS send wrapped in log-and-continue",
+    "a catch block issues ROLLBACK or other cleanup before rethrowing"
+   ],
+   "preventive_checks": [
+    "Test a mocked 400 with field errors and assert the field message renders; test the shared error helper against every DRF body shape",
+    "Surface 4xx distinctly from 5xx/timeouts and map domain/config exceptions to explicit statuses in the same PR",
+    "Await persisting mutations, revert optimistic state and toast on rejection",
+    "Make resolvers/fallbacks raise under test, and read config back after setting it",
+    "Force init to reject in a test and assert the UI reaches an error/retry state; enumerate backend response codes and map each to a UI outcome; make config resolvers raise at boot on missing inputs; alert, not only log, on provider auth/4xx failures",
+    "Wrap cleanup inside error handlers in its own try/catch, log its failure, and always rethrow the original error"
+   ],
+   "portable": true,
+   "count": 12,
+   "domains": {
+    "backend": 9,
+    "cross-cutting": 3
+   },
+   "n_projects": 1,
+   "related": []
+  },
+  "FS-26": {
+   "name": "Boundary values and NULL/join semantics not exercised",
+   "family": "data-query",
+   "moment": "implement",
+   "mechanism": "Logic is written for typical values and misses empty, zero, single-option, null or absent keys, falsy-but-valid values, timezone shifts, clamps and cap-plus-suffix limits, overlapping conditions, and SQL/ORM semantics such as NULL under exclude(), order_by leaking into GROUP BY, and joins double-counting rows. Fixtures never contain the degenerate case.",
+   "trigger_signals": [
+    "exclude(field=value) or a filter on a nullable/JSON key; values().annotate() on an already-ordered queryset",
+    "a dict built from query rows then indexed by every possible key; sums over rows reachable through several joins",
+    "if value: on fields where 0/''/[] are valid; Number()/int() on parsed string segments",
+    "a picker that can have exactly one option, date math mixing local and UTC, a permission matrix with 3+ combinations",
+    "fixtures never contain a NULL, zero, negative, net-zero or sentinel row: a nullable boolean filtered with field=False, a nullable FK dereferenced on legacy data, zero-item entities, a sentinel shared by many rows, an as-of date for a cumulative figure",
+    "a feed selector maps over child rows (steps) that share a parent (contact); a 'set once, applies broadly' value (reminder due date) stored on one child row",
+    "tiered rates (day/week/month) priced as the finest tier times a count",
+    "`if e.response:` / `if resp:` on a requests.Response (falsy for any status >= 400) inside an error handler or log statement (recurs even though 'is not None' is listed below)",
+    "value-based redaction or replace-by-value over a bundle that can hold very short values (1-3 characters)"
+   ],
+   "preventive_checks": [
+    "Add explicit tests for empty, zero, one, null/absent, max-length and cross-timezone inputs",
+    "Use isnull filters for absent JSON keys, clear order_by before aggregating, and dedupe by id across many-to-many joins",
+    "Replace truthiness checks with 'is not None' and validate formats with a strict regex before coercion",
+    "Enumerate every combination of multi-flag conditions and route modes in a table-driven test",
+    "Use exclude(field=True) for nullable booleans; test legacy rows with null FKs and all-empty collections; build report skeletons from the union of per-period rows; compute cumulative adjustments as of the entry's own date",
+    "Test a parent with N>1 children: exactly one card, and the value survives completing the first child",
+    "Write table-driven tests at every tier boundary (7 and 30 days, remainders) against the published rate card",
+    "Add a test that a 4xx error path logs the provider's real response body",
+    "Redact by secret-marked key with a minimum value length, and test with a 1-character value"
+   ],
+   "portable": true,
+   "count": 20,
+   "domains": {
+    "backend": 19,
+    "cross-cutting": 1
+   },
+   "n_projects": 1,
+   "related": [
+    "L-orchestrator-schedule-semantics",
+    "L-query-plan-cost-at-scale",
+    "L-data-shape-assumed-not-read"
+   ]
+  },
+  "FS-27": {
+   "name": "Existing primitive or house pattern bypassed",
+   "family": "contract-logic",
+   "moment": "implement",
+   "mechanism": "New code hand-rolls something the codebase already provides or mandates: the shared form and form-field components, searchable select and async-select pickers, dnd-kit, the shared modal's props, the global error-toast opt-out, the shared hours formatter, the shared KPI tile, the preferences store, the outbox for external I/O, the settings config helper, the e2e driver location, an existing WebSocket bridge. It works in isolation but reintroduces solved bugs and inconsistency, and is flagged in review.",
+   "trigger_signals": [
+    "adding a form, picker, drag interaction, modal, stat row, settings card or displayed number",
+    "new external I/O, settings block, per-user toggle storage or realtime delivery",
+    "creating an e2e driver/helper, or a component file in a feature that has a barrel",
+    "writing a new management command/script for a data check; a new model or report layout next to an established precedent",
+    "writing a fresh store upload/release script (Play Publisher, ASC API) while one already exists in the repo's scripts/",
+    "a design system that offers both a native-popup Select and a fully custom popup, used for a fixed enum whose design shows a styled panel",
+    "a new GitHub Actions workflow that pushes or opens PRs; a new true-negative fixture in a set whose siblings follow an unvalidated convention"
+   ],
+   "preventive_checks": [
+    "Search the shared UI and shared utility modules, sibling features and the project's agent conventions file (CLAUDE.md) for an existing primitive before writing a new one",
+    "Copy the pattern from the nearest sibling usage and route numbers through the shared formatter",
+    "Add barrel exports and driver methods in the same commit as the new file",
+    "Reuse and extend the committed release scripts instead of hand-rolling API calls",
+    "Open the popup when pixel-matching and use the fully custom popup component for fixed enums",
+    "Copy the permissions: block and PR-creation action from sibling workflows; match the non-obvious fields of sibling fixtures, not only the literal expected value"
+   ],
+   "portable": true,
+   "count": 28,
+   "domains": {
+    "backend": 24,
+    "cross-cutting": 4
+   },
+   "n_projects": 1,
+   "related": [
+    "FS-02"
+   ]
+  },
+  "FS-29": {
+   "name": "Code assumes the host environment it was written on",
+   "family": "deploy-infra",
+   "moment": "implement",
+   "mechanism": "Code or config depends on properties of the author's environment: 127.0.0.1 across Docker network namespaces, Docker DNS aliases after going native, localhost resolving to IPv6, PATH in a login shell vs systemd, macOS Python without certifi, GNU vs BSD tools, DB superuser privileges, localhost defaults for absolute URLs, CORS pinned to the default port, unpinned CDN versions, stale topology runbooks. It works locally and fails where it actually runs.",
+   "trigger_signals": [
+    "a service addressed via 127.0.0.1/localhost/host.docker.internal, or a new base-URL setting with a localhost default",
+    "a daemon shells out to a CLI; a script run on macOS vs Linux; a new tool in a deploy step",
+    "moving a service between Docker and native, or booting on a non-default port",
+    "a CDN script without a pinned version; a runbook/memory describing infra topology",
+    "settings that unconditionally fetch Secrets Manager credentials or define remote DB aliases; a local credential override that can activate in prod; optional binaries/packages (soffice, PyMuPDF) in a fresh sandbox",
+    "a background or non-interactive shell runs python3/node by name; a verification script on a VM calls the VM's own public hostname; a saved SSH/infra connection recipe from an earlier session",
+    "a deploy config reuses an app's default dev ports on a VM that already hosts another app; a relative sqlite path in DATABASE_URL copied into a worktree's .env",
+    "an e2e or preview server falls back to an alternate port because the default is taken",
+    "a stdlib urllib client on a python.org macOS build; writing an absolute machine path into a committed settings file; staging a restore file for a service account under a mode-700 home or tmp dir",
+    "a skill or pipeline helper imports an optional module (fitz/PyMuPDF, numpy, pyzbar) or shells out to a renderer chain (pdftoppm, mutool, magick/convert) or a native lib (zbar), and runs in a fresh per-run sandbox or parallel benchmark worktree (recurs: every parallel sandbox rediscovers the same missing module on its first action even though this trigger was listed)",
+    "building a redirect Location or absolute URL from the request path/host in an app served behind a reverse proxy with a path prefix",
+    "new syntax or stdlib API (backslashes or reused quotes inside f-string expressions, match, newer typing features) in code that also runs on hosts with an older supported interpreter"
+   ],
+   "preventive_checks": [
+    "Verify reachability from inside the real runtime (curl from the container or systemd unit), not from your shell",
+    "Use 127.0.0.1 vs ::1 consistently between client and server, and derive allowed origins from config rather than the default port",
+    "Check command -v, the platform and DB role privileges before relying on them; use requests/certifi in scripts",
+    "Pin dependency versions and re-check topology (systemctl status / docker ps) once per session before trusting a runbook",
+    "Provide a settings_localtest module for offline tests, gate credential overrides by environment, and pre-flight or fall back for optional dependencies",
+    "Pin absolute interpreter paths in background scripts; verify public endpoints from a different host (clouds don't hairpin NAT); probe saved hosts cheaply before use and update memory in the same change as any infra migration",
+    "Enumerate bound ports on the target (ss -ltnp) and treat ports as deploy inputs; use absolute sqlite paths in DATABASE_URL",
+    "In non-prod allow every port e2e/dev servers may pick in CORS_ORIGIN, or reserve and document one fixed e2e port",
+    "Check a file's git tracked-ness before writing machine-specific values and use the .local override; stage files for a service account with install -o <svc> and check sudo -u <svc> test -r <path> first",
+    "Probe the sandbox once before the first step that needs it (python -c 'import fitz, numpy'; command -v pdftoppm mutool magick; decode a trivial barcode image to prove the zbar dylib loads), record the working choice, and route every later call to it",
+    "Make helpers import optional dependencies inside try/except and fall straight through to the next working renderer or a Pillow/stdlib-only path, and bake native libs (poppler, zbar) into the sandbox image instead of installing them mid-task",
+    "Build public URLs from a configured public base URL (or trusted forwarded headers) and curl the public host to assert the Location header before go-live",
+    "Set the linter/compiler target to the minimum supported runtime (ruff target-version, tsconfig target) and compile or run the tests under that floor interpreter in CI"
+   ],
+   "portable": true,
+   "count": 8,
+   "domains": {
+    "cross-cutting": 7,
+    "backend": 1
+   },
+   "n_projects": 1,
+   "related": [
+    "FS-07",
+    "L-capacity-without-platform-math",
+    "FS-84",
+    "FS-18"
+   ]
+  },
+  "FS-30": {
+   "name": "Working from a stale base or without checking existing work",
+   "family": "integration-merge",
+   "moment": "plan",
+   "mechanism": "A branch, worktree or audit runs against a snapshot that has fallen behind a fast-moving shared branch, or starts without checking whether the work already exists or is in flight. Overlapping edits, duplicate implementations and audits graded against the wrong code surface only at merge or review.",
+   "trigger_signals": [
+    "starting work on a ticket key or a hot shared file while other sessions are active",
+    "a branch/worktree older than a few hours on a trunk receiving large refactors",
+    "launching an audit/gap-analysis agent mid-session while others push",
+    "consolidating via cherry-pick/rebase followed by push",
+    "dispatching isolation:worktree agents right after committing on the orchestrator's branch; a cherry-pick conflict on a large, frequently edited file",
+    "a new spec asserts a field's required/optional state while another merged ticket also touched that field"
+   ],
+   "preventive_checks": [
+    "Before starting: git fetch; git log origin/staging --grep <ticket>; gh pr list --search <ticket>",
+    "Diff touched files against current origin/staging before substantive work and again before merge; cherry-pick feature commits onto the fresh tip",
+    "Audit agents fetch first and log the origin SHA they graded; anchor every agent to its assigned worktree path",
+    "Gate push on a clean rebase exit and a full build after consolidation",
+    "Pin each worktree agent's base to an explicit branch/SHA and check it with git merge-base --is-ancestor before trusting its report; resolve hot-file conflicts with a 3-way merge (git merge-file), never --theirs/--ours, then grep for known recent fixes",
+    "Read the field's current validation in the latest shipped code and requirement before asserting it",
+    "After any scripted per-hunk ours/theirs resolution run eslint and tsc on every resolved file; prefer whole-file theirs for rewritten specs"
+   ],
+   "portable": true,
+   "count": 10,
+   "domains": {
+    "cross-cutting": 9,
+    "backend": 1
+   },
+   "n_projects": 1,
+   "related": []
+  },
+  "FS-31": {
+   "name": "Cache identity or invalidation misses a dependency",
+   "family": "fe-state",
+   "moment": "implement",
+   "mechanism": "A cached value depends on more inputs than its key or tags express: RTK mutations invalidate only their own tag while list, summary or version views also show the field, optimistic patches skip server-computed fields, differing arg shapes defeat dedup, and backend cache keys omit view kind, pagination independence, None-vs-empty, or database identity (one Redis shared by several worktree DBs). Stale or cross-contaminated data appears only after the right sequence.",
+   "trigger_signals": [
+    "a new mutation or query endpoint in a domain with existing cached views, or 'copy the invalidation list from X'",
+    "a mutation with server-side effects on fields other than the one sent",
+    "introducing a backend cache, or adding pagination/filters to a cached endpoint",
+    "several databases (dev/e2e/worktrees) sharing one Redis with id-only keys",
+    "a CI schema-snapshot or build cache shared across branches whose migration graphs diverge",
+    "a per-run DB dropped and recreated under the same name while a cache namespace is keyed by DB name and row ids"
+   ],
+   "preventive_checks": [
+    "List every field the mutation changes and every cached view that shows it; add each to invalidatesTags and test by reading the view after the mutation",
+    "Reconcile the full mutation response into caches instead of hand-patching one field",
+    "Include every value-shaping dimension in backend cache keys (view kind, filters, DB/env namespace) and test that two variants don't collide",
+    "Reuse existing hook argument shapes so RTK Query can dedupe",
+    "Key snapshot restores by an exact migration-set hash and branch, and purge the whole prefix (not one key) when poisoned",
+    "Flush the DB's cache namespace immediately after every CREATE DATABASE in pool/shard scripts and test two consecutive runs that create the same ids"
+   ],
+   "portable": true,
+   "count": 5,
+   "domains": {
+    "backend": 5
+   },
+   "n_projects": 1,
+   "related": []
+  },
+  "FS-32": {
+   "name": "Side effects not ordered against the commit or outcome they depend on",
+   "family": "contract-logic",
+   "moment": "implement",
+   "mechanism": "Notifications, cache invalidation, external calls, ledger rows and 'added' reports fire before validation/commit or are recorded from intent instead of the confirmed result: cache.delete inside atomic, notify before a later field is validated, a guard appended after side effects, a local record deleted before the remote revoke is confirmed, outbox ops without enforced dependencies, failure counters rolled back with the raise. Success paths look right; rollback and partial-failure paths leak.",
+   "trigger_signals": [
+    "a multi-step create/transition/share method that emits notifications, webhooks or external I/O",
+    "cache invalidation or a signal handler next to a DB write inside transaction.atomic",
+    "an outbox/queue op that needs another op's result (depends_on) or is enqueued inside a loop",
+    "bookkeeping (ledger, result set, local credential record) written next to a call that can fail or no-op"
+   ],
+   "preventive_checks": [
+    "Validate all inputs before any side effect, and fire notifications and cache invalidation via transaction.on_commit",
+    "Record outcomes from what the apply call confirmed per item, not from the precomputed diff",
+    "Enforce op dependencies at the single shared dispatch entry point; test dependent + dependency enqueued together and exact enqueue counts",
+    "Test the failure path: counters persist across a raised exception and nothing is notified when validation fails"
+   ],
+   "portable": true,
+   "count": 1,
+   "domains": {
+    "backend": 1
+   },
+   "n_projects": 1,
+   "related": []
+  },
+  "FS-33": {
+   "name": "Test double or harness silently diverges from the real runtime",
+   "family": "test-design",
+   "moment": "test-write",
+   "mechanism": "Mocks, fakes and harness setup are more permissive than, or never intercept, the real dependency: stateful MSW handlers without the backend's scoping and rules, a fake CLI without reserved-name validation, monkeypatching a queryset method the code doesn't call, bespoke render wrappers missing providers, jsdom clipboard/userEvent ordering, caplog on propagate=False loggers, Playwright '*' globs that don't cross '/', destructured request methods, missing xfail markers. Tests go green without exercising reality.",
+   "trigger_signals": [
+    "writing a stateful mock handler or a fake for a backend/CLI that has business rules",
+    "mocking one method (filter) where the code may call another (select_for_update)",
+    "a custom render wrapper, clipboard mock, caplog assertion or page.route glob",
+    "a docstring claims tests are xfail/expected-fail",
+    "a concurrency test with threads inside django TestCase; near-duplicate Gherkin steps bound to mock vs live implementations",
+    "a fake collaborator returns a fixed correct value where the real one derives it from input; a harness copies the repo with blanket excludes (.git)"
+   ],
+   "preventive_checks": [
+    "Derive mock rules from the backend service (scope by route params, same allowed transitions), one test per rule",
+    "Assert the mock/route handler was actually hit; use /** globs and call request.method()",
+    "Use the shared renderWithProviders, check logger propagate settings before caplog, and call userEvent.setup() before defining clipboard mocks",
+    "Revert the fix and confirm the test fails",
+    "Make fakes reproduce the real input-dependent behavior; grep the suite for reliance on excluded dirs (git rev-parse) and compare harness pass counts with a full checkout"
+   ],
+   "portable": true,
+   "count": 4,
+   "domains": {
+    "backend": 3,
+    "cross-cutting": 1
+   },
+   "n_projects": 1,
+   "related": [
+    "FS-18"
+   ]
+  },
+  "FS-34": {
+   "name": "Nondeterministic test timing and ordering",
+   "family": "test-design",
+   "moment": "test-write",
+   "mechanism": "Tests race the app or each other: waitForResponse registered after goto, reload before the mutation response lands, smooth scroll vs actionability, skeleton assertions against same-tick stubs, hover/drag under parallel workers, headless dnd coordinates, real clock vs fixed fixture dates, order-dependent DB or polyfill leakage between tests. Failures move between runs and get misread as regressions.",
+   "trigger_signals": [
+    "a spec triggers a navigation/mutation and then waits for its network response",
+    "drag/hover interaction specs in a suite with parallel workers",
+    "date-specific fixtures without page.clock, or loading-state assertions against stubs",
+    "a different single test fails each full run but every file passes alone",
+    "a date-picker spec clicks a testid embedding a literal ISO date; a transition-class assertion right after a navigation that remounts the wrapper; Escape sent right after opening a dialog whose handler is dialog-scoped",
+    "a driver closes a Radix menu/popover/dialog and immediately clicks another trigger, types, or sends Escape while the closing overlay is still mounted for its exit animation or returning focus",
+    "changing the runtime under an e2e suite (Vite dev -> production build, cold vs warm dev server, more workers, faster backend): specs that sampled an intermediate state or used a fixed 10 s expect timeout were calibrated to the old speed",
+    "a driver that moves a ProseMirror/BlockNote caret and presses a key as soon as the DOM selection moves; UI state hydrated from a server preference that a spec toggles and reloads",
+    "an e2e step clicks outside a Radix/headless overlay right after opening it (outside-pointer listeners are armed a tick after open)",
+    "a query-count test compares two requests on a fresh connection while the app has per-connection probes or process-level caches; a test that passes in the full run but fails alone"
+   ],
+   "preventive_checks": [
+    "Register waitForResponse before the triggering action and await mutations before any reload",
+    "Pin page.clock for date fixtures; run drag/hover specs serially and prove the logic with a unit test",
+    "Rerun suspects standalone twice and treat 'different failure each run' as isolation leakage (polyfills, DB cleanup)",
+    "Compute dates relative to a pinned page.clock and page the calendar to the target month; poll for the incoming node (route-scoped id or last()) across remounts; wait for focus inside the dialog before sending dialog-scoped keys",
+    "Every driver close helper waits for the overlay (role=menu/dialog, radix popper wrapper) to detach and focus-return to finish before the next interaction; never click a trigger while another overlay is mounted",
+    "Before switching runtime or worker width, grep specs for networkidle, toHaveURL on intermediate routes and fixed sleeps, assert only final settled state (a route-ready testid), warm the dev server before the setup project, and require 3 green runs at the new width with an isolated control",
+    "Poll the editor's own state (view.state.selection) and wait on the concrete GET/PUT of server-hydrated preferences before the next key or reload; run every touched spec with --repeat-each=3 before commit",
+    "Wait for the overlay's open state and a frame before the outside click, or poll for dismissal; prove with --repeat-each 4",
+    "Make one untimed warm-up request with the same URL shape on the same data before counting, and run every new test alone in a fresh process as well as in the parallel full run"
+   ],
+   "portable": true,
+   "count": 1,
+   "domains": {
+    "cross-cutting": 1
+   },
+   "n_projects": 1,
+   "related": []
+  },
+  "FS-35": {
+   "name": "Test depends on uncontrolled shared data or unrealistic setup",
+   "family": "test-design",
+   "moment": "test-write",
+   "mechanism": "Specs and fixtures lean on persisted shared e2e data or on setup that doesn't match production: seeded workspaces archived by other specs, per-user preferences shared across specs, rows accumulating across runs, DBs reused across branches, a real browser profile leaking in, actors without memberships, filter values that don't isolate the case, destructive steps that hit invariant guards. Results depend on run history, not on the code.",
+   "trigger_signals": [
+    "a spec mutates or depends on a shared seeded workspace/project/board instead of creating its own",
+    "a seed helper with fixed dates/names on a DB that persists across runs or branches",
+    "a global per-user preference written by one spec and read by others",
+    "a test actor created ad hoc without membership/role, or an app launched without a fresh profile",
+    "an e2e spec or seed script inserts rows by direct DB access with no teardown or prune step; a re-runnable seed that only issues INSERT ... ON CONFLICT DO NOTHING",
+    "a negative/absence fixture names a real entity (subdomain, vendor) that ongoing work is onboarding; seeding a 'connected' flag that gates a live external API call; a browser session carried across dev-server restarts or earlier OAuth attempts",
+    "an exact count asserted on a shared scratch/seed project; a spec that creates its own project but still references the shared seed project id; a seed helper that silently no-ops when the board already has data",
+    "a narrowing search term built from short numeric or common tokens against word-split backend search; extra browser contexts created while the config sets use.storageState",
+    "re-running a pipeline or lab run (document ingest, import) into the same project or tenant that still holds an earlier run's output"
+   ],
+   "preventive_checks": [
+    "Create throwaway entities per spec through API/seed helpers and clean up in try/finally",
+    "Use unique generated values for constrained fields, and recreate the e2e DB when switching worktrees/branches",
+    "Compute expected results from the seed data inside the test, and give test actors real memberships",
+    "Reset persisted preferences and pass a fresh userDataDir per launch",
+    "Tag every e2e-created row with a fixed marker (prefix or is_test flag) at creation, delete by exact match in teardown, and assert row counts stay stable across two consecutive runs",
+    "Make seeds converge: remove rows outside the intended set before inserting, and test by injecting a drifted row and re-seeding",
+    "Use synthetic reserved values for 'not yet supported' fixtures; default seeded integration flags to the disconnected state; pin SECRET_KEY in the local env and use a fresh browser context after restarts or earlier auth flows",
+    "Create a throwaway project per spec for exact-count or config-writing assertions and grep specs for writes on shared seed ids",
+    "Use unique alphanumeric tokens that cannot appear in keys or timestamps; create extra-user contexts with an explicit empty storageState and pass the user's own workspace slug, asserting the signed-in user first",
+    "Test seed commands by running them twice and asserting row counts unchanged",
+    "Create a fresh project per run, or assert the target is empty before starting, and compare the result against the run's own inputs"
+   ],
+   "portable": true,
+   "count": 3,
+   "domains": {
+    "cross-cutting": 2,
+    "backend": 1
+   },
+   "n_projects": 1,
+   "related": []
+  },
+  "FS-36": {
+   "name": "Ambiguous or constraint-bearing ask resolved without asking",
+   "family": "requirements-scope",
+   "moment": "plan",
+   "mechanism": "An instruction admits more than one reasonable model (which surface or component, per-project vs central roles, deployment-wide vs per-tenant keys, which of several workspaces named after the product, inline vs listed attachments) or collides with an earlier decision or constraint (a rejected design, a unique(kind) constraint, RBAC on the guarded field), and the agent silently picks the convenient reading and builds a lot on it.",
+   "trigger_signals": [
+    "the request names a generic surface/component that maps to several implementations",
+    "two standard data-ownership models both fit the wording",
+    "the instruction contradicts a documented rejected approach or an existing uniqueness/permission constraint",
+    "an irreversible bulk write targeted by an informal name, or 'copy the front end from repo Y'",
+    "an ambiguous domain term that already names a distinct feature; the orchestration/visibility model for a multi-hour fan-out",
+    "choosing the sort direction/tiebreaker for a to-do-like feed; a complaint that a prefilled field 'shouldn't be editable'",
+    "building backend endpoints for a design-parity feature before the frames are available; replacing a free-text field with a fixed-enum picker; a list's primary decision (accept/reject) reachable only from a details modal"
+   ],
+   "preventive_checks": [
+    "State the chosen interpretation and the alternatives in one line and ask before building, or ship one small representative slice first",
+    "Re-read earlier rejections/ADRs and the constraints of the model the feature layers onto; spike the blocking assumption",
+    "Confirm the exact target (id, domain) before irreversible writes",
+    "Ask whether a prefilled scaffold value should stay locked or disappear; confirm FIFO vs newest-first for task lists and write the ordering test first",
+    "Keep the API shape provisional until frames are captured; ask whether the value space is really closed (offer Other plus free text); ask whether the primary decision must be a row action"
+   ],
+   "portable": true,
+   "count": 6,
+   "domains": {
+    "backend": 5,
+    "cross-cutting": 1
+   },
+   "n_projects": 1,
+   "related": []
+  },
+  "FS-39": {
+   "name": "Parallel agents dispatched onto overlapping files or allocators",
+   "family": "agent-orchestration",
+   "moment": "dispatch",
+   "mechanism": "Work fans out to parallel agents/branches whose scopes overlap on one app's migrations, sequence numbers, shared helpers, components or singleton rows, or forks from a tip missing a sibling's finished work. Each branch is green alone; the merged tree has conflicting migrations, duplicate abstractions, IntegrityErrors, or specs asserting the other branch's placeholder.",
+   "trigger_signals": [
+    "about to dispatch parallel worktree agents that touch the same Django app, shared service file or component",
+    "each branch will add a migration or claim the next sequence number",
+    "a phase forked before its sibling phase merged, or a docs/wrap-up task running concurrently with implementers",
+    "a forked/resumed session says background agents died",
+    "parallel feature branches (not only agents) each add a migration off the same parent before landing on a shared stage branch",
+    "parallel branches bump one global client schema constant (SQLite SCHEMA_VERSION) or add the next Django migration number",
+    "a merge or conflict resolution inside a brace-structured file (CSS, JSON message bundle, TS API client), including one git reports as conflict-free; a long-lived or batch of feature branches merged into main that each touched models.py",
+    "parallel worktree tickets that each bump one global version constant (EXTRACTOR_VERSION)",
+    "parallel lanes each adding error codes, fields or enums to one shared contract module that the FE mirrors by hand",
+    "an integration branch receiving lane merges while the base branch keeps moving; lanes deviating from a shared written spec"
+   ],
+   "preventive_checks": [
+    "Partition by file ownership; pre-assign shared helper names/owners and migration numbers, or plan a makemigrations --merge step",
+    "Re-check the app's latest migration number against origin/staging immediately before merge",
+    "Fork dependent phases from the merged tip and run docs/wrap-up last",
+    "Re-run every touched spec on the fully merged tree before declaring the gate green; confirm the original coordinator is dead before relaunching",
+    "Run makemigrations --check on the shared branch right after each merge and commit any merge migration a task depends on",
+    "Before merging, read the target's current SCHEMA_VERSION / latest migration and take the next free number; treat every merge touching the constant as a conflict-check step",
+    "After every merge, JSON-parse touched bundles, run the typecheck and the production build, and run makemigrations --check / showmigrations for every app with migrations before commit or deploy; resolve mid-object conflicts by re-inserting the added block into one side, never by concatenating both",
+    "Reserve the next version value centrally before dispatch or serialize those tickets",
+    "Lane 0: generate FE client types from the API schema, or add a code/field parity test, before lanes start adding to the contract",
+    "Merge the base branch into the integration branch every wave and re-run every lane's scoped tests on the merged tree; record spec deviations in the spec as they happen"
+   ],
+   "portable": true,
+   "count": 3,
+   "domains": {
+    "cross-cutting": 3
+   },
+   "n_projects": 1,
+   "related": []
+  },
+  "FS-40": {
+   "name": "Invariant enforced in app code without a lock or DB constraint",
+   "family": "data-query",
+   "moment": "implement",
+   "mechanism": "Uniqueness, single-row, idempotency and state-transition invariants are enforced by check-then-act in Python (exists() then insert, delete+create, get_or_create/get on non-unique fields, time-window undo, whole-instance save()) without select_for_update, a DB constraint or update_fields. Serial tests pass; concurrent requests, retries, multiple workers or dirty shared DBs break the invariant. In multi-lane builds the lock order is assembled per lane and the harness checks only the first acquisition per kind, so hidden locks (FK KEY SHARE on a FOR UPDATE parent, unique-insert waits, late DELETEs, counter rows, helper-internal locks, re-locks of an earlier tier) deadlock, and each local deadlock fix introduces the next.",
+   "trigger_signals": [
+    "an exists()/get() check followed by an insert, especially with external I/O in between",
+    "a worker/outbox table polled by more than one process, or a retryable create-then-persist",
+    "save() on a model whose other fields are written asynchronously",
+    "get_or_create or .get() on fields with no UniqueConstraint; new automatic assignment of a relation",
+    "update_or_create/get_or_create keyed on one FK shared by two source types; an M2M modelling a single-owner relation; a timeout/reaper that mutates status after killing work",
+    "a plan where several lanes add locked write paths to one subsystem, or a fix that adds a lock on an earlier-tier resource late in a transaction",
+    "a transaction that also takes hidden locks: FK KEY SHARE checks against a parent held FOR UPDATE, unique-key INSERT waits, DELETE row locks late in the transaction, counter/sequence rows (max+1), row locks inside settle/refresh helpers, advisory locks, a re-lock of an earlier tier after a deeper one",
+    "a threaded race/deadlock test with barrier or event park points, or a race test that asserts only 'no exception'",
+    "a deadlock fix, or a lock-harness finding answered by broadening lock scope; rows read before the lock is held and written back after"
+   ],
+   "preventive_checks": [
+    "Back the invariant with a DB constraint and catch IntegrityError to return 400 or an idempotent 200",
+    "Use select_for_update (skip_locked for workers) on the anchor row and save(update_fields=[...])",
+    "Write a two-concurrent-request or kill-between-steps test, and run seeds twice",
+    "Lane 0, before parallel lanes start: enumerate EVERY lockable resource of the subsystem (explicit row locks, FK KEY SHARE checks on locked parents, unique-key insert waits, DELETE row locks, counter/sequence rows, locks inside helper functions, advisory locks) into one global order table that every brief cites",
+    "Build the lock-order harness once in lane 0: it records EVERY acquisition, not just the first per kind, flags any re-lock of an earlier tier after a deeper one, and runs inside every lane's scoped tests",
+    "Ship a threaded deadlock/race test template in lane 0: two real threads (TransactionTestCase), park point placed BEFORE the lock under test, assert end-state consistency (no lost update, no stranded row), and confirm it fails with the lock removed",
+    "Run every deadlock fix back through the harness and the threaded tests for EVERY entry point of the subsystem; in this codebase, fixes that reordered one pair or broadened lock scope introduced new deadlocks",
+    "Read the rows you will write only after the lock is held; allocate per-parent sequences under a locked counter row or retry on IntegrityError"
+   ],
+   "portable": true,
+   "count": 3,
+   "domains": {
+    "backend": 3
+   },
+   "n_projects": 1,
+   "related": []
+  },
+  "FS-42": {
+   "name": "Third-party system semantics not honored",
+   "family": "contract-logic",
+   "moment": "plan",
+   "mechanism": "Integrations wrap an external API or platform using the obvious happy-path semantics: single-page list calls, .json() on a 204, a whole status code treated as idempotent, unguarded None returns, full GET/PUT to flip one flag, unverified trigger/delivery conditions, unknown network reachability, auth-method invariants. Mocks mirror the assumption, so it fails only against the real service.",
+   "trigger_signals": [
+    "a new client method for a third-party list/create/update endpoint",
+    "a webhook/bot integration with delivery or trigger conditions, or a push to a service whose host is unstated",
+    "provisioning accounts or changing auth methods in an external system",
+    "uploading a large binary (AAB/IPA over ~50MB) through googleapiclient/httplib2",
+    "a poll/settle parser or error reader written from a vendor integration guide; a webhook-only payment rail (bank wire, virtual IBAN) handled with the redirect rail's correlation key; synthetic identifiers generated for a provider field",
+    "a Play Publisher edits.commit or App Store Connect reviewSubmissions call scripted for the first time, or for an app's first-ever submission",
+    "an integration needs two same-vendor credential types (GitHub OAuth App vs GitHub App); pinning an input on a third-party CI action to remove its network call",
+    "a cluster bootstrapped with a placeholder pull secret, followed by an in-cluster build (BuildConfig / oc start-build), dynamic PVC provisioning, or any platform pod restart after a DiskPressure image GC",
+    "relying on Spark/Athena/Glue/AWS SDK behavior (lazy evaluation, recursiveFileLookup, static confs, crawler lag, SDK omitting empty arrays, Athena writer caps)"
+   ],
+   "preventive_checks": [
+    "Read the provider docs for pagination, empty bodies, error ids, partial-update endpoints and trigger conditions, and write them down",
+    "Contract-test with recorded real responses: 204/empty body, page 2, the specific error body, None",
+    "Confirm network direction and reachability before choosing push vs dial-out",
+    "Use a chunked resumable MediaFileUpload with a timeout of at least 600s and http.follow_redirects = False, and test with a real full-size artifact",
+    "Hit the live/sandbox endpoint once and assert the real payload shape and error-key casing; write the webhook test from a notification payload that carries no internal payment id; generate synthetic ids to the provider's documented format and test that format",
+    "Submit an app's first-ever version through the store console (it names the real blocking field); retry a Play commit once with changesNotSentForReview toggled on the 400 naming it, and log which branch ran",
+    "Name each credential type by exact product, settings URL and the capability it serves before asking the user; read the action's action.yml/entrypoint to confirm which code path an input actually skips",
+    "On a placeholder-secret cluster treat every platform feature whose images come from the authenticated registry as untested: check builder/CSI image registries first, plan an external build (podman) and static/hostPath volumes up front, and after any DiskPressure or eviction event confirm CSI, registry and ingress pods are Running before relying on them",
+    "Check engine/SDK docs for the exact behavior and test the edge (empty arrays, lazy action after cleanup, same-day partitions) once"
+   ],
+   "portable": true,
+   "count": 22,
+   "domains": {
+    "backend": 19,
+    "cross-cutting": 3
+   },
+   "n_projects": 1,
+   "related": [
+    "L-never-executed-before-handoff",
+    "L-data-shape-assumed-not-read",
+    "L-query-plan-cost-at-scale",
+    "FS-18"
+   ]
+  },
+  "FS-44": {
+   "name": "Migration unsafe for code or data already in the shared DB",
+   "family": "deploy-infra",
+   "moment": "deploy",
+   "mechanism": "A migration is right for the new code but not for what already exists: NOT NULL columns without db_default applied to a DB shared with older deployed code or parallel agents, constraints older code violates, role/RLS DDL needing privileges the app user lacks, raw SQL without cross-app dependencies, behavior flips with no backfill for existing rows.",
+   "trigger_signals": [
+    "a new NOT NULL column or DB constraint on a table staging and prod share",
+    "a migration with raw SQL on another app's table, or role/privilege DDL",
+    "a feature flips an enablement flow for rows created under the old flow",
+    "staging and prod share one DB and the change alters the shape of rows (nesting, new parent links) that the deployed prod code also reads or writes"
+   ],
+   "preventive_checks": [
+    "Set db_default (or nullable + backfill) for new required fields; run sqlmigrate and reject bare ADD COLUMN NOT NULL on shared tables",
+    "Confirm every currently deployed code path honors a new constraint before it reaches the shared DB",
+    "Check rolsuper/CREATEROLE of the target DB role, and declare explicit cross-app migration dependencies",
+    "Ship a backfill with any behavior change and test it on pre-existing rows",
+    "Make the deployed code tolerate the new row shape first, or schedule the prod deploy right after staging; test the old code path against new-shape rows"
+   ],
+   "portable": true,
+   "count": 3,
+   "domains": {
+    "backend": 3
+   },
+   "n_projects": 1,
+   "related": []
+  },
+  "FS-45": {
+   "name": "Agent turn ends waiting on an unverified async mechanism",
+   "family": "agent-orchestration",
+   "moment": "dispatch",
+   "mechanism": "A (sub)agent hands its completion to something asynchronous it never verified (its own Monitor watcher, a wakeup timer, a blocking debug call, a resumed run) and ends idle, wedged or silent with uncommitted edits. The orchestrator then waits or assumes failure instead of checking git and test state directly. Release automation adds background pollers that shell out to helpers in /tmp which vanish between sessions and then fail silently every cycle, background uploads and scratch dirs from a previous session with no completion record, a background subagent that crashed at launch, and a laptop that sleeps mid-pipeline. Fan-out lifecycle gaps compound it: more agents than the runtime's concurrency cap, stopped parents whose nested helpers keep running, and consumers launched when the producer's file appears rather than when it finishes.",
+   "trigger_signals": [
+    "a worker's last action is starting a background run/Monitor and waiting for its notification",
+    "a blocking call against a live server or browser that can hang",
+    "a subagent silent for an unusually long time, or a promise of periodic updates on a timer",
+    "a subagent backgrounds its own long command and yields; multi-hour fan-out state held only in process; a fix loop planned around resuming agents via SendMessage",
+    "a background poll/loop shells out to a helper under /tmp or a scratch dir; resuming after hours or a session boundary on a background task's result; a long unattended release run on a laptop",
+    "dispatching three or more long-running worktree agents at once",
+    "an implementer has run many consecutive fix rounds in one session without committing (provider session/rate limits end it mid-round)",
+    "background implementer agents running when the parent session may hit a usage limit; planning to resume a subagent via SendMessage",
+    "dispatching more than ~20 background agents in one go (the runtime's concurrent-subagent cap)",
+    "stopping a parent agent whose brief lets it dispatch nested helpers",
+    "a producer agent still running while its output file already exists on disk, or several producers writing into one inbox that a later step globs",
+    "a bench, Playwright batch or suite whose last wall exceeded ~5 min run in the foreground: the Bash tool's 600 s limit silently moves it to the background",
+    "a next step planned as 'sleep N then read the log' (the harness blocks foreground sleep polling)"
+   ],
+   "preventive_checks": [
+    "Instruct workers to run verification synchronously or poll results themselves, never ending a turn on their own watcher",
+    "Background potentially hanging calls and poll with a timeout",
+    "When a subagent stalls, check git status/log and test results directly before relaunching",
+    "Put 'never background a command, run to completion' in every agent prompt template, checkpoint fan-out progress to a durable file, and confirm the resume tool is available before planning around it",
+    "Keep automation helpers in the repo's scripts/, make poll loops exit non-zero when a helper is missing, check a dispatched agent's output file size/mtime shortly after launch, treat a missing completion record as unknown and re-verify against the target system (ASC/Play), and run caffeinate for long unattended runs",
+    "Arm a per-worktree file-write staleness watch and check the session/rate budget before the fan-out",
+    "Commit after each discrete fix and write self-contained round briefs so a fresh agent can resume a round if the previous one dies",
+    "After any session restart check each in-flight worktree's git status before assuming work landed; hand off through a persisted report file a fresh agent reads, since SendMessage may be disabled",
+    "Check the runtime's concurrent-subagent cap and dispatch in batches under it",
+    "When cancelling a parent, list and stop its descendants too, then confirm nothing is still running",
+    "Dispatch consumers only on the producer's completion notification, never on file existence; aggregation reads a closed per-producer manifest instead of globbing a shared inbox",
+    "Size each foreground run under ~8 min, or launch with run_in_background plus a Monitor until-loop on the summary line; never end the turn before the summary and exit code exist",
+    "Integrators reject any lane report whose benchmark or suite result lacks the exit code and numbers"
+   ],
+   "portable": true,
+   "count": 1,
+   "domains": {
+    "cross-cutting": 1
+   },
+   "n_projects": 1,
+   "related": []
+  },
+  "FS-51": {
+   "name": "Code handles one of several representations of the same fact",
+   "family": "data-query",
+   "moment": "implement",
+   "mechanism": "The same real-world fact is stored or transmitted several ways: a bank match as an FK or a batch M2M, account_type as a slug or a title-cased label, names with case/slug variants, location scope as a query param or a header, a file on the parent M2M or on per-section child fields, an orphan as a null FK or a detached non-null FK, URL scope under several param names. A query, merge key, guard, finder or test is written against the one representation the author saw first and declared exhaustive, so rows in the other representation slip through.",
+   "trigger_signals": [
+    "a guard, finder or 'is matched/reconciled' check follows one relation path between two models",
+    "a grouping/merge key uses a raw type or name field that other code canonicalizes",
+    "request scope can arrive via query param or header; a guard allow-lists known URL param names",
+    "a cleanup is verified by searching for the exact string or anomaly signature named in the ticket",
+    "a cross-cutting feature (file tracking, audit) wired to the first model found carrying the field",
+    "a stored-file URL field can hold several URI schemes (s3://, gs://, https) and presigning is wired for only one; the field is rendered as an href in more than one component",
+    "an exclude/ignore list names one build-output dir (.next) in a repo that also holds suffixed variants (.next-live, .next-e2e, .next-verify)",
+    "comparing file paths that come from different producers (absolute vs repo-relative, ./ prefixes)"
+   ],
+   "preventive_checks": [
+    "Grep the schema for every FK/M2M/through relation linking the two models and every model carrying the field type; cover and test each path",
+    "SELECT DISTINCT the stored values of every key component org-wide before writing a merge key, and reuse the canonicalization the bucket router already uses",
+    "Resolve scope through the existing helper that honors every input channel (scope_to_locations / effective_location_ids) and test the header-only entry point",
+    "Verify cleanups with a broader case-insensitive/pattern search and check the sibling signature (null FK vs detached FK) before declaring done",
+    "Enumerate every link builder that targets a guarded route and test each param variant",
+    "Contract-test that every URL field in API responses starts with https:// for each configured storage backend, and grep every component that renders the field",
+    "Exclude by glob (.next*), then du -sh the staged context and compare it with the source size before shipping",
+    "Normalize both sides to resolved repo-relative paths before comparing, and test absolute, ./-prefixed and relative inputs"
+   ],
+   "portable": true,
+   "count": 6,
+   "domains": {
+    "backend": 6
+   },
+   "n_projects": 1,
+   "related": []
+  },
+  "FS-53": {
+   "name": "Known fix or learned rule not made durable, so the same trap recurs",
+   "family": "integration-merge",
+   "moment": "merge",
+   "mechanism": "A root cause is found and fixed on a branch, filed as a chip, or taught by the user, but never carried to where it stops recurring: the fix sits unpromoted at some hop of the promotion chain (or pushed with no PR), the filed durable fix is never implemented, a pending migration is never landed, a faster tool or new safety rule never reaches the skill's default recipe or the scripts already written. The symptom keeps firing in production and is hand-healed, costing a round each time.",
+   "trigger_signals": [
+    "the same symptom class shows up a second time, or a manual cleanup/sweep is being run again",
+    "a fix was 'pushed' but no promotion PR is open, or it has not reached main",
+    "a chip/TODO for the durable fix already exists for the error you are re-patching",
+    "the user states a rule correcting a mistake, or a new tool supersedes the documented recipe",
+    "every branch has to detect-and-ignore the same drift (unmade migration, scanner false positive)",
+    "a release helper or upload fix being recreated ad hoc for the second time; a session ending with a diagnosed fix deliberately held back",
+    "the same failure is flagged 'pre-existing, not my change' in two or more sessions",
+    "a process gap hit once in a parallel batch while other tickets in the same batch are still queued"
+   ],
+   "preventive_checks": [
+    "On the second occurrence treat the root-cause fix as blocking: report its branch -> PR -> promotion stage and count only 'merged to main and deployed' as done",
+    "Keep one visible list mapping recurring bug classes to fix branches and their promotion stage, and surface it every time the class fires",
+    "Write a user-taught rule or a new default tool into the skill/runbook immediately, then grep previously written fix scripts for violations",
+    "Land shared drift fixes (pending migration, scanner excludes, allowlists) once on main instead of working around them per branch",
+    "Commit hardened helpers into scripts/ on the first fix; write a held-back diagnosis and its next action to a ticket or memory before the session ends",
+    "Once a failure is confirmed pre-existing twice, fix it or file and link a ticket instead of re-flagging it",
+    "Add the learned step to every remaining brief and reviewer checklist in the batch immediately"
+   ],
+   "portable": true,
+   "count": 2,
+   "domains": {
+    "cross-cutting": 2
+   },
+   "n_projects": 1,
+   "related": []
+  },
+  "FS-55": {
+   "name": "Rule keyed on a proxy signal instead of the defining type, status or link",
+   "family": "contract-logic",
+   "moment": "implement",
+   "mechanism": "A posting rule, detector, cleanup or guard decides membership from something that usually correlates with the real condition: notes text ('TR FR/TO ...'), the existence of a downstream leg instead of the counterpart FK, an is_matched flag that ORs manual reconciliation with structural pairing, a denormalized date copy instead of the linked rows, a structural flag instead of account_type, every row in a source list without checking department_type, every status instead of the ones the balance sheet reads. Inputs where proxy and truth diverge are silently mis-posted, mis-flagged or deleted.",
+   "trigger_signals": [
+    "a filter matches free text, notes or naming conventions to identify a class of financial row",
+    "a 'matched/unmatched' or 'safe to delete' decision inferred from a side effect or a conflated boolean",
+    "a business rule says 'only bank-type accounts' / 'only merchandise rows' / 'only REVIEWED' and the function never references that field",
+    "a lock or invariant check reads a denormalized copy on the mutated model",
+    "a build/config guard greps a whole file for a placeholder string instead of reading the one key it validates; a test-data cleanup selects rows by guessing their generated naming pattern",
+    "a cache-hit or fast-path early return tests only the fields one writer fills (transcript present) while the response promises more fields (summary, scores) that another path derives",
+    "classifying tests or endpoints as read-only by HTTP verb or URL while GET handlers may lazily get_or_create shared rows"
+   ],
+   "preventive_checks": [
+    "Filter on the defining field (account_type, department_type, status, the counterpart FK resolved in both directions) and add a fixture with the same text/shape but a different type/status that must be excluded",
+    "Split conflated booleans into separately named signals and have each consumer query the one it means",
+    "Enumerate every status/lifecycle value of the source model and state which ones the rule covers",
+    "Key cleanups and lookups on the canonical identity the sync writer uses ((source_type, source_id)) and resolve the real linked rows, not copies",
+    "Read the exact key path (plutil/jq) in config guards and test with a filled value plus a stale comment; mark test rows at creation and clean up by exact match, not by regex",
+    "Make the early-return condition list every field the response promises, and test with only the webhook-written fields populated",
+    "Back static read-only claims with a row-level DB write audit and flag get_or_create in GET handlers"
+   ],
+   "portable": true,
+   "count": 8,
+   "domains": {
+    "backend": 5,
+    "cross-cutting": 3
+   },
+   "n_projects": 1,
+   "related": [
+    "L-runtime-or-dialect-mismatch"
+   ]
+  },
+  "FS-61": {
+   "name": "Credentials echoed into output or passed as plaintext config",
+   "family": "deploy-infra",
+   "moment": "deploy",
+   "mechanism": "Settings/startup code prints credentials fetched from the secret manager, and a shared ops box's login-shell profile echoes the prod DB credential as a banner. Any SSM, CI or agent command run through manage.py shell or a login shell (bash -lc, sudo -i, ssh with a profile) captures the secret into logs and transcripts. The trap is known and noted in memory but not fixed, so it recurs on every remote-ops task.",
+   "trigger_signals": [
+    "about to run a command on a remote box via a login shell, sudo -i, or manage.py shell",
+    "settings/startup code logs or prints resolved secrets",
+    "memory notes a credential-echo trap on a box you are about to use",
+    "a Secrets Manager ARN or Pulumi requireSecret value flowing into a container environment map"
+   ],
+   "preventive_checks": [
+    "Invoke remote commands with a non-login shell (bash --noprofile --norc, no -l/-i) and prefer management commands or script files over manage.py shell",
+    "Grep settings/startup code and the box's shell profile for print/log/echo of secret values and remove them at the source; rotate any credential that appeared in output",
+    "Track the leak as a blocking ops item, not a memory note, and scrub secret-shaped strings from output before surfacing it",
+    "Pass secrets via ECS/Batch secrets valueFrom, never as plain env values"
+   ],
+   "portable": true,
+   "count": 2,
+   "domains": {
+    "backend": 2
+   },
+   "n_projects": 1,
+   "related": []
+  },
+  "FS-62": {
+   "name": "Bug class fixed in one template-copied sibling survives in the others",
+   "family": "contract-logic",
+   "moment": "implement",
+   "mechanism": "A family of near-identical functions for different entity types (one ledger-posting function per source type such as deposit, expense, merchandise and fuel; a P&L report module beside a balance-sheet report module; backfill scripts beside the pipeline) was built by copying one template. A bug in the template (child-row date/location/organization instead of the parent daily entry's, update_or_create keyed on one FK, a NULL-excluding filter, abs() after aggregate, a status gate for one subtype) is fixed where it was reported, and the other copies keep it until each is rediscovered in a later reconciliation round.",
+   "trigger_signals": [
+    "fixing a bug in one function whose name follows a family pattern (a shared posting-function prefix, *_view, fix_*)",
+    "the fix changes how a field is sourced (date, location, organization) or how a lookup is keyed",
+    "a gate or rule exists for one subtype (expense checks) of a model with sibling subtypes"
+   ],
+   "preventive_checks": [
+    "After the fix, grep every sibling in the family (and adjacent backfill/fix scripts) for the same pattern and fix or document each before calling it done",
+    "Diff sibling functions line by line for field sourcing and lookup keys, and enumerate every field copied from the wrong source, not just the one that triggered the bug",
+    "Add one regression test per sibling or subtype, and extract the shared piece into a helper"
+   ],
+   "portable": true,
+   "count": 4,
+   "domains": {
+    "cross-cutting": 3,
+    "backend": 1
+   },
+   "n_projects": 1,
+   "related": []
+  },
+  "FS-63": {
+   "name": "Entity identity matched on a non-identifying attribute",
+   "family": "data-query",
+   "moment": "implement",
+   "mechanism": "Scripts, importers and pickers decide which real-world entity a row refers to by a display name, .first() of several candidates, or a (payee, amount, date) coincidence, while the data has names repeated across orgs/locations, several bank accounts per location, dangling duplicates from delete-then-recreate, and legitimate same-amount instruments. The opposite error also occurs: exact FK equality treats punctuation-variant duplicate payees as different entities. The wrong row gets linked, voided, skipped or created.",
+   "trigger_signals": [
+    "resolving a location, account or bank account by name or .first() in a multi-org / multi-account setting",
+    "treating rows as duplicates because payee/amount/date match",
+    "a match predicate in a reconciliation script that lacks the identity field (employee name, check number)",
+    "guarding on FK equality in a domain with known near-duplicate master records",
+    "a data migration dedups or groups by a business key without the tenant/repository id",
+    "a reconcile/reindex step that runs per page or partition while row identity is unique per document; match keys that are mutable attributes or list positions",
+    "output files or ids keyed on a value that repeats across sources (session id in two dirs) or derived from enumeration order while another artifact persists references to them"
+   ],
+   "preventive_checks": [
+    "Resolve by a unique key (id, check/invoice number) scoped by organization and location; when the input lacks one, require the column or flag every ambiguous row instead of taking .first()",
+    "Query all candidates sharing the name across orgs and confirm against a reference point the user gave before creating or mutating",
+    "Spot-check a known-unique row to confirm the match predicate discriminates; filter to currently linked rows (e.g. daily_entries__isnull=False) in models with dangling duplicates",
+    "Ask before treating a same-amount/same-date record as a duplicate",
+    "Include the tenant key in dedup group-bys and test the same canonical id present in two tenants in different states",
+    "Match on the stable id at the identity's full uniqueness scope (document, not page); test moving content across partitions, editing matched attributes, and inserting/renumbering items",
+    "Persist ids once into the source records and key outputs on (source, id)"
+   ],
+   "portable": true,
+   "count": 4,
+   "domains": {
+    "backend": 3,
+    "cross-cutting": 1
+   },
+   "n_projects": 1,
+   "related": []
+  },
+  "FS-65": {
+   "name": "Which host, checkout or branch serves an environment assumed",
+   "family": "deploy-infra",
+   "moment": "deploy",
+   "mechanism": "Boxes keep a manual git checkout beside the CodeDeploy-served directory, services track a branch other than the one just pushed, a staging hostname hits the dev backend while sharing the prod DB, and only one box ships logs to the central store. Verification, restarts, migration checks and forensics run against whichever host or directory is at hand and produce clean-looking but wrong answers ('deployed', 'no logs', 'migrated').",
+   "trigger_signals": [
+    "verifying deployed code or migration state on a box, or advising 'restart to pick up the change'",
+    "searching a central log store for a non-prod hostname's traffic",
+    "installing a long-running service against an ad hoc checkout while the pipeline is blocked",
+    "about to conclude that evidence or logs are unrecoverable",
+    "a prod manage.py run after sourcing .env.prod without --settings or an exported DJANGO_SETTINGS_MODULE"
+   ],
+   "preventive_checks": [
+    "Read the service's systemd unit WorkingDirectory and venv, then check git -C <that dir> rev-parse HEAD and its branch before verifying or restarting",
+    "Confirm which backend host serves each hostname and whether its logs ship before searching; enumerate known hosts (deploy config, DNS, known_hosts) before declaring data unrecoverable",
+    "Track any service pointed at a manual checkout as temporary and re-point it at the deploy target before calling the rollout done",
+    "Pass --settings explicitly and print the resolved settings module and DB host as the first output line of any prod ops command"
+   ],
+   "portable": true,
+   "count": 4,
+   "domains": {
+    "cross-cutting": 4
+   },
+   "n_projects": 1,
+   "related": []
+  },
+  "FS-66": {
+   "name": "Session-scoped cloud or CLI credentials assumed still valid",
+   "family": "test-env",
+   "moment": "deploy",
+   "mechanism": "AWS SSO tokens and CLI OAuth logins expire within hours, and long sessions, sub-sessions and bench runs inherit the same expired state. Investigations, downloads and tunnels start without an identity check and fail mid-flight, sometimes after partial work, and the same expiry recurs after each multi-hour gap.",
+   "trigger_signals": [
+    "starting remote diagnostics, an SSM/tunnel session, a cloud download or a local bench run",
+    "a multi-hour gap since the last cloud command in the session",
+    "spawning a sub-session that inherits local CLI auth",
+    "an admin task starts with gcloud compute ssh or other gcloud calls under an org policy that forces periodic interactive reauth",
+    "a gcloud scp/ssh production write late in a long session",
+    "a merged PR's deploy step queued hours after the gcloud login in the same agent session",
+    "an exported AWS_PROFILE from an earlier command in a persistent shell, a prod profile in a non-default credentials file, a stale CodeArtifact token, or pulumi config get ... 2>/dev/null"
+   ],
+   "preventive_checks": [
+    "Run a cheap identity check first (aws sts get-caller-identity, CLI auth status) and ask the user to re-auth up front if it fails",
+    "Re-check at the start of every task that opens a new tunnel/SSM session, and short-circuit dependent runs on the first auth failure instead of retrying each blind",
+    "Keep a documented fallback path (SSH key) for remote access",
+    "Check gcloud auth validity first and surface reauth immediately; prefer a service-account identity for headless admin scripts",
+    "Run gcloud auth print-access-token before staging files and again right before the write",
+    "Run gcloud auth print-access-token right before any queued deploy step and use a deploy-scoped service account instead of a personal OAuth session for automated deploys",
+    "Print aws sts get-caller-identity before each account-specific command, list profiles from both config and credentials files, scope AWS_PROFILE per command, refresh CodeArtifact tokens before install, and never silence stderr of secret fetches"
+   ],
+   "portable": true,
+   "count": 7,
+   "domains": {
+    "cross-cutting": 7
+   },
+   "n_projects": 1,
+   "related": [
+    "FS-18",
+    "L-data-shape-assumed-not-read"
+   ]
+  },
+  "FS-84": {
+   "name": "Dependency or toolchain change not resolved against what actually installs and runs",
+   "family": "integration-merge",
+   "moment": "implement",
+   "mechanism": "A package bump, override, version pin or tool-command migration is written as intent and never checked against the resolved result: a `>=` override lets pnpm jump a major version past the consumer's range, the pnpm that corepack resolves needs a newer Node than .nvmrc pins, a bump of the Playwright test package needs its matching browser binaries, and replacing `next lint` with `eslint .` silently widens the linted tree. The lockfile and the first run look fine until a fresh host, a fresh environment or a second verification pass hits it.",
+   "trigger_signals": [
+    "adding a pnpm/npm override or resolution for a security patch",
+    "bumping the Playwright test package, Next, ESLint or another tool whose runtime assets or config format are coupled to its version",
+    "provisioning a host where Node/corepack is installed separately from the repo's .nvmrc and packageManager field",
+    "replacing a framework-scoped command (next lint) with a bare tool invocation (eslint .)",
+    "removing a package from requirements to escape a native-extension crash (cryptography SIGILL on an arm64 VM) while another installed package still imports it transitively (pymysql _auth)"
+   ],
+   "preventive_checks": [
+    "Write overrides as a caret range within the patched major (^4.3.2) and confirm the resolved version with pnpm why or the lockfile before committing",
+    "Pin packageManager explicitly and check that .nvmrc's Node satisfies the engines of the package manager and tools before provisioning",
+    "Make `playwright install` for the pinned version part of the bump commit's steps and of every fresh environment's pre-e2e setup; print tool versions before trusting lint/typecheck output",
+    "When migrating lint or type commands, re-create the old scope with explicit ignores and diff the error count against the pre-migration baseline",
+    "After removing a dependency, pip show / pip list inside the built image to confirm it is gone and run a bare import smoke test in a throwaway container on the target arch"
+   ],
+   "portable": true,
+   "count": 19,
+   "domains": {
+    "cross-cutting": 14,
+    "backend": 5
+   },
+   "n_projects": 1,
+   "related": [
+    "FS-29"
+   ]
+  },
+  "FS-90": {
+   "name": "Repo tooling bound to one machine's interpreter or to an unprovisioned worktree",
+   "family": "test-env",
+   "moment": "merge",
+   "mechanism": "Git hooks and test entry points hardcode an absolute interpreter path (a python.org framework build) or assume `python` is on PATH, and new worktrees ship without a venv. On another machine or worktree the hook can't start, or runs an interpreter that lacks native wheels and blocks by design. Each session then rediscovers which Python has pytest and the parsers, installs them by hand, and pushes with --no-verify.",
+   "trigger_signals": [
+    "a committed git hook or script references an absolute interpreter path (/Library/Frameworks/Python.framework/..., /opt/homebrew/bin/python3.x)",
+    "the first git push from this machine or worktree in the session",
+    "starting work in a fresh agent worktree checkout with no .venv and no `python` on PATH, on a host with several system Pythons",
+    "the hook needs native extension wheels (tree_sitter parsers) that only one installed interpreter has",
+    "e2e/backend scripts or spec helpers that resolve Python as <checkout>/.venv/bin/python run from a worktree with no venv",
+    "committing, pushing or linting from a fresh agent-managed or /tmp worktree of a Yarn monorepo (no node_modules; husky/lint-staged hooks need yarn)"
+   ],
+   "preventive_checks": [
+    "Make hooks resolve the interpreter in order (repo .venv, then PATH python3) and check required imports up front with a clear message instead of a silent block",
+    "Ship one bootstrap command (make venv / scripts/setup) that builds the pinned-version venv with requirements plus test deps, and run it as step 0 in every new worktree",
+    "Before any documented --no-verify escape, run the exact gate the hook would run with the working venv and paste its green result into the PR body",
+    "After the second bypass, fix the hook on main instead of bypassing it again (FS-53)",
+    "Route every helper's interpreter through one resolver honoring an interpreter-override env variable, and create or link the venv as part of worktree creation",
+    "Run yarn install (and the job's poetry install) as step 0 in every new worktree before tests, lint or commit; use the repo-documented runner (the job's test-runner script, the documented ts-node invocation and compiler options)"
+   ],
+   "portable": true,
+   "count": 20,
+   "domains": {
+    "cross-cutting": 20
+   },
+   "n_projects": 1,
+   "related": [
+    "FS-18",
+    "L-orchestrator-schedule-semantics",
+    "FS-15",
+    "FS-42"
+   ]
+  },
+  "FS-91": {
+   "name": "Written claim in docs, comments or commit prose not re-derived from what it cites",
+   "family": "verification-claims",
+   "moment": "verify",
+   "mechanism": "Docstrings, whitepaper paragraphs, case source fields, adjudications and commit bodies state facts from the plan's prediction, from memory or from a copied note, not from a fresh run or a read of the source. Examples: 'this case now passes', 'this case proves end-to-end routing', a precedent's numbers, another file's note on wiring status. Reviewers catch the mismatch late, or it misdirects later planning.",
+   "trigger_signals": [
+    "writing a docstring, comment or doc sentence saying a named test or case passes or proves a behavior",
+    "quoting another file's descriptive note (catalog notes, scope or wiring status) into new docs or a case's source field",
+    "a commit body, adjudication or PR description citing numbers, thresholds or commit history from another document",
+    "prose written in the same session as the plan that predicted the outcome",
+    "a hand-assembled .patch file or apply instruction committed into a report"
+   ],
+   "preventive_checks": [
+    "Run the exact test or case and cite its result next to any 'now passes' claim; if it still fails, write the outcome as expected, not achieved",
+    "Before describing what a case proves, trace the runner function it actually invokes and name that code path",
+    "Re-verify any quoted state note against current code instead of copying it",
+    "Open the cited document and quote its exact numbers and SHAs instead of paraphrasing from memory",
+    "Produce patch notes with git diff from a scratch branch and run git apply --check on a clean checkout before committing"
+   ],
+   "portable": true,
+   "count": 5,
+   "domains": {
+    "cross-cutting": 3,
+    "backend": 2
+   },
+   "n_projects": 1,
+   "related": []
+  },
+  "FS-99": {
+   "name": "Document-parsing heuristic tuned on synthetic or single sample documents",
+   "family": "contract-logic",
+   "moment": "plan",
+   "mechanism": "Parsers and change detectors for real-world documents (Word BRDs through pandoc, meeting transcripts, minutes) are built against synthetic fixtures or tuned from one real sample: a colon-prefix speaker rule, a TOC line pattern, a heading-level rule, a noise-suppression skip rule. The next document differs (heading style != numbering, TOC kept as content, requirements authored as tables, a body that is all front matter, 'Action items:' headings), and the heuristic misreads or deletes real content. The real-document gate runs last, so the misfit surfaces at the end of the build.",
+   "trigger_signals": [
+    "a spec names real-document risk for an import/parse feature while all fixtures are synthetic",
+    "changing a parsing heuristic because of one real document",
+    "a skip or strip rule keyed on a loose line pattern or an absence condition (no anchors, colon prefix, TOC-shaped line)",
+    "regex/denylist/fallback rules over scraped bios, URLs or vendor payloads built from a few bad examples or self-authored fixtures"
+   ],
+   "preventive_checks": [
+    "Get several real documents at plan time (ask the user for customer samples) and run the real-document import gate from the first parser task, not in a final lane",
+    "Keep a corpus of edge-shaped fixtures (style != numbering, TOC, table-authored requirements, doc-control tables, an all-front-matter body, 'Heading:' lines) and run every heuristic change against all of them",
+    "Give every removal or skip heuristic a negative example, confirm matches against structure (TOC entries map to real headings) before deleting content, and guard a generalized fix with the condition of the sample it came from",
+    "Run the rule over a real prod sample and inspect both what it rejects and positive examples it must keep"
+   ],
+   "portable": true,
+   "count": 11,
+   "domains": {
+    "backend": 11
+   },
+   "n_projects": 1,
+   "related": [
+    "L-runtime-or-dialect-mismatch"
+   ]
+  },
+  "FS-109": {
+   "name": "Waiting state with no deadline when its resolver disappears",
+   "family": "contract-logic",
+   "moment": "implement",
+   "mechanism": "A record or process enters a waiting state (pending, updating, held, mismatch) whose only exit is an event from another actor: a watcher, a callback, a renderer or a follow-up flow. When that actor dies, restarts or is never started, nothing moves the state on and it holds forever: a node stops sending heartbeats, a run never settles, a badge says updating indefinitely. Tests always drive the resolver, so the never-resolves path is first exercised live.",
+   "trigger_signals": [
+    "a new pending, held or verifying state that is cleared only by another process, callback or user action",
+    "a hold that suppresses a liveness signal (heartbeat, lease renewal) until a check passes",
+    "a watcher or supervisor process that may be absent after a restart or an upgrade"
+   ],
+   "preventive_checks": [
+    "For every waiting state write down the event that ends it and a deadline that moves it to a reported terminal state (failed, rolled back)",
+    "Test the resolver never arriving: kill the watcher or drop the callback, advance the clock past the deadline, and assert the state ends and liveness resumes"
+   ],
+   "portable": true,
+   "count": 1,
+   "domains": {
+    "backend": 1
+   },
+   "n_projects": 1,
+   "related": []
+  },
+  "L-data-shape-assumed-not-read": {
+   "name": "Data type, unit, layout or source assumed from a name or sample instead of read from the producer",
+   "family": "data-query",
+   "moment": "implement",
+   "mechanism": "Queries, schemas, joins and DQ checks are written from a column's name, a pasted sample, a test fixture, a TS interface or a couple of sampled files: string dates treated as DATE, epoch unit guessed, partition layout asserted, a Glue/Spark schema typed from field names, a similar column taken from the wrong table, uniqueness or absence-as-NULL assumed. Code runs and returns plausible numbers, so the mismatch shows only when a user checks real rows.",
+   "trigger_signals": [
+    "writing SQL/PySpark against a table or column not yet inspected in this session",
+    "a type, unit or format inferred from a field name (user_id, created_at, *_code) or a single pasted value",
+    "hand-writing a Glue/StructType/DDL schema for a vendor payload or from a design doc",
+    "two tables expose a similarly named column, or a dedup is removed because a table is 'already unique'",
+    "a backfill over months of files whose encoding was checked on one or two samples",
+    "claims about what an API returns derived from type definitions or mapper code"
+   ],
+   "preventive_checks": [
+    "Read the producer first: Glue schema (get-table), the writer's partition_keys/MERGE key, or the mapper that emits the field",
+    "Sample real rows (DISTINCT, min/max, typeof, count by format) across the full date range before fixing a type, unit, grain or encoding boundary",
+    "Check join-key uniqueness with GROUP BY key HAVING count(*)>1 before joining or dropping a dedup",
+    "Validate a hand-written schema against one real payload/parquet file per time slice",
+    "State the source table and column for every metric before computing it"
+   ],
+   "portable": true,
+   "count": 34,
+   "domains": {
+    "backend": 30,
+    "cross-cutting": 4
+   },
+   "n_projects": 1,
+   "related": [
+    "L-never-executed-before-handoff",
+    "FS-66",
+    "FS-42",
+    "FS-26"
+   ]
+  },
+  "L-unrequested-scope-or-deviation": {
+   "name": "Change exceeds or deviates from the explicit ask",
+   "family": "requirements-scope",
+   "moment": "implement",
+   "mechanism": "The agent adds things nobody asked for (feature flags, bypasses, filters, extra alarms, speculative parsing, one-off abstractions, refactors, version bumps, prod-mutating migrations), substitutes its own design, method or evidence source for the one named, or silently changes a derivation or invariant while doing a narrow edit. Reviewers must then unpick unrelated diff and the requested behavior is subtly different.",
+   "trigger_signals": [
+    "the request is a short imperative (remove X, rename Y, add Z to these N places)",
+    "the user names a target function, method of verification, table set or rule",
+    "copying a sibling pattern that carries a flag, guard or abstraction the ask didn't mention",
+    "the diff is much larger than the ask, or touches a shared helper/lib for a single-service ask",
+    "a delegation prompt paraphrases the user's rules for a subagent"
+   ],
+   "preventive_checks": [
+    "Before finishing, walk every hunk and map it to a sentence in the ask; revert hunks that map to nothing or call them out as questions",
+    "Use the exact function, evidence source and tables the user named; ask before substituting",
+    "Never add exceptions to an access/deny rule, relax an assert into a fallback, or delete a feature to resolve a bug without asking",
+    "Pass the user's requirement verbatim to subagents instead of paraphrasing it",
+    "Keep temporary instrumentation minimal and local; no structural rewrites"
+   ],
+   "portable": true,
+   "count": 31,
+   "domains": {
+    "backend": 22,
+    "cross-cutting": 9
+   },
+   "n_projects": 1,
+   "related": [
+    "L-orchestrator-schedule-semantics",
+    "L-runtime-or-dialect-mismatch"
+   ]
+  },
+  "L-runtime-or-dialect-mismatch": {
+   "name": "Code targets a runtime, engine version or SQL dialect other than the one that executes it",
+   "family": "contract-logic",
+   "moment": "implement",
+   "mechanism": "Code is written for the local or most familiar runtime: Python 3.10+ syntax/stdlib on EMR's Python 3.9, implicit namespace packages under zipimport, Spark SQL DDL/MERGE given to Athena/Trino, JVM Spark API names in PySpark, regex/escaping/case/integer semantics that differ across engines, newer library or provider kwargs than the pinned version. Local tests pass on the newer runtime; the failure appears only on the cluster or engine.",
+   "trigger_signals": [
+    "editing batch-job source or a spark-submit entrypoint that ships to EMR",
+    "writing SQL without stating the engine (Athena/Trino vs Spark vs Postgres vs sharded Postgres)",
+    "porting a regex, hash compare, cast or arithmetic expression from one engine/language to another",
+    "using an API/kwarg found in current docs while the repo pins an older library/provider version",
+    "a new PySpark package dir or src.zip --py-files packaging"
+   ],
+   "preventive_checks": [
+    "Name the executing runtime and version before writing code; for EMR keep 3.9-compatible (no X|Y, match, StrEnum, importlib.resources.files)",
+    "Check the target engine's docs for each DDL/DML/function (Athena ALTER TABLE, Trino CTE inlining, to_hex case, JSON cast) or run it once there",
+    "Check the pinned version in pyproject/lock before using a newer API, kwarg or function",
+    "Add __init__.py to every package dir that ships in a zip, and import-test the zip with python3.9",
+    "Run one representative query/job on the real engine before handing it over"
+   ],
+   "portable": true,
+   "count": 29,
+   "domains": {
+    "backend": 25,
+    "cross-cutting": 4
+   },
+   "n_projects": 1,
+   "related": [
+    "FS-55",
+    "FS-29",
+    "FS-99",
+    "FS-21"
+   ]
+  },
+  "L-query-plan-cost-at-scale": {
+   "name": "Query or Spark job shape whose cost explodes at production scale",
+   "family": "data-query",
+   "moment": "implement",
+   "mechanism": "The job is correct on a sample but its plan does not scale: repeated count()/collect() actions on uncached lineage, array_contains or fuzzy predicates forcing nested-loop joins, filters on non-partition columns, partition specs that ignore the dominant join key, whole-table MERGE/scan for per-batch work, shard-key-less queries on sharded Postgres, aggregate-then-LIMIT pagination, predicate pushdown re-inlining expensive expressions.",
+   "trigger_signals": [
+    "a transform calls count()/first()/collect() for logging or emptiness checks",
+    "a join condition is a function over an array or a non-equi/fuzzy predicate",
+    "a new Iceberg table DDL or a query filter on a large staging/curated table",
+    "a MERGE or dedup that scans the full history for a small batch",
+    "ad-hoc plain or sharded Postgres query without the shard key; DISTINCT ON/GROUP BY before LIMIT"
+   ],
+   "preventive_checks": [
+    "Run explain() / EXPLAIN on the real table and check join strategy, partition pruning and shard fan-out",
+    "Read the table's partition spec before claiming a filter prunes; choose partitions from the dominant downstream access path",
+    "Compute several metrics in one cached aggregation; use isEmpty/limit(1) instead of count()",
+    "Bound dedup/MERGE to the current batch keys and partitions",
+    "Paginate before aggregating; include the shard key in sharded-database predicates"
+   ],
+   "portable": true,
+   "count": 19,
+   "domains": {
+    "backend": 19
+   },
+   "n_projects": 1,
+   "related": [
+    "L-orchestrator-schedule-semantics",
+    "FS-26",
+    "FS-42",
+    "L-data-shape-assumed-not-read"
+   ]
+  },
+  "L-capacity-without-platform-math": {
+   "name": "Capacity, concurrency or quota set without the platform's resource math",
+   "family": "deploy-infra",
+   "moment": "implement",
+   "mechanism": "Memory, vCPU, executor counts, thread pools, parallel transfers and task counts are tuned from a hypothesis or copied numbers without checking the platform's fixed limits (EMR Serverless memory/vCPU ratios, Batch CE overhead, account quotas), the host's size, per-host S3 limits, connection-pool sizes or shared quotas like a vendor thread pool. Jobs OOM, get throttled, or exceed a quota that the test account still had room for.",
+   "trigger_signals": [
+    "changing cpu/memory/executor/initialCapacity settings for EMR Serverless, EMR or Batch",
+    "copying parallelism defaults from a bigger machine or a daily job to a backfill",
+    "a thread pool around a boto3 client, or scaling tasks that share a capped external pool",
+    "adding a quota-capped AWS resource (on-demand Kinesis stream, Batch CE) in prod"
+   ],
+   "preventive_checks": [
+    "Read the Pulumi worker size and the service's documented limits before editing Spark conf; fit conf to infra, not infra to guesses",
+    "Compute concurrency x per-unit memory against the instance; leave agent/OS overhead on Batch",
+    "Match boto3 max_pool_connections to thread count; model shared quotas (vendor thread pools) from measured peak, not stated baseline",
+    "Check current account quota usage in prod before adding capped resources",
+    "Size backfill windows from per-run shuffle volume, not calendar units"
+   ],
+   "portable": true,
+   "count": 16,
+   "domains": {
+    "backend": 13,
+    "cross-cutting": 3
+   },
+   "n_projects": 1,
+   "related": [
+    "FS-29",
+    "FS-18"
+   ]
+  },
+  "L-git-action-on-unchecked-branch": {
+   "name": "Git commit, reset or push run without checking the current branch and PR state",
+   "family": "integration-merge",
+   "moment": "merge",
+   "mechanism": "The agent commits, resets or pushes on whatever is checked out: directly on the base branch, on an unrelated feature branch, on a branch whose PR already squash-merged (recreating it), in a worktree on the wrong branch, or after switching back to base and writing follow-ups there. Partial commits leave imports to uncommitted files, and deleted worktrees keep holding branches.",
+   "trigger_signals": [
+    "about to commit/push via a UI action or a one-line command",
+    "returning to a PR branch after hours or days",
+    "the current branch name doesn't relate to the change, or is the base branch (dev/main)",
+    "creating or removing a worktree; staging only some of the changed files"
+   ],
+   "preventive_checks": [
+    "Run git status -sb and gh pr view --json state,headRefName before every commit/push",
+    "Never commit to the base branch; create a branch with --no-track from origin/<base>",
+    "If the PR is merged, start a new branch from origin/<base>",
+    "Check staged files import nothing unstaged (git stash -k && build) before a partial commit",
+    "Remove worktrees with git worktree remove, then git worktree prune"
+   ],
+   "portable": true,
+   "count": 13,
+   "domains": {
+    "cross-cutting": 13
+   },
+   "n_projects": 1,
+   "related": []
+  },
+  "L-orchestrator-schedule-semantics": {
+   "name": "Orchestrator schedule, catchup, timeout or trigger semantics changed without re-deriving dependents",
+   "family": "deploy-infra",
+   "moment": "implement",
+   "mechanism": "Airflow DAG cadence, catchup, start_date, execution_timeout, waiter attempts, trigger rules, TaskGroup factories and XCom flows are edited in isolation: lookback and day-of-month logic still assume the old cadence, catchup replays from a stale start_date, timeouts are shorter than the external job and retries start a second writer, fixed task_ids collide in factories, wall-clock values are recomputed across an approval gate, and recovery advice relies on XCom from a hand-marked task.",
+   "trigger_signals": [
+    "changing schedule_interval/cron, catchup or start_date",
+    "adding an EMR/Batch operator or sensor with waiter_max_attempts or execution_timeout",
+    "a fan-in task after .expand(), or a TaskGroup factory called per platform",
+    "tasks that each compute dates from now(), or a recovery plan that marks tasks success"
+   ],
+   "preventive_checks": [
+    "Grep the DAG for every value derived from the schedule (lookback, day-of-month, data_interval) and update them together",
+    "Size timeouts and waiter attempts x delay to the measured p99 job runtime; confirm retries terminate the underlying job",
+    "When enabling catchup, move start_date to the deploy date",
+    "Compute time-derived values once and pass them via XCom/params; ensure downstream tasks tolerate a hand-marked upstream"
+   ],
+   "portable": true,
+   "count": 12,
+   "domains": {
+    "backend": 12
+   },
+   "n_projects": 1,
+   "related": [
+    "L-query-plan-cost-at-scale",
+    "FS-90",
+    "FS-26",
+    "L-unrequested-scope-or-deviation"
+   ]
+  },
+  "L-iam-guessed-not-enumerated": {
+   "name": "IAM policy written from SDK names or memory instead of the client's actual API calls",
+   "family": "tenancy-authz",
+   "moment": "implement",
+   "mechanism": "Policies are drafted from SDK method names, guessed condition attribute names, or 'least privilege' intuition: tools like rsync need list/read on the destination, ListBucket is evaluated on the bucket resource with s3:prefix including parent prefixes, condition keys apply only to some actions, managed services read with their own service agent, new principals need propagation time. A missing grant gets 'fixed' with a wildcard.",
+   "trigger_signals": [
+    "writing a least-privilege policy for a CLI/tool or managed service",
+    "an action name copied from an SDK method (HeadObject, ListObjectsV2)",
+    "a prefix-scoped condition or a CEL/condition key typed from memory",
+    "AccessDenied on one resource in an allow-list policy"
+   ],
+   "preventive_checks": [
+    "Look up each action and condition key in the service authorization reference",
+    "Enumerate the API calls the tool makes (CloudTrail, --debug) and grant exactly those",
+    "Add the missing resource rather than a wildcard; include parent prefixes in s3:prefix conditions",
+    "Grant managed-service agents explicitly and wait for/verify principal propagation"
+   ],
+   "portable": true,
+   "count": 10,
+   "domains": {
+    "cross-cutting": 6,
+    "backend": 4
+   },
+   "n_projects": 1,
+   "related": []
+  },
+  "L-cloud-resource-config-unvalidated": {
+   "name": "Cloud resource args or capability assumed without checking the provider schema and service rules",
+   "family": "deploy-infra",
+   "moment": "implement",
+   "mechanism": "New resource types and configs are written from console concepts or docs for a different context: SEARCH metric math in alarms (dashboard-only), incompatible crawler policies, SELECT * in BCM exports, global services on the regional provider, CFN types not in the region, datapoints-to-alarm exceeding evaluation periods, updates rejected while an app is STARTED, control-plane rate limits under Pulumi parallelism. Preview passes; deploy fails.",
+   "trigger_signals": [
+    "first use of a Pulumi resource type in the repo",
+    "an alarm/metric-math expression, a crawler/export config, or a global-region service",
+    "updating an EMR Serverless application or other resource with state-dependent update rules",
+    "a dynamic provider creating many resources of one type"
+   ],
+   "preventive_checks": [
+    "Read the Pulumi/Terraform provider schema and the AWS API constraints for every arg before writing",
+    "Check region availability for new resource types (cloudformation describe-type) and use a us-east-1 provider for global services",
+    "Validate alarm math and periods against CloudWatch alarm restrictions",
+    "Deploy once to a personal stack before merging a first-of-kind resource"
+   ],
+   "portable": true,
+   "count": 10,
+   "domains": {
+    "cross-cutting": 9,
+    "backend": 1
+   },
+   "n_projects": 1,
+   "related": []
+  },
+  "L-refactor-drops-behavior": {
+   "name": "Refactor or rewrite silently drops behavior the original had",
+   "family": "contract-logic",
+   "moment": "implement",
+   "mechanism": "Extracting into a shared helper, consolidating files, renaming, or rewriting a body by hand rather than moving it loses steps (warm-up, classloader semantics, existence checks, dependency order, fields, docstrings) or smuggles logic changes into a 'mechanical' change. Nothing fails until the dropped behavior is needed.",
+   "trigger_signals": [
+    "extracting working code into a shared library or factory",
+    "merging several files, or a 'rename only' task that also touches bodies",
+    "rewriting a class/function body that has docstrings, guards or ordering"
+   ],
+   "preventive_checks": [
+    "Move code verbatim first, then diff old vs new and account for every removed line",
+    "Keep rename-only commits free of body edits",
+    "Diff task dependency order before and after a TaskGroup/factory extraction",
+    "Run the original call path's tests against the refactored code"
+   ],
+   "portable": true,
+   "count": 8,
+   "domains": {
+    "backend": 5,
+    "cross-cutting": 3
+   },
+   "n_projects": 1,
+   "related": []
+  },
+  "L-copied-sibling-unaudited": {
+   "name": "Sibling module copied wholesale without auditing what it carries",
+   "family": "contract-logic",
+   "moment": "implement",
+   "mechanism": "A new lambda, infra file, bucket, DQ suite or table is cloned from a sibling and keeps its baggage: unrenamed identifiers, import-time env reads for unset vars, IAM and env vars the new use never needs, legacy versioning state, deprecated patterns, layer placement and thresholds that fit the sibling only.",
+   "trigger_signals": [
+    "creating a file by copying a sibling module or 'exactly the same' resource",
+    "a sibling resource with historical or legacy config",
+    "per-platform suites or configs generated from one template"
+   ],
+   "preventive_checks": [
+    "After copying, grep for the sibling's name and walk each env var, grant and setting asking whether the new one reads it",
+    "Check provider deprecations before copying a pattern",
+    "Derive thresholds/config per target from its own data, not the sibling's values"
+   ],
+   "portable": true,
+   "count": 7,
+   "domains": {
+    "backend": 5,
+    "cross-cutting": 2
+   },
+   "n_projects": 1,
+   "related": []
+  },
+  "L-downstream-patch-instead-of-producer": {
+   "name": "Consumer or edge patched to tolerate bad state instead of fixing the producer",
+   "family": "contract-logic",
+   "moment": "implement",
+   "mechanism": "When one producer emits inconsistent state, the fix lands in a shared consumer (per-table flag in a shared job, override in the optimizer), at the outermost presentation mapper, in the data to satisfy a validator, or as a hardcoded field list. Other consumers still see the bad state and shared code grows special cases.",
+   "trigger_signals": [
+    "a review says a shared job breaks on one new table/producer",
+    "the quickest fix is a flag or field list in shared/downstream code",
+    "a bug visible in one API surface that re-maps an upstream service"
+   ],
+   "preventive_checks": [
+    "Trace the bad value to the mutation that creates it and fix there",
+    "Fix in the shared upstream service that every surface reads, not one edge mapper",
+    "If a check fails on canonical data, fix the check, not the data"
+   ],
+   "portable": true,
+   "count": 6,
+   "domains": {
+    "backend": 6
+   },
+   "n_projects": 1,
+   "related": []
+  },
+  "L-never-executed-before-handoff": {
+   "name": "Script, query, command or write path handed over without running it once",
+   "family": "verification-claims",
+   "moment": "verify",
+   "mechanism": "New helper scripts, rewritten request builders, PySpark write paths, Dockerfiles and AWS commands are delivered after reading-only review. The first real run fails on an unhandled input variant, a nonexistent method, a missing package or unverified cluster config, and each fix surfaces the next failure through a slow pipeline.",
+   "trigger_signals": [
+    "a new script or command for the user to run against real resources",
+    "a changed write path, request builder or Dockerfile with no test exercising it",
+    "PySpark code written without a SparkSession run"
+   ],
+   "preventive_checks": [
+    "Run it once against one real input (or a local build/docker build) before handing over",
+    "Diff the produced request/output against the pre-change version",
+    "For commands against prod resources, verify referenced config (capacity providers, revisions) with a read call first"
+   ],
+   "portable": true,
+   "count": 6,
+   "domains": {
+    "backend": 3,
+    "cross-cutting": 3
+   },
+   "n_projects": 1,
+   "related": [
+    "FS-42",
+    "L-data-shape-assumed-not-read"
+   ]
+  },
+  "L-llm-call-params-unsized": {
+   "name": "LLM call parameters not sized to reasoning, items per call or task type",
+   "family": "contract-logic",
+   "moment": "implement",
+   "mechanism": "max_tokens stays fixed while reasoning effort or items per request grow, reasoning tokens count against max_tokens without being returned, and creative default temperature is used for strict JSON extraction. Outputs truncate or vary, and validation failures look like model quality problems.",
+   "trigger_signals": [
+    "changing reasoning_effort, model, or batching N items into one call",
+    "a structured/JSON extraction task with default sampling params"
+   ],
+   "preventive_checks": [
+    "Set max_tokens >= reasoning budget + worst-case output per item x items",
+    "Check finish_reason/truncation counts on a sample run",
+    "Use temperature 0 (or low) for deterministic extraction"
+   ],
+   "portable": true,
+   "count": 5,
+   "domains": {
+    "backend": 5
+   },
+   "n_projects": 1,
+   "related": [
+    "FS-21"
+   ]
+  },
+  "L-derived-metric-wrong-denominator": {
+   "name": "Cost or rate metric computed with the wrong denominator, tier or components",
+   "family": "data-query",
+   "moment": "verify",
+   "mechanism": "Per-unit costs and rates are derived from totals that include unrelated spend (evaluator cost), divided by a proxy count, labelled with a pricing tier the formula doesn't apply, or copy a per-request aggregate onto every exploded row. The number looks reasonable and drives a decision.",
+   "trigger_signals": [
+    "estimating prod cost from a benchmark or bill",
+    "a column name that claims a tier/unit the formula must honor",
+    "exploding a batched response that carries a per-request usage field"
+   ],
+   "preventive_checks": [
+    "Write the formula with numerator and denominator sources named, and recompute from stored inputs",
+    "Exclude benchmark-only components from prod extrapolations",
+    "Divide per-request aggregates across exploded rows or keep them at request grain"
+   ],
+   "portable": true,
+   "count": 5,
+   "domains": {
+    "backend": 4,
+    "cross-cutting": 1
+   },
+   "n_projects": 1,
+   "related": []
+  },
+  "L-non-idempotent-retried-step": {
+   "name": "Step run under retries or reruns is not idempotent",
+   "family": "data-query",
+   "moment": "implement",
+   "mechanism": "Airflow retries, SQS redrive and same-day reruns re-execute steps that create DDL, emit terminal-failure events, append without dedup, or overwrite fixed keys from mutated inputs. The second attempt fails or duplicates side effects.",
+   "trigger_signals": [
+    "a task with retries running CREATE/append/notify",
+    "an SQS handler that emits failure events and relies on redrive",
+    "a request to remove a dedup guard from a retried job"
+   ],
+   "preventive_checks": [
+    "Make DDL IF NOT EXISTS / CREATE OR REPLACE and writes MERGE or overwrite-by-partition",
+    "Emit terminal-failure side effects only on the final attempt",
+    "Flag retry semantics before removing an idempotency guard"
+   ],
+   "portable": true,
+   "count": 4,
+   "domains": {
+    "backend": 4
+   },
+   "n_projects": 1,
+   "related": []
+  },
+  "L-integration-declared-unavailable": {
+   "name": "Integration or tool declared unavailable without discovering configured tools",
+   "family": "agent-orchestration",
+   "moment": "plan",
+   "mechanism": "Given a Slack/Notion/Linear link or a research task, the agent checks only its static tool list, tries a web fetch or browser automation, or dispatches a subagent type that lacks the needed tools, then stops or degrades instead of discovering the configured MCP namespaces.",
+   "trigger_signals": [
+    "the prompt contains a Slack/Notion/Linear URL or asks to write to one",
+    "dispatching subagents for web research or external lookups"
+   ],
+   "preventive_checks": [
+    "Run the agent's dynamic tool/MCP discovery for the matching namespace before declaring anything unavailable",
+    "Prefer MCP tools over browser automation",
+    "Check the subagent type's tool set before delegating work that needs it"
+   ],
+   "portable": true,
+   "count": 4,
+   "domains": {
+    "cross-cutting": 4
+   },
+   "n_projects": 1,
+   "related": []
+  }
+ },
+ "tasks": {
+  "list-aggregate-endpoint": {
+   "title": "Add, change or optimize a list / aggregate / dashboard / tree read endpoint",
+   "domain": "backend",
+   "keywords": [
+    "list",
+    "endpoint",
+    "serializer",
+    "queryset",
+    "aggregate",
+    "count",
+    "filter",
+    "dashboard",
+    "pagination",
+    "prefetch",
+    "annotate",
+    "tree",
+    "performance",
+    "metric"
+   ],
+   "description": "Read-side API work: list or detail serializers with per-row fields, counts/sums/rollups, dashboard metrics, new filter dimensions on a scoped list, tree/hierarchy payloads, and query-count or perf tuning of those reads.",
+   "predicts": {
+    "FS-06": 2,
+    "L-query-plan-cost-at-scale": 2,
+    "FS-62": 1
+   }
+  },
+  "write-endpoint": {
+   "title": "Add or change a create / update / bulk write endpoint or service method",
+   "domain": "backend",
+   "keywords": [
+    "create",
+    "update",
+    "patch",
+    "bulk",
+    "batch",
+    "endpoint",
+    "serializer",
+    "service",
+    "save",
+    "upsert",
+    "validation",
+    "sync",
+    "replica",
+    "error"
+   ],
+   "description": "Write-side API work: create/PATCH/upsert handlers, bulk or batch variants of a single-row action, sync/apply services, error-to-HTTP mapping, and read-after-write paths.",
+   "predicts": {
+    "FS-15": 1,
+    "FS-27": 1,
+    "FS-07": 1,
+    "FS-42": 1
+   }
+  },
+  "tenant-scoped-ids": {
+   "title": "Add an endpoint or route that resolves client-supplied ids (tenant scoping)",
+   "domain": "backend",
+   "keywords": [
+    "tenant",
+    "workspace",
+    "scoping",
+    "for_user",
+    "id",
+    "ids",
+    "nested",
+    "route",
+    "detail",
+    "idor",
+    "project",
+    "lookup",
+    "owner",
+    "linked"
+   ],
+   "description": "Any view, nested sub-route, relation/linking endpoint, move/reparent or list-of-ids write that accepts an id from the client and must resolve it inside the caller's workspace/org/location scope.",
+   "predicts": {
+    "FS-03": 1
+   }
+  },
+  "permissions-auth": {
+   "title": "Change permissions, roles, RBAC codenames or auth / session gating",
+   "domain": "backend",
+   "keywords": [
+    "permission",
+    "rbac",
+    "role",
+    "codename",
+    "auth",
+    "login",
+    "session",
+    "token",
+    "rls",
+    "gate",
+    "access",
+    "admin",
+    "owner",
+    "throttle"
+   ],
+   "description": "Adding or narrowing a permission gate, changing a role's codename set, RLS policies, login/session/token-mint endpoints, permission-gated UI, and the tests that enforce them.",
+   "predicts": {
+    "L-iam-guessed-not-enumerated": 7,
+    "FS-27": 1,
+    "L-unrequested-scope-or-deviation": 1,
+    "FS-18": 1
+   }
+  },
+  "untrusted-input-validation": {
+   "title": "Accept or parse untrusted input (bot / LLM payload, CSV, HTML, client JSON)",
+   "domain": "backend",
+   "keywords": [
+    "validate",
+    "validator",
+    "input",
+    "json",
+    "payload",
+    "csv",
+    "parse",
+    "sanitize",
+    "html",
+    "bot",
+    "untrusted",
+    "bounds",
+    "type",
+    "upload"
+   ],
+   "description": "Serializer validators or parsers that ingest client, bot, CSV, HTML or free-form input: type guards, bounds, max_length, sanitization, date sanity checks.",
+   "predicts": {
+    "FS-99": 6,
+    "FS-26": 2,
+    "FS-36": 1,
+    "FS-21": 3,
+    "FS-51": 1,
+    "FS-42": 1,
+    "FS-07": 2,
+    "FS-23": 1,
+    "FS-27": 1,
+    "L-downstream-patch-instead-of-producer": 1
+   }
+  },
+  "third-party-integration": {
+   "title": "Integrate a third-party API, SDK, webhook or platform",
+   "domain": "backend",
+   "keywords": [
+    "integration",
+    "api",
+    "client",
+    "webhook",
+    "third-party",
+    "mattermost",
+    "sendgrid",
+    "twilio",
+    "provider",
+    "http",
+    "oauth",
+    "external",
+    "sso",
+    "hrms"
+   ],
+   "description": "Building or changing a client for an external system (chat platform, email/SMS provider, payment rail, HR system, AI vendor): pagination, idempotency, None bodies, trigger conditions, per-entity vs bulk calls, revoke flows.",
+   "predicts": {
+    "FS-03": 4,
+    "FS-25": 1,
+    "FS-27": 2,
+    "FS-99": 1,
+    "FS-32": 1,
+    "FS-06": 1,
+    "FS-07": 1,
+    "FS-42": 3,
+    "L-never-executed-before-handoff": 1,
+    "FS-109": 1,
+    "FS-02": 2,
+    "L-capacity-without-platform-math": 2,
+    "FS-31": 1
+   }
+  },
+  "side-effects-async": {
+   "title": "Add a background task, notification, outbox, alert or cache invalidation tied to a write",
+   "domain": "backend",
+   "keywords": [
+    "celery",
+    "task",
+    "notification",
+    "outbox",
+    "queue",
+    "cache",
+    "invalidate",
+    "signal",
+    "email",
+    "alert",
+    "transaction",
+    "atomic",
+    "commit",
+    "webhook"
+   ],
+   "description": "Side effects that must be ordered against a DB commit or delivery outcome: cache deletes, provisioning chains, notification/email sends, outbox dispatch paths, sent-ledgers and alerting.",
+   "predicts": {
+    "FS-31": 1,
+    "FS-07": 2,
+    "FS-25": 3,
+    "L-non-idempotent-retried-step": 1,
+    "FS-40": 1,
+    "FS-11": 1,
+    "FS-27": 1,
+    "FS-15": 1
+   }
+  },
+  "schema-model-change": {
+   "title": "Add or change a model, field, constraint, soft-delete behavior or schema migration",
+   "domain": "backend",
+   "keywords": [
+    "model",
+    "field",
+    "migration",
+    "constraint",
+    "unique",
+    "soft-delete",
+    "nullable",
+    "schema",
+    "index",
+    "cascade",
+    "restore",
+    "default",
+    "column",
+    "tree"
+   ],
+   "description": "Schema-level work: new models or fields, NOT NULL/defaults on a shared DB, uniqueness constraints, soft-delete managers, cascade/restore on self-referential trees.",
+   "predicts": {
+    "L-non-idempotent-retried-step": 1,
+    "L-downstream-patch-instead-of-producer": 1,
+    "FS-15": 1,
+    "FS-21": 1,
+    "FS-27": 2,
+    "FS-23": 2,
+    "L-unrequested-scope-or-deviation": 3,
+    "L-data-shape-assumed-not-read": 4,
+    "FS-44": 3,
+    "L-query-plan-cost-at-scale": 3,
+    "L-copied-sibling-unaudited": 1,
+    "L-runtime-or-dialect-mismatch": 4,
+    "FS-02": 1,
+    "FS-19": 2,
+    "FS-42": 1
+   }
+  },
+  "state-transition-guard": {
+   "title": "Add or change a status transition, workflow state, lock or guard",
+   "domain": "backend",
+   "keywords": [
+    "status",
+    "state",
+    "transition",
+    "workflow",
+    "lock",
+    "guard",
+    "blocked",
+    "enum",
+    "approve",
+    "undo",
+    "retry",
+    "select_for_update",
+    "freeze",
+    "gate"
+   ],
+   "description": "State machines and guards: allowed-transition tables, blocked/paused flags, undo/retry windows, review locks, status-gated actions spanning several enum values, concurrency locks.",
+   "predicts": {
+    "FS-25": 1
+   }
+  },
+  "merge-clone-dedup": {
+   "title": "Write a merge, dedup, clone or copy routine over related records",
+   "domain": "backend",
+   "keywords": [
+    "merge",
+    "dedup",
+    "duplicate",
+    "clone",
+    "copy",
+    "consolidate",
+    "remap",
+    "heal",
+    "group",
+    "key",
+    "normalize",
+    "identity",
+    "survivor",
+    "rename"
+   ],
+   "description": "Routines that combine, duplicate or re-identify records: user/account merges, org clone engines, merge-candidate detection, dedup heuristics, rename/merge sweeps and the FKs they repoint.",
+   "predicts": {
+    "FS-26": 4,
+    "FS-55": 1,
+    "FS-07": 1,
+    "FS-31": 1,
+    "L-query-plan-cost-at-scale": 1,
+    "FS-63": 2,
+    "L-non-idempotent-retried-step": 1,
+    "L-data-shape-assumed-not-read": 2,
+    "FS-42": 1
+   }
+  },
+  "seed-import-backfill": {
+   "title": "Write a seed, import, fixture or backfill script / data migration",
+   "domain": "backend",
+   "keywords": [
+    "seed",
+    "import",
+    "backfill",
+    "migration",
+    "fixture",
+    "demo",
+    "jira",
+    "script",
+    "management",
+    "command",
+    "populate",
+    "data",
+    "sql"
+   ],
+   "description": "Scripts and data migrations that populate or transform rows: seed/demo commands, external-system imports (Jira), backfills, delete-then-recreate migrations, create-or-reuse scripts.",
+   "predicts": {
+    "L-data-shape-assumed-not-read": 8,
+    "FS-55": 1,
+    "L-capacity-without-platform-math": 5,
+    "L-query-plan-cost-at-scale": 7,
+    "FS-03": 1,
+    "FS-02": 3,
+    "L-orchestrator-schedule-semantics": 7,
+    "FS-23": 1,
+    "FS-26": 6,
+    "FS-21": 1,
+    "L-runtime-or-dialect-mismatch": 2,
+    "FS-42": 3,
+    "FS-31": 2,
+    "FS-51": 2,
+    "L-never-executed-before-handoff": 1,
+    "L-unrequested-scope-or-deviation": 2,
+    "FS-06": 3,
+    "FS-15": 5,
+    "L-non-idempotent-retried-step": 1,
+    "FS-27": 1,
+    "L-downstream-patch-instead-of-producer": 1,
+    "FS-40": 1,
+    "FS-14": 1
+   }
+  },
+  "live-data-fix-reconcile": {
+   "title": "Run a data fix, reconcile, rebuild or audit against live prod / staging data",
+   "domain": "backend",
+   "keywords": [
+    "prod",
+    "live",
+    "data",
+    "fix",
+    "cleanup",
+    "delete",
+    "rebuild",
+    "reconcile",
+    "audit",
+    "verify",
+    "balance",
+    "strip",
+    "scan",
+    "command"
+   ],
+   "description": "Operating on real data: one-off cleanup or bulk delete scripts, balance-sheet reconcile and day rebuilds, drift/violation scanners, audit reports over many locations, manage.py against prod.",
+   "predicts": {
+    "L-runtime-or-dialect-mismatch": 12,
+    "FS-26": 3,
+    "L-data-shape-assumed-not-read": 15,
+    "L-unrequested-scope-or-deviation": 5,
+    "FS-42": 5,
+    "FS-51": 1,
+    "FS-27": 1,
+    "L-query-plan-cost-at-scale": 2,
+    "FS-55": 3,
+    "L-derived-metric-wrong-denominator": 1,
+    "FS-29": 1,
+    "FS-63": 1,
+    "FS-11": 1,
+    "FS-36": 1,
+    "FS-06": 1,
+    "FS-99": 1
+   }
+  },
+  "llm-extraction-pipeline": {
+   "title": "Build or run an LLM / OCR document extraction pipeline or agent callback",
+   "domain": "backend",
+   "keywords": [
+    "ocr",
+    "pdf",
+    "invoice",
+    "extraction",
+    "llm",
+    "agent",
+    "pipeline",
+    "rasterize",
+    "barcode",
+    "edi",
+    "callback",
+    "vision",
+    "retry"
+   ],
+   "description": "Agentic document pipelines: rasterizing PDFs, OCR/vision reads, barcode decoding, LLM-authored callback payloads, reconciliation gates before apply, retry/timeout loops.",
+   "predicts": {
+    "FS-06": 1,
+    "FS-21": 4,
+    "L-llm-call-params-unsized": 5,
+    "L-derived-metric-wrong-denominator": 3,
+    "FS-14": 1,
+    "FS-25": 1,
+    "FS-91": 1
+   }
+  },
+  "fe-styling-layout": {
+   "title": "Style or lay out UI: CSS, theming, dark mode, responsive, print, formatting",
+   "domain": "web-frontend",
+   "keywords": [
+    "css",
+    "style",
+    "layout",
+    "theme",
+    "dark",
+    "responsive",
+    "class",
+    "classname",
+    "z-index",
+    "spacing",
+    "print",
+    "redesign",
+    "tokens",
+    "format"
+   ],
+   "description": "Visual work: CSS cascade and shared classes, dark-mode tokens, overlays' stacking, master-detail layouts, hand-rolled CSS geometry, print/PDF layouts, number/date display formatting.",
+   "predicts": {
+    "FS-09": 1
+   }
+  },
+  "full-stack-contract": {
+   "title": "Wire a feature across tiers (FE / API / worker): shared fields, params, enums",
+   "domain": "cross-cutting",
+   "keywords": [
+    "contract",
+    "frontend",
+    "backend",
+    "api",
+    "payload",
+    "field",
+    "param",
+    "enum",
+    "shape",
+    "wire",
+    "serializer",
+    "type",
+    "picker",
+    "markup"
+   ],
+   "description": "Cross-tier work where producer and consumer must agree: payload field names, list filter params, response shapes, duplicated business rules, UI built for backend capability (or vice versa), markup through sanitizers.",
+   "predicts": {
+    "L-unrequested-scope-or-deviation": 1,
+    "FS-15": 3,
+    "L-derived-metric-wrong-denominator": 1,
+    "FS-36": 1,
+    "FS-27": 1,
+    "FS-51": 2,
+    "FS-07": 1,
+    "L-downstream-patch-instead-of-producer": 1,
+    "L-data-shape-assumed-not-read": 1
+   }
+  },
+  "refactor-rename-shared": {
+   "title": "Refactor, rename or bulk-replace a shared symbol, component, type, label or format",
+   "domain": "cross-cutting",
+   "keywords": [
+    "refactor",
+    "rename",
+    "replace",
+    "redesign",
+    "extract",
+    "move",
+    "shared",
+    "component",
+    "symbol",
+    "label",
+    "barrel",
+    "type",
+    "tests"
+   ],
+   "description": "Changes to something many callers depend on: renaming exports, redesigning a shared component's DOM, adding required fields to shared types, copy/format swaps, extracting modules - and the tests/drivers/mocks that assert the old shape.",
+   "predicts": {
+    "FS-11": 1,
+    "L-refactor-drops-behavior": 7,
+    "FS-27": 3,
+    "FS-23": 7,
+    "L-downstream-patch-instead-of-producer": 2,
+    "FS-09": 1,
+    "FS-03": 1,
+    "FS-19": 1
+   }
+  },
+  "write-e2e-spec": {
+   "title": "Write or extend a Playwright e2e spec, driver or proof screenshot",
+   "domain": "cross-cutting",
+   "keywords": [
+    "e2e",
+    "playwright",
+    "spec",
+    "driver",
+    "locator",
+    "testid",
+    "selector",
+    "assertion",
+    "screenshot",
+    "fixture",
+    "browser",
+    "proof",
+    "reproduce"
+   ],
+   "description": "Browser test authoring: locators and testids, driver classes, persistence assertions, stubbed responses and timing, seeded data dependencies, proof screenshots.",
+   "predicts": {
+    "FS-35": 1
+   }
+  },
+  "write-unit-tests": {
+   "title": "Write or change unit / integration tests (pytest, vitest)",
+   "domain": "cross-cutting",
+   "keywords": [
+    "test",
+    "pytest",
+    "vitest",
+    "unit",
+    "fixture",
+    "mock",
+    "assert",
+    "coverage",
+    "tdd",
+    "factory",
+    "monkeypatch",
+    "benchmark",
+    "case"
+   ],
+   "description": "Backend and FE unit/integration tests: fixtures that reach the branch under test, independent expected values, mocks that match the real call, suite isolation, benchmark cases.",
+   "predicts": {
+    "FS-33": 4,
+    "FS-04": 5,
+    "FS-26": 1,
+    "FS-09": 2,
+    "FS-35": 1,
+    "FS-02": 1,
+    "FS-07": 2,
+    "FS-42": 2,
+    "FS-19": 2,
+    "FS-90": 2,
+    "L-data-shape-assumed-not-read": 1,
+    "L-copied-sibling-unaudited": 1,
+    "FS-34": 1,
+    "FS-99": 2
+   }
+  },
+  "run-local-verification": {
+   "title": "Run the app, dev server, tests or e2e stack locally to verify a change",
+   "domain": "cross-cutting",
+   "keywords": [
+    "local",
+    "dev",
+    "server",
+    "verify",
+    "run",
+    "e2e",
+    "stack",
+    "port",
+    "database",
+    "restart",
+    "vite",
+    "daphne",
+    "localhost",
+    "test"
+   ],
+   "description": "Standing up or reusing a local environment for verification: dev servers and autoreload, shared ports/DBs between sessions, health checks, host/IPv6/CORS bindings, test DB lifecycle.",
+   "predicts": {
+    "FS-29": 1,
+    "FS-02": 4,
+    "FS-90": 5,
+    "FS-19": 1,
+    "FS-25": 3
+   }
+  },
+  "triage-failure": {
+   "title": "Debug a failure or triage red tests to a root cause",
+   "domain": "cross-cutting",
+   "keywords": [
+    "debug",
+    "failure",
+    "root",
+    "cause",
+    "triage",
+    "regression",
+    "baseline",
+    "red",
+    "flaky",
+    "reproduce",
+    "bug",
+    "traceback",
+    "investigate"
+   ],
+   "description": "Diagnosing: attributing red tests to the diff vs a pre-existing baseline, confirming root causes with direct evidence, reproducing reported bugs.",
+   "predicts": {
+    "FS-14": 11,
+    "L-runtime-or-dialect-mismatch": 1,
+    "FS-09": 2,
+    "FS-65": 1,
+    "FS-55": 1
+   }
+  },
+  "start-work-branch": {
+   "title": "Start or resume work on a branch or worktree (sync base, check existing work)",
+   "domain": "cross-cutting",
+   "keywords": [
+    "start",
+    "branch",
+    "worktree",
+    "checkout",
+    "rebase",
+    "sync",
+    "base",
+    "staging",
+    "fetch",
+    "resume",
+    "existing",
+    "venv",
+    "install"
+   ],
+   "description": "The opening move of a task: choosing an isolated worktree vs the shared checkout, syncing with the latest base, checking whether the work already exists elsewhere, provisioning deps in a fresh worktree.",
+   "predicts": {
+    "L-git-action-on-unchecked-branch": 11,
+    "FS-30": 5
+   }
+  },
+  "dispatch-parallel-agents": {
+   "title": "Dispatch, monitor or resume parallel agents, subagents or worktrees",
+   "domain": "cross-cutting",
+   "keywords": [
+    "dispatch",
+    "parallel",
+    "agents",
+    "subagent",
+    "worktree",
+    "orchestrate",
+    "background",
+    "resume",
+    "sendmessage",
+    "fleet",
+    "monitor",
+    "concurrent"
+   ],
+   "description": "Orchestration: fanning work out to agents/worktrees, allocating shared ids and files, pinning base SHAs, liveness checks on background agents, resuming vs re-dispatching, cleanup.",
+   "predicts": {
+    "FS-39": 3,
+    "L-unrequested-scope-or-deviation": 1,
+    "L-integration-declared-unavailable": 1,
+    "FS-18": 2
+   }
+  },
+  "commit-push": {
+   "title": "Commit and push changes (hooks, staged files, push automation)",
+   "domain": "cross-cutting",
+   "keywords": [
+    "commit",
+    "push",
+    "hook",
+    "pre-commit",
+    "commit-msg",
+    "stage",
+    "git",
+    "add",
+    "automerge",
+    "branch",
+    "lint",
+    "format",
+    "loc"
+   ],
+   "description": "Getting work into git: pre-commit/commit-msg hooks, repo size and style rules caught at commit, staging only this session's files, pushes that are expected to trigger automerge/CI.",
+   "predicts": {
+    "L-unrequested-scope-or-deviation": 1,
+    "L-git-action-on-unchecked-branch": 2,
+    "FS-62": 1,
+    "FS-90": 11
+   }
+  },
+  "merge-promote-branch": {
+   "title": "Merge, rebase or promote a branch (integration branches, conflicts, PRs)",
+   "domain": "cross-cutting",
+   "keywords": [
+    "merge",
+    "rebase",
+    "promote",
+    "promotion",
+    "pr",
+    "conflict",
+    "staging",
+    "main",
+    "cherry-pick",
+    "revert",
+    "integration",
+    "migration",
+    "backflow"
+   ],
+   "description": "Moving work between branches: merging or rebasing onto a moved base, promotion hops (feature to dev/test/staging/main), migration-graph collisions, phantom conflicts, reverts and cherry-picks on shared branches.",
+   "predicts": {
+    "FS-30": 3,
+    "FS-53": 1
+   }
+  },
+  "deploy-release": {
+   "title": "Deploy or release the web / backend to staging or prod",
+   "domain": "cross-cutting",
+   "keywords": [
+    "deploy",
+    "release",
+    "staging",
+    "prod",
+    "pipeline",
+    "script",
+    "build",
+    "artifact",
+    "rollout",
+    "codedeploy",
+    "workflow",
+    "live",
+    "verify"
+   ],
+   "description": "Running or changing a deploy: deploy scripts and CI deploy workflows, where the build happens, what the pipeline carries, which checkout it deploys from, and checking the environment actually serves the change.",
+   "predicts": {
+    "FS-12": 2,
+    "FS-29": 2,
+    "L-never-executed-before-handoff": 1,
+    "FS-62": 1,
+    "L-orchestrator-schedule-semantics": 1,
+    "L-cloud-resource-config-unvalidated": 1,
+    "FS-14": 1,
+    "FS-65": 1
+   }
+  },
+  "env-server-config": {
+   "title": "Change env vars, settings, secrets or live server / container config",
+   "domain": "cross-cutting",
+   "keywords": [
+    "env",
+    "settings",
+    "secrets",
+    "config",
+    "server",
+    "nginx",
+    "systemd",
+    "postgres",
+    "ssh",
+    "vm",
+    "docker",
+    "container",
+    "host",
+    "credentials"
+   ],
+   "description": "Configuring where code runs: settings that read env/.env files or secret stores, host-dependent URLs and addresses, live service config (Postgres, nginx, systemd), containers/clusters, SSH sessions and cloud CLI credentials on remote boxes.",
+   "predicts": {
+    "FS-27": 4,
+    "L-capacity-without-platform-math": 8,
+    "L-copied-sibling-unaudited": 5,
+    "FS-62": 1,
+    "FS-61": 2,
+    "FS-29": 2,
+    "FS-42": 1,
+    "FS-25": 1,
+    "L-runtime-or-dialect-mismatch": 2,
+    "FS-07": 1,
+    "FS-65": 2,
+    "L-cloud-resource-config-unvalidated": 6,
+    "FS-12": 2,
+    "L-iam-guessed-not-enumerated": 3,
+    "FS-66": 6,
+    "L-never-executed-before-handoff": 1
+   }
+  },
+  "ci-pipeline": {
+   "title": "Change a CI workflow, test gate or build pipeline",
+   "domain": "cross-cutting",
+   "keywords": [
+    "ci",
+    "workflow",
+    "github",
+    "actions",
+    "pipeline",
+    "gate",
+    "build",
+    "shard",
+    "cache",
+    "scan",
+    "tsc",
+    "lint",
+    "junit"
+   ],
+   "description": "CI configuration: what jobs actually run, sharding and result aggregation, pipefail, queued pipelines, schema/cache snapshots, secret scanning, typecheck coverage.",
+   "predicts": {
+    "FS-30": 1,
+    "FS-09": 1,
+    "FS-29": 1,
+    "FS-35": 1
+   }
+  },
+  "shell-scripting": {
+   "title": "Run shell commands or write a shell / CLI script",
+   "domain": "cross-cutting",
+   "keywords": [
+    "shell",
+    "bash",
+    "zsh",
+    "script",
+    "command",
+    "pipe",
+    "pkill",
+    "grep",
+    "find",
+    "cwd",
+    "path",
+    "git",
+    "cli",
+    "exit"
+   ],
+   "description": "Shell mechanics: exit codes through pipes, pkill/pgrep self-matches, cwd and relative paths, quoting and word-splitting, bash versions, inline code in commands, gitignore/pathspec semantics.",
+   "predicts": {
+    "FS-18": 24,
+    "FS-84": 1,
+    "FS-27": 1,
+    "FS-03": 5,
+    "FS-06": 2,
+    "L-never-executed-before-handoff": 1,
+    "L-data-shape-assumed-not-read": 1,
+    "FS-45": 1,
+    "L-runtime-or-dialect-mismatch": 1,
+    "FS-09": 1
+   }
+  },
+  "wrap-up-report": {
+   "title": "Wrap up: report done / pushed / deployed, or write docs and claims",
+   "domain": "cross-cutting",
+   "keywords": [
+    "done",
+    "report",
+    "summary",
+    "verify",
+    "shipped",
+    "deployed",
+    "merged",
+    "claim",
+    "docs",
+    "documentation",
+    "readme",
+    "whitepaper",
+    "follow-up",
+    "evidence"
+   ],
+   "description": "Closing a task and anything that asserts facts: done/deployed reports, TDD evidence, build checks before claiming green, reference docs and commit prose that cite other artifacts, follow-ups for held-back fixes.",
+   "predicts": {
+    "FS-11": 3,
+    "FS-91": 4,
+    "FS-55": 2,
+    "FS-14": 1,
+    "L-data-shape-assumed-not-read": 1
+   }
+  },
+  "plan-scope": {
+   "title": "Plan or scope work from a requirement, mockup or reference UI",
+   "domain": "cross-cutting",
+   "keywords": [
+    "plan",
+    "scope",
+    "requirement",
+    "spec",
+    "ticket",
+    "acceptance",
+    "criteria",
+    "mockup",
+    "design",
+    "parity",
+    "reference",
+    "ambiguous",
+    "clarify"
+   ],
+   "description": "Before building: enumerating the full scope, resolving ambiguous terms or targets by asking, matching a mockup/reference product, modelling unusual personas (review/demo accounts).",
+   "predicts": {
+    "L-unrequested-scope-or-deviation": 15,
+    "FS-27": 5,
+    "FS-11": 2,
+    "FS-36": 2,
+    "FS-30": 1,
+    "FS-63": 1
+   }
+  },
+  "tooling-dependency": {
+   "title": "Add or upgrade a dependency, or change dev tooling, hooks or agent memory",
+   "domain": "cross-cutting",
+   "keywords": [
+    "dependency",
+    "upgrade",
+    "package",
+    "requirements",
+    "npm",
+    "pip",
+    "toolchain",
+    "hook",
+    "tooling",
+    "interpreter",
+    "memory",
+    "install"
+   ],
+   "description": "Toolchain changes: adding/removing packages and transitive deps, major tool bumps, git/agent hooks, interpreter pinning, shared memory/config files, heavy local tooling jobs.",
+   "predicts": {
+    "FS-03": 2,
+    "FS-84": 18,
+    "L-runtime-or-dialect-mismatch": 2,
+    "FS-29": 1,
+    "FS-14": 1,
+    "FS-27": 2,
+    "FS-23": 1,
+    "FS-53": 1,
+    "FS-66": 1,
+    "FS-90": 2
+   }
+  },
+  "concurrent-write-locking": {
+   "title": "Add or change row locking / concurrent write paths (lock order, select_for_update, advisory locks)",
+   "domain": "backend",
+   "keywords": [
+    "lock",
+    "locking",
+    "deadlock",
+    "select_for_update",
+    "concurrent",
+    "race",
+    "advisory",
+    "transaction",
+    "lock order",
+    "atomic",
+    "undo",
+    "retry"
+   ],
+   "description": "Any write path that takes row, parent-row, counter or advisory locks, or that must stay correct under concurrent requests, workers or bot callbacks: adding a lock, reordering locks, or adding a new operation to an entity family that other paths already lock.",
+   "predicts": {
+    "FS-40": 1,
+    "L-capacity-without-platform-math": 1
+   }
+  },
+  "document-parser-import": {
+   "title": "Build or change a document parser / converter / importer (HTML, Word, Markdown, transcript to blocks; re-index or align versions)",
+   "domain": "backend",
+   "keywords": [
+    "parser",
+    "parse",
+    "converter",
+    "import",
+    "upload",
+    "docx",
+    "markdown",
+    "html",
+    "transcript",
+    "heading",
+    "section",
+    "align",
+    "reindex",
+    "document"
+   ],
+   "description": "Turning uploaded or converted documents into structured sections/blocks, re-aligning a new version against an old one, or extracting speakers/labels from text; the work is heuristic and must hold across real documents, not one sample.",
+   "predicts": {
+    "FS-99": 1
+   }
+  }
+ }
+}
