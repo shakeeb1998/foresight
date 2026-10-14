@@ -57,7 +57,7 @@ patterns (most frequent first):
 - [FS-30](../patterns/fs-30.md) Working from a stale base or without checking existing work (37)
 - [FS-39](../patterns/fs-39.md) Parallel agents dispatched onto overlapping files or allocators (36)
 - [FS-36](../patterns/fs-36.md) Ambiguous or constraint-bearing ask resolved without asking (34)
-- [FS-111](../patterns/fs-111.md) Data type, unit, layout or source assumed from a name or sample instead of read from the producer (34)
+- [FS-123](../patterns/fs-123.md) Data type, unit, layout or source assumed from a name or sample instead of read from the producer (34)
 - [FS-31](../patterns/fs-31.md) Cache identity or invalidation misses a dependency (32)
 - [FS-55](../patterns/fs-55.md) Rule keyed on a proxy signal instead of the defining type, status or link (32)
 - [FS-112](../patterns/fs-112.md) Change exceeds or deviates from the explicit ask (31)

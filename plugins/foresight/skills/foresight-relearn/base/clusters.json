@@ -2618,7 +2618,7 @@
    ],
    "portable": true
   },
-  "FS-111": {
+  "FS-123": {
    "name": "Data type, unit, layout or source assumed from a name or sample instead of read from the producer",
    "family": "data-query",
    "moment": "implement",

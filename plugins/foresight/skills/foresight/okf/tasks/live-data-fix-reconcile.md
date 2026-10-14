@@ -14,7 +14,7 @@ in-domain: [backend](../domains/backend.md)
 
 predicts (incidents while doing this task):
 - [FS-50](../patterns/fs-50.md) Live-data fix applied without re-detecting and confirming the exact target rows (16)
-- [FS-111](../patterns/fs-111.md) Data type, unit, layout or source assumed from a name or sample instead of read from the producer (15)
+- [FS-123](../patterns/fs-123.md) Data type, unit, layout or source assumed from a name or sample instead of read from the producer (15)
 - [FS-29](../patterns/fs-29.md) Code assumes the host environment it was written on (13)
 - [FS-14](../patterns/fs-14.md) Failure cause attributed without a controlled comparison (10)
 - [FS-56](../patterns/fs-56.md) Ledger-wide change verified only where it was aimed (9)

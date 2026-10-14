@@ -23,3 +23,4 @@ predicts (incidents while doing this task):
 - [FS-36](../patterns/fs-36.md) Ambiguous or constraint-bearing ask resolved without asking (3)
 - [FS-101](../patterns/fs-101.md) Verification and review gates applied uniformly across a large multi-agent run (3)
 - [FS-11](../patterns/fs-11.md) Enumerable scope silently shrinks between ask and done (2)
+- [FS-111](../patterns/fs-111.md) Branches merged inside a worktree that a running dev stack serves (1)

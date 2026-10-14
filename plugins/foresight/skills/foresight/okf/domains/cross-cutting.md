@@ -59,7 +59,7 @@ patterns (most frequent first):
 - [FS-20](../patterns/fs-20.md) Concurrent sessions share one working tree or branch (36)
 - [FS-39](../patterns/fs-39.md) Parallel agents dispatched onto overlapping files or allocators (36)
 - [FS-36](../patterns/fs-36.md) Ambiguous or constraint-bearing ask resolved without asking (34)
-- [FS-111](../patterns/fs-111.md) Data type, unit, layout or source assumed from a name or sample instead of read from the producer (34)
+- [FS-123](../patterns/fs-123.md) Data type, unit, layout or source assumed from a name or sample instead of read from the producer (34)
 - [FS-31](../patterns/fs-31.md) Cache identity or invalidation misses a dependency (32)
 - [FS-55](../patterns/fs-55.md) Rule keyed on a proxy signal instead of the defining type, status or link (32)
 - [FS-90](../patterns/fs-90.md) Repo tooling bound to one machine's interpreter or to an unprovisioned worktree (32)
@@ -100,3 +100,4 @@ patterns (most frequent first):
 - [FS-96](../patterns/fs-96.md) Extracted document value trusted without a field-format check and an independent control total (2)
 - [FS-104](../patterns/fs-104.md) Smoke or verification write run against a live production target (1)
 - [FS-110](../patterns/fs-110.md) Admission gate decides on a load sample that lags admitted work (1)
+- [FS-111](../patterns/fs-111.md) Branches merged inside a worktree that a running dev stack serves (1)

@@ -22,4 +22,4 @@ predicts (incidents while doing this task):
 - [FS-55](../patterns/fs-55.md) Rule keyed on a proxy signal instead of the defining type, status or link (2)
 - [FS-51](../patterns/fs-51.md) Code handles one of several representations of the same fact (2)
 - [FS-60](../patterns/fs-60.md) Read after write or guard read routed to a lagging replica (2)
-- [FS-111](../patterns/fs-111.md) Data type, unit, layout or source assumed from a name or sample instead of read from the producer (2)
+- [FS-123](../patterns/fs-123.md) Data type, unit, layout or source assumed from a name or sample instead of read from the producer (2)
