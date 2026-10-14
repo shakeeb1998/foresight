@@ -180,7 +180,8 @@
     "an org-wide scan, drift detector or batch loop over prod-scale tables (subprocess per item, __contains on an unindexed column, a full report builder called for one scalar)",
     "a spec states a perf budget or page size while lane gates run on small or freshly bulk-inserted tables, or with a slack multiplier (a perf-slack env variable)",
     "a save path that renumbers ordered rows (bulk_update CASE/WHEN), a heavy column written for every row of a shared save path, or FE code that generates one CSS rule per element on hundreds of nodes",
-    "an integration client that re-fetches misses with no negative cache, or a platform-wide lookup inside a per-workspace path"
+    "an integration client that re-fetches misses with no negative cache, or a platform-wide lookup inside a per-workspace path",
+    "a Spark/SQL transform with repeated actions on uncached lineage, a non-equi or function-over-array join, or a filter on a non-partition column of a large table"
    ],
    "preventive_checks": [
     "Write a query-count test at two sizes (N=1 vs N=10) asserting it stays flat before implementing",
@@ -190,7 +191,8 @@
     "EXPLAIN new filters on large tables, write detectors as one set-based query, and loop batch work inside one warm process",
     "Seed perf fixtures at the spec's size, refresh planner statistics (ANALYZE) after seeding, gate at the page size the endpoint actually serves, no slack multipliers; keep the row mix constant across sizes in flatness checks",
     "Run perf gates from the first perf-sensitive task onward, not in a final lane; cover insert-shaped writes as well as order-preserving ones",
-    "Frontend: toggle a class or data attribute per element instead of generating per-element selectors, and measure style recalc at spec size"
+    "Frontend: toggle a class or data attribute per element instead of generating per-element selectors, and measure style recalc at spec size",
+    "Run EXPLAIN / explain() on the real table and check join strategy, partition pruning and shard fan-out before claiming the job scales"
    ],
    "portable": true,
    "exemplars": []
@@ -282,7 +284,8 @@
     "an xcodebuild/gradle smoke build run without an explicitly named scheme/target and judged by exit code 0",
     "an animation timing value copied from a design board (stagger under ~150ms) reported done without watching it run",
     "specs that call page.screenshot({ path }) with a path inside a tracked QA-docs folder, overwriting tracked files, run by a full or sharded suite",
-    "deciding pass/fail by grepping a test runner's colored output for a summary line ('N failed', 'N passed')"
+    "deciding pass/fail by grepping a test runner's colored output for a summary line ('N failed', 'N passed')",
+    "a new script, command, request builder, write path or Dockerfile handed over after reading-only review"
    ],
    "preventive_checks": [
     "Run the exact project gate (npm run build, scoped pytest for touched apps) as the last step after the final change",
@@ -296,7 +299,8 @@
     "Print and assert the built scheme/target and the expected output artifact, not just the exit code",
     "Watch timed or staggered animations at runtime (screen-record or slow-mo) and map spec values to perceptible motion tokens before calling them done",
     "Write run screenshots to testInfo.outputPath() and copy into the tracked QA-docs folder only in a deliberate proof step; run git status on that folder after every full run",
-    "Strip ANSI escapes first (sed 's/\\x1b\\[[0-9;]*[A-Za-z]//g') or use a machine reporter (JSON/JUnit), then read the list of failed specs, not just the count; treat 'no match' as unknown, not green"
+    "Strip ANSI escapes first (sed 's/\\x1b\\[[0-9;]*[A-Za-z]//g') or use a machine reporter (JSON/JUnit), then read the list of failed specs, not just the count; treat 'no match' as unknown, not green",
+    "Run it once against one real input (or a local build) before handing it over; read-only review is not a green signal"
    ],
    "portable": true,
    "exemplars": []
@@ -818,7 +822,8 @@
     "a stdlib urllib client on a python.org macOS build; writing an absolute machine path into a committed settings file; staging a restore file for a service account under a mode-700 home or tmp dir",
     "a skill or pipeline helper imports an optional module (fitz/PyMuPDF, numpy, pyzbar) or shells out to a renderer chain (pdftoppm, mutool, magick/convert) or a native lib (zbar), and runs in a fresh per-run sandbox or parallel benchmark worktree (recurs: every parallel sandbox rediscovers the same missing module on its first action even though this trigger was listed)",
     "building a redirect Location or absolute URL from the request path/host in an app served behind a reverse proxy with a path prefix",
-    "new syntax or stdlib API (backslashes or reused quotes inside f-string expressions, match, newer typing features) in code that also runs on hosts with an older supported interpreter"
+    "new syntax or stdlib API (backslashes or reused quotes inside f-string expressions, match, newer typing features) in code that also runs on hosts with an older supported interpreter",
+    "code ships to a cluster, engine or managed runtime whose interpreter, SQL dialect or pinned library version differs from the local one"
    ],
    "preventive_checks": [
     "Verify reachability from inside the real runtime (curl from the container or systemd unit), not from your shell",
@@ -833,7 +838,8 @@
     "Probe the sandbox once before the first step that needs it (python -c 'import fitz, numpy'; command -v pdftoppm mutool magick; decode a trivial barcode image to prove the zbar dylib loads), record the working choice, and route every later call to it",
     "Make helpers import optional dependencies inside try/except and fall straight through to the next working renderer or a Pillow/stdlib-only path, and bake native libs (poppler, zbar) into the sandbox image instead of installing them mid-task",
     "Build public URLs from a configured public base URL (or trusted forwarded headers) and curl the public host to assert the Location header before go-live",
-    "Set the linter/compiler target to the minimum supported runtime (ruff target-version, tsconfig target) and compile or run the tests under that floor interpreter in CI"
+    "Set the linter/compiler target to the minimum supported runtime (ruff target-version, tsconfig target) and compile or run the tests under that floor interpreter in CI",
+    "Name the executing runtime, engine and pinned library version before writing code, and run one representative job or query there before handing over"
    ],
    "portable": true,
    "exemplars": []
@@ -1170,7 +1176,9 @@
     "a poll/settle parser or error reader written from a vendor integration guide; a webhook-only payment rail (bank wire, virtual IBAN) handled with the redirect rail's correlation key; synthetic identifiers generated for a provider field",
     "a Play Publisher edits.commit or App Store Connect reviewSubmissions call scripted for the first time, or for an app's first-ever submission",
     "an integration needs two same-vendor credential types (GitHub OAuth App vs GitHub App); pinning an input on a third-party CI action to remove its network call",
-    "a cluster bootstrapped with a placeholder pull secret, followed by an in-cluster build (BuildConfig / oc start-build), dynamic PVC provisioning, or any platform pod restart after a DiskPressure image GC"
+    "a cluster bootstrapped with a placeholder pull secret, followed by an in-cluster build (BuildConfig / oc start-build), dynamic PVC provisioning, or any platform pod restart after a DiskPressure image GC",
+    "first use of an infrastructure-as-code resource type, a region-scoped or global service, or a resource with state-dependent update rules",
+    "changing an LLM call's reasoning effort, model or items per request, or using default sampling for strict JSON extraction"
    ],
    "preventive_checks": [
     "Read the provider docs for pagination, empty bodies, error ids, partial-update endpoints and trigger conditions, and write them down",
@@ -1180,7 +1188,9 @@
     "Hit the live/sandbox endpoint once and assert the real payload shape and error-key casing; write the webhook test from a notification payload that carries no internal payment id; generate synthetic ids to the provider's documented format and test that format",
     "Submit an app's first-ever version through the store console (it names the real blocking field); retry a Play commit once with changesNotSentForReview toggled on the 400 naming it, and log which branch ran",
     "Name each credential type by exact product, settings URL and the capability it serves before asking the user; read the action's action.yml/entrypoint to confirm which code path an input actually skips",
-    "On a placeholder-secret cluster treat every platform feature whose images come from the authenticated registry as untested: check builder/CSI image registries first, plan an external build (podman) and static/hostPath volumes up front, and after any DiskPressure or eviction event confirm CSI, registry and ingress pods are Running before relying on them"
+    "On a placeholder-secret cluster treat every platform feature whose images come from the authenticated registry as untested: check builder/CSI image registries first, plan an external build (podman) and static/hostPath volumes up front, and after any DiskPressure or eviction event confirm CSI, registry and ingress pods are Running before relying on them",
+    "Read the provider schema and the cloud API constraints for every argument, check region availability, and deploy once to a personal stack before merging a first-of-kind resource",
+    "Size max_tokens to reasoning budget plus worst-case output per item times items, check finish_reason on a sample run, and use temperature 0 for extraction"
    ],
    "portable": true,
    "exemplars": []
@@ -2605,6 +2615,229 @@
    "preventive_checks": [
     "Count admitted-but-ramping jobs against the budget (a fixed reservation per admission for its ramp window) instead of trusting the live sample alone",
     "Admit one job at a time with a cooldown about as long as a job's ramp, decide on a sampled window rather than one reading, and keep a hard cap on concurrent heavy jobs"
+   ],
+   "portable": true
+  },
+  "FS-123": {
+   "name": "Data type, unit, layout or source assumed from a name or sample instead of read from the producer",
+   "family": "data-query",
+   "moment": "implement",
+   "mechanism": "Queries, schemas, joins and DQ checks are written from a column's name, a pasted sample, a test fixture, a TS interface or a couple of sampled files: string dates treated as DATE, epoch unit guessed, partition layout asserted, a Glue/Spark schema typed from field names, a similar column taken from the wrong table, uniqueness or absence-as-NULL assumed. Code runs and returns plausible numbers, so the mismatch shows only when a user checks real rows.",
+   "trigger_signals": [
+    "writing SQL/PySpark against a table or column not yet inspected in this session",
+    "a type, unit or format inferred from a field name (user_id, created_at, *_code) or a single pasted value",
+    "hand-writing a Glue/StructType/DDL schema for a vendor payload or from a design doc",
+    "two tables expose a similarly named column, or a dedup is removed because a table is 'already unique'",
+    "a backfill over months of files whose encoding was checked on one or two samples",
+    "claims about what an API returns derived from type definitions or mapper code"
+   ],
+   "preventive_checks": [
+    "Read the producer first: Glue schema (get-table), the writer's partition_keys/MERGE key, or the mapper that emits the field",
+    "Sample real rows (DISTINCT, min/max, typeof, count by format) across the full date range before fixing a type, unit, grain or encoding boundary",
+    "Check join-key uniqueness with GROUP BY key HAVING count(*)>1 before joining or dropping a dedup",
+    "Validate a hand-written schema against one real payload/parquet file per time slice",
+    "State the source table and column for every metric before computing it"
+   ],
+   "portable": true
+  },
+  "FS-112": {
+   "name": "Change exceeds or deviates from the explicit ask",
+   "family": "requirements-scope",
+   "moment": "implement",
+   "mechanism": "The agent adds things nobody asked for (feature flags, bypasses, filters, extra alarms, speculative parsing, one-off abstractions, refactors, version bumps, prod-mutating migrations), substitutes its own design, method or evidence source for the one named, or silently changes a derivation or invariant while doing a narrow edit. Reviewers must then unpick unrelated diff and the requested behavior is subtly different.",
+   "trigger_signals": [
+    "the request is a short imperative (remove X, rename Y, add Z to these N places)",
+    "the user names a target function, method of verification, table set or rule",
+    "copying a sibling pattern that carries a flag, guard or abstraction the ask didn't mention",
+    "the diff is much larger than the ask, or touches a shared helper/lib for a single-service ask",
+    "a delegation prompt paraphrases the user's rules for a subagent"
+   ],
+   "preventive_checks": [
+    "Before finishing, walk every hunk and map it to a sentence in the ask; revert hunks that map to nothing or call them out as questions",
+    "Use the exact function, evidence source and tables the user named; ask before substituting",
+    "Never add exceptions to an access/deny rule, relax an assert into a fallback, or delete a feature to resolve a bug without asking",
+    "Pass the user's requirement verbatim to subagents instead of paraphrasing it",
+    "Keep temporary instrumentation minimal and local; no structural rewrites"
+   ],
+   "portable": true
+  },
+  "FS-113": {
+   "name": "Capacity, concurrency or quota set without the platform's resource math",
+   "family": "deploy-infra",
+   "moment": "implement",
+   "mechanism": "Memory, vCPU, executor counts, thread pools, parallel transfers and task counts are tuned from a hypothesis or copied numbers without checking the platform's fixed limits (EMR Serverless memory/vCPU ratios, Batch CE overhead, account quotas), the host's size, per-host S3 limits, connection-pool sizes or shared quotas like a vendor thread pool. Jobs OOM, get throttled, or exceed a quota that the test account still had room for.",
+   "trigger_signals": [
+    "changing cpu/memory/executor/initialCapacity settings for EMR Serverless, EMR or Batch",
+    "copying parallelism defaults from a bigger machine or a daily job to a backfill",
+    "a thread pool around a boto3 client, or scaling tasks that share a capped external pool",
+    "adding a quota-capped AWS resource (on-demand Kinesis stream, Batch CE) in prod"
+   ],
+   "preventive_checks": [
+    "Read the Pulumi worker size and the service's documented limits before editing Spark conf; fit conf to infra, not infra to guesses",
+    "Compute concurrency x per-unit memory against the instance; leave agent/OS overhead on Batch",
+    "Match boto3 max_pool_connections to thread count; model shared quotas (vendor thread pools) from measured peak, not stated baseline",
+    "Check current account quota usage in prod before adding capped resources",
+    "Size backfill windows from per-run shuffle volume, not calendar units"
+   ],
+   "portable": true
+  },
+  "FS-114": {
+   "name": "Git commit, reset or push run without checking the current branch and PR state",
+   "family": "integration-merge",
+   "moment": "merge",
+   "mechanism": "The agent commits, resets or pushes on whatever is checked out: directly on the base branch, on an unrelated feature branch, on a branch whose PR already squash-merged (recreating it), in a worktree on the wrong branch, or after switching back to base and writing follow-ups there. Partial commits leave imports to uncommitted files, and deleted worktrees keep holding branches.",
+   "trigger_signals": [
+    "about to commit/push via a UI action or a one-line command",
+    "returning to a PR branch after hours or days",
+    "the current branch name doesn't relate to the change, or is the base branch (dev/main)",
+    "creating or removing a worktree; staging only some of the changed files"
+   ],
+   "preventive_checks": [
+    "Run git status -sb and gh pr view --json state,headRefName before every commit/push",
+    "Never commit to the base branch; create a branch with --no-track from origin/<base>",
+    "If the PR is merged, start a new branch from origin/<base>",
+    "Check staged files import nothing unstaged (git stash -k && build) before a partial commit",
+    "Remove worktrees with git worktree remove, then git worktree prune"
+   ],
+   "portable": true
+  },
+  "FS-115": {
+   "name": "Orchestrator schedule, catchup, timeout or trigger semantics changed without re-deriving dependents",
+   "family": "deploy-infra",
+   "moment": "implement",
+   "mechanism": "Airflow DAG cadence, catchup, start_date, execution_timeout, waiter attempts, trigger rules, TaskGroup factories and XCom flows are edited in isolation: lookback and day-of-month logic still assume the old cadence, catchup replays from a stale start_date, timeouts are shorter than the external job and retries start a second writer, fixed task_ids collide in factories, wall-clock values are recomputed across an approval gate, and recovery advice relies on XCom from a hand-marked task.",
+   "trigger_signals": [
+    "changing schedule_interval/cron, catchup or start_date",
+    "adding an EMR/Batch operator or sensor with waiter_max_attempts or execution_timeout",
+    "a fan-in task after .expand(), or a TaskGroup factory called per platform",
+    "tasks that each compute dates from now(), or a recovery plan that marks tasks success"
+   ],
+   "preventive_checks": [
+    "Grep the DAG for every value derived from the schedule (lookback, day-of-month, data_interval) and update them together",
+    "Size timeouts and waiter attempts x delay to the measured p99 job runtime; confirm retries terminate the underlying job",
+    "When enabling catchup, move start_date to the deploy date",
+    "Compute time-derived values once and pass them via XCom/params; ensure downstream tasks tolerate a hand-marked upstream"
+   ],
+   "portable": true
+  },
+  "FS-116": {
+   "name": "IAM policy written from SDK names or memory instead of the client's actual API calls",
+   "family": "tenancy-authz",
+   "moment": "implement",
+   "mechanism": "Policies are drafted from SDK method names, guessed condition attribute names, or 'least privilege' intuition: tools like rsync need list/read on the destination, ListBucket is evaluated on the bucket resource with s3:prefix including parent prefixes, condition keys apply only to some actions, managed services read with their own service agent, new principals need propagation time. A missing grant gets 'fixed' with a wildcard.",
+   "trigger_signals": [
+    "writing a least-privilege policy for a CLI/tool or managed service",
+    "an action name copied from an SDK method (HeadObject, ListObjectsV2)",
+    "a prefix-scoped condition or a CEL/condition key typed from memory",
+    "AccessDenied on one resource in an allow-list policy"
+   ],
+   "preventive_checks": [
+    "Look up each action and condition key in the service authorization reference",
+    "Enumerate the API calls the tool makes (CloudTrail, --debug) and grant exactly those",
+    "Add the missing resource rather than a wildcard; include parent prefixes in s3:prefix conditions",
+    "Grant managed-service agents explicitly and wait for/verify principal propagation"
+   ],
+   "portable": true
+  },
+  "FS-117": {
+   "name": "Refactor or rewrite silently drops behavior the original had",
+   "family": "contract-logic",
+   "moment": "implement",
+   "mechanism": "Extracting into a shared helper, consolidating files, renaming, or rewriting a body by hand rather than moving it loses steps (warm-up, classloader semantics, existence checks, dependency order, fields, docstrings) or smuggles logic changes into a 'mechanical' change. Nothing fails until the dropped behavior is needed.",
+   "trigger_signals": [
+    "extracting working code into a shared library or factory",
+    "merging several files, or a 'rename only' task that also touches bodies",
+    "rewriting a class/function body that has docstrings, guards or ordering"
+   ],
+   "preventive_checks": [
+    "Move code verbatim first, then diff old vs new and account for every removed line",
+    "Keep rename-only commits free of body edits",
+    "Diff task dependency order before and after a TaskGroup/factory extraction",
+    "Run the original call path's tests against the refactored code"
+   ],
+   "portable": true
+  },
+  "FS-118": {
+   "name": "Sibling module copied wholesale without auditing what it carries",
+   "family": "contract-logic",
+   "moment": "implement",
+   "mechanism": "A new lambda, infra file, bucket, DQ suite or table is cloned from a sibling and keeps its baggage: unrenamed identifiers, import-time env reads for unset vars, IAM and env vars the new use never needs, legacy versioning state, deprecated patterns, layer placement and thresholds that fit the sibling only.",
+   "trigger_signals": [
+    "creating a file by copying a sibling module or 'exactly the same' resource",
+    "a sibling resource with historical or legacy config",
+    "per-platform suites or configs generated from one template"
+   ],
+   "preventive_checks": [
+    "After copying, grep for the sibling's name and walk each env var, grant and setting asking whether the new one reads it",
+    "Check provider deprecations before copying a pattern",
+    "Derive thresholds/config per target from its own data, not the sibling's values"
+   ],
+   "portable": true
+  },
+  "FS-119": {
+   "name": "Consumer or edge patched to tolerate bad state instead of fixing the producer",
+   "family": "contract-logic",
+   "moment": "implement",
+   "mechanism": "When one producer emits inconsistent state, the fix lands in a shared consumer (per-table flag in a shared job, override in the optimizer), at the outermost presentation mapper, in the data to satisfy a validator, or as a hardcoded field list. Other consumers still see the bad state and shared code grows special cases.",
+   "trigger_signals": [
+    "a review says a shared job breaks on one new table/producer",
+    "the quickest fix is a flag or field list in shared/downstream code",
+    "a bug visible in one API surface that re-maps an upstream service"
+   ],
+   "preventive_checks": [
+    "Trace the bad value to the mutation that creates it and fix there",
+    "Fix in the shared upstream service that every surface reads, not one edge mapper",
+    "If a check fails on canonical data, fix the check, not the data"
+   ],
+   "portable": true
+  },
+  "FS-120": {
+   "name": "Cost or rate metric computed with the wrong denominator, tier or components",
+   "family": "data-query",
+   "moment": "verify",
+   "mechanism": "Per-unit costs and rates are derived from totals that include unrelated spend (evaluator cost), divided by a proxy count, labelled with a pricing tier the formula doesn't apply, or copy a per-request aggregate onto every exploded row. The number looks reasonable and drives a decision.",
+   "trigger_signals": [
+    "estimating prod cost from a benchmark or bill",
+    "a column name that claims a tier/unit the formula must honor",
+    "exploding a batched response that carries a per-request usage field"
+   ],
+   "preventive_checks": [
+    "Write the formula with numerator and denominator sources named, and recompute from stored inputs",
+    "Exclude benchmark-only components from prod extrapolations",
+    "Divide per-request aggregates across exploded rows or keep them at request grain"
+   ],
+   "portable": true
+  },
+  "FS-121": {
+   "name": "Step run under retries or reruns is not idempotent",
+   "family": "data-query",
+   "moment": "implement",
+   "mechanism": "Airflow retries, SQS redrive and same-day reruns re-execute steps that create DDL, emit terminal-failure events, append without dedup, or overwrite fixed keys from mutated inputs. The second attempt fails or duplicates side effects.",
+   "trigger_signals": [
+    "a task with retries running CREATE/append/notify",
+    "an SQS handler that emits failure events and relies on redrive",
+    "a request to remove a dedup guard from a retried job"
+   ],
+   "preventive_checks": [
+    "Make DDL IF NOT EXISTS / CREATE OR REPLACE and writes MERGE or overwrite-by-partition",
+    "Emit terminal-failure side effects only on the final attempt",
+    "Flag retry semantics before removing an idempotency guard"
+   ],
+   "portable": true
+  },
+  "FS-122": {
+   "name": "Integration or tool declared unavailable without discovering configured tools",
+   "family": "agent-orchestration",
+   "moment": "plan",
+   "mechanism": "Given a Slack/Notion/Linear link or a research task, the agent checks only its static tool list, tries a web fetch or browser automation, or dispatches a subagent type that lacks the needed tools, then stops or degrades instead of discovering the configured MCP namespaces.",
+   "trigger_signals": [
+    "the prompt contains a Slack/Notion/Linear URL or asks to write to one",
+    "dispatching subagents for web research or external lookups"
+   ],
+   "preventive_checks": [
+    "Run the agent's dynamic tool/MCP discovery for the matching namespace before declaring anything unavailable",
+    "Prefer MCP tools over browser automation",
+    "Check the subagent type's tool set before delegating work that needs it"
    ],
    "portable": true
   }

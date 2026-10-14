@@ -3,7 +3,7 @@ type: task
 title: Style or lay out UI: CSS, theming, dark mode, responsive, print, formatting
 tags: [web-frontend, css, style, layout, theme, dark, responsive, class, classname, z-index, spacing]
 resource: fe-styling-layout
-timestamp: 2026-10-12
+timestamp: 2026-10-14
 ---
 
 # Task · Style or lay out UI: CSS, theming, dark mode, responsive, print, formatting

@@ -3,7 +3,7 @@ type: task
 title: Run or supervise a fleet of coding bots in delivery lanes (implement, review, QA) that merge PRs into a shared branch
 tags: [cross-cutting, bots, fleet, overnight, unattended, implementer, parallel, dev, supervise, lanes, wake]
 resource: agent-fleet-lanes
-timestamp: 2026-10-12
+timestamp: 2026-10-14
 ---
 
 # Task · Run or supervise a fleet of coding bots in delivery lanes (implement, review, QA) that merge PRs into a shared branch

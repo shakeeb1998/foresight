@@ -3,7 +3,7 @@ type: task
 title: Build or run an LLM / OCR document extraction pipeline or agent callback
 tags: [backend, ocr, pdf, invoice, extraction, llm, agent, pipeline, rasterize, barcode, edi]
 resource: llm-extraction-pipeline
-timestamp: 2026-10-12
+timestamp: 2026-10-14
 ---
 
 # Task · Build or run an LLM / OCR document extraction pipeline or agent callback
@@ -14,4 +14,7 @@ in-domain: [backend](../domains/backend.md)
 
 predicts (incidents while doing this task):
 - [FS-29](../patterns/fs-29.md) Code assumes the host environment it was written on (8)
-- [FS-21](../patterns/fs-21.md) External or untrusted input accepted without bounds, sanitization or isolation (3)
+- [FS-21](../patterns/fs-21.md) External or untrusted input accepted without bounds, sanitization or isolation (7)
+- [FS-42](../patterns/fs-42.md) Third-party system semantics not honored (5)
+- [FS-120](../patterns/fs-120.md) Cost or rate metric computed with the wrong denominator, tier or components (3)
+- [FS-25](../patterns/fs-25.md) Errors swallowed, conflated or silently defaulted (2)

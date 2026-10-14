@@ -1,5 +1,5 @@
 {
-  "generated": "2026-10-12",
+  "generated": "2026-10-14",
   "patterns": {
     "FS-01": {
       "name": "Async client state read at the wrong moment or outliving its scope",
@@ -65,12 +65,13 @@
         "Launch servers from the worktree cwd and assert `python -c 'import pkg; print(pkg.__file__)'` points into it"
       ],
       "portable": true,
-      "count": 47,
+      "count": 58,
       "domains": {
-        "cross-cutting": 46,
-        "web-frontend": 1
+        "cross-cutting": 52,
+        "web-frontend": 1,
+        "backend": 5
       },
-      "n_projects": 3,
+      "n_projects": 4,
       "related": [
         "FS-08",
         "FS-31",
@@ -109,14 +110,14 @@
         "Treat plan code as a draft: grep each cited hook, type and API in the real codebase, run the RED test first, and apply the repo's size, tenancy and lock-order rules before pasting"
       ],
       "portable": true,
-      "count": 66,
+      "count": 84,
       "domains": {
-        "backend": 29,
-        "cross-cutting": 24,
+        "backend": 41,
+        "cross-cutting": 30,
         "web-frontend": 11,
         "mobile": 2
       },
-      "n_projects": 6,
+      "n_projects": 7,
       "related": [
         "FS-15",
         "FS-59",
@@ -162,13 +163,13 @@
         "Assert every copy of a duplicated rule (or derive one from the other) and mutation-probe by rewording each copy"
       ],
       "portable": true,
-      "count": 68,
+      "count": 73,
       "domains": {
-        "cross-cutting": 41,
-        "backend": 20,
+        "cross-cutting": 42,
+        "backend": 24,
         "web-frontend": 7
       },
-      "n_projects": 7,
+      "n_projects": 8,
       "related": [
         "FS-54",
         "FS-01",
@@ -241,7 +242,8 @@
         "an org-wide scan, drift detector or batch loop over prod-scale tables (subprocess per item, __contains on an unindexed column, a full report builder called for one scalar)",
         "a spec states a perf budget or page size while lane gates run on small or freshly bulk-inserted tables, or with a slack multiplier (a perf-slack env variable)",
         "a save path that renumbers ordered rows (bulk_update CASE/WHEN), a heavy column written for every row of a shared save path, or FE code that generates one CSS rule per element on hundreds of nodes",
-        "an integration client that re-fetches misses with no negative cache, or a platform-wide lookup inside a per-workspace path"
+        "an integration client that re-fetches misses with no negative cache, or a platform-wide lookup inside a per-workspace path",
+        "a Spark/SQL transform with repeated actions on uncached lineage, a non-equi or function-over-array join, or a filter on a non-partition column of a large table"
       ],
       "preventive_checks": [
         "Write a query-count test at two sizes (N=1 vs N=10) asserting it stays flat before implementing",
@@ -251,16 +253,17 @@
         "EXPLAIN new filters on large tables, write detectors as one set-based query, and loop batch work inside one warm process",
         "Seed perf fixtures at the spec's size, refresh planner statistics (ANALYZE) after seeding, gate at the page size the endpoint actually serves, no slack multipliers; keep the row mix constant across sizes in flatness checks",
         "Run perf gates from the first perf-sensitive task onward, not in a final lane; cover insert-shaped writes as well as order-preserving ones",
-        "Frontend: toggle a class or data attribute per element instead of generating per-element selectors, and measure style recalc at spec size"
+        "Frontend: toggle a class or data attribute per element instead of generating per-element selectors, and measure style recalc at spec size",
+        "Run EXPLAIN / explain() on the real table and check join strategy, partition pruning and shard fan-out before claiming the job scales"
       ],
       "portable": true,
-      "count": 52,
+      "count": 82,
       "domains": {
-        "backend": 45,
-        "cross-cutting": 4,
+        "backend": 72,
+        "cross-cutting": 7,
         "web-frontend": 3
       },
-      "n_projects": 2,
+      "n_projects": 3,
       "related": [
         "FS-57",
         "FS-31",
@@ -302,14 +305,14 @@
         "Grep every writer of the artifact and every argv builder, route them through the one function that applies the scrub or profile, and test each launcher's output"
       ],
       "portable": true,
-      "count": 70,
+      "count": 81,
       "domains": {
-        "backend": 54,
+        "backend": 63,
         "web-frontend": 11,
         "mobile": 1,
-        "cross-cutting": 4
+        "cross-cutting": 6
       },
-      "n_projects": 5,
+      "n_projects": 6,
       "related": [
         "FS-40",
         "FS-38",
@@ -381,7 +384,8 @@
         "an animation timing value copied from a design board (stagger under ~150ms) reported done without watching it run",
         "specs that call page.screenshot({ path }) with a path inside a tracked QA-docs folder, overwriting tracked files, run by a full or sharded suite",
         "deciding pass/fail by grepping a test runner's colored output for a summary line ('N failed', 'N passed')",
-        "a requirement or ticket marked green from a scoped test run"
+        "a requirement or ticket marked green from a scoped test run",
+        "a new script, command, request builder, write path or Dockerfile handed over after reading-only review"
       ],
       "preventive_checks": [
         "Run the exact project gate (npm run build, scoped pytest for touched apps) as the last step after the final change",
@@ -395,17 +399,18 @@
         "Print and assert the built scheme/target and the expected output artifact, not just the exit code",
         "Watch timed or staggered animations at runtime (screen-record or slow-mo) and map spec values to perceptible motion tokens before calling them done",
         "Write run screenshots to testInfo.outputPath() and copy into the tracked QA-docs folder only in a deliberate proof step; run git status on that folder after every full run",
-        "Strip ANSI escapes first (sed 's/\\x1b\\[[0-9;]*[A-Za-z]//g') or use a machine reporter (JSON/JUnit), then read the list of failed specs, not just the count; treat 'no match' as unknown, not green"
+        "Strip ANSI escapes first (sed 's/\\x1b\\[[0-9;]*[A-Za-z]//g') or use a machine reporter (JSON/JUnit), then read the list of failed specs, not just the count; treat 'no match' as unknown, not green",
+        "Run it once against one real input (or a local build) before handing it over; read-only review is not a green signal"
       ],
       "portable": true,
-      "count": 59,
+      "count": 73,
       "domains": {
-        "cross-cutting": 47,
-        "backend": 8,
-        "web-frontend": 2,
+        "cross-cutting": 52,
+        "backend": 16,
+        "web-frontend": 3,
         "mobile": 2
       },
-      "n_projects": 5,
+      "n_projects": 6,
       "related": [
         "FS-34",
         "FS-40",
@@ -481,14 +486,14 @@
         "Enumerate every asset slot the store console exposes and every static image a template references, check each against the new brand, and bump cache-busters on swapped assets"
       ],
       "portable": true,
-      "count": 44,
+      "count": 52,
       "domains": {
-        "cross-cutting": 22,
+        "cross-cutting": 25,
         "web-frontend": 16,
-        "backend": 4,
+        "backend": 9,
         "mobile": 2
       },
-      "n_projects": 3,
+      "n_projects": 4,
       "related": [
         "FS-01",
         "FS-13",
@@ -532,12 +537,12 @@
         "Before wiring periodic work, read which scheduler the target hosts actually run (systemctl list-timers, the deploy's unit files) and register the job there; a test or deploy check asserts that scheduler invokes the entrypoint"
       ],
       "portable": true,
-      "count": 49,
+      "count": 53,
       "domains": {
-        "cross-cutting": 38,
-        "backend": 11
+        "cross-cutting": 41,
+        "backend": 12
       },
-      "n_projects": 7,
+      "n_projects": 8,
       "related": [
         "FS-18",
         "FS-66",
@@ -621,14 +626,14 @@
         "Measure the user-visible unit (distinct post/message ids, not rows that include edits) and check the source/design string plus scrollWidth > clientWidth before calling a label truncated"
       ],
       "portable": true,
-      "count": 62,
+      "count": 78,
       "domains": {
-        "cross-cutting": 43,
-        "backend": 14,
+        "cross-cutting": 52,
+        "backend": 21,
         "mobile": 1,
         "web-frontend": 4
       },
-      "n_projects": 5,
+      "n_projects": 6,
       "related": [
         "FS-56",
         "FS-35",
@@ -667,14 +672,14 @@
         "Compute shared figures once on the server and send them; never re-derive with a different rounding rule"
       ],
       "portable": true,
-      "count": 49,
+      "count": 62,
       "domains": {
-        "backend": 28,
+        "backend": 41,
         "cross-cutting": 9,
         "web-frontend": 11,
         "mobile": 1
       },
-      "n_projects": 5,
+      "n_projects": 6,
       "related": [
         "FS-37",
         "FS-33",
@@ -761,13 +766,13 @@
         "Record the stop reason before signalling a child process and classify the outcome from that record; test children that exit 0 and non-zero after SIGINT"
       ],
       "portable": true,
-      "count": 88,
+      "count": 115,
       "domains": {
-        "cross-cutting": 79,
+        "cross-cutting": 106,
         "backend": 6,
         "mobile": 3
       },
-      "n_projects": 9,
+      "n_projects": 10,
       "related": [
         "FS-71",
         "FS-92",
@@ -799,13 +804,13 @@
         "Grep generated agent system prompts, persona files and run wrappers for the old workflow wording and update them in the same change"
       ],
       "portable": true,
-      "count": 47,
+      "count": 53,
       "domains": {
-        "cross-cutting": 30,
+        "cross-cutting": 32,
         "web-frontend": 12,
-        "backend": 5
+        "backend": 9
       },
-      "n_projects": 4,
+      "n_projects": 5,
       "related": [
         "FS-23",
         "FS-08",
@@ -882,14 +887,14 @@
         "Cap the body size per endpoint before taking any lock, decode bytes strictly, and validate before the first side effect"
       ],
       "portable": true,
-      "count": 53,
+      "count": 62,
       "domains": {
-        "backend": 49,
+        "backend": 58,
         "cross-cutting": 1,
         "web-frontend": 2,
         "mobile": 1
       },
-      "n_projects": 5,
+      "n_projects": 6,
       "related": [
         "FS-58",
         "FS-40",
@@ -916,14 +921,14 @@
         "Add a render test asserting that the formatted value of every new sort/business field appears on the card"
       ],
       "portable": true,
-      "count": 27,
+      "count": 30,
       "domains": {
         "web-frontend": 15,
-        "backend": 6,
+        "backend": 9,
         "cross-cutting": 5,
         "mobile": 1
       },
-      "n_projects": 4,
+      "n_projects": 5,
       "related": [
         "FS-31",
         "FS-10",
@@ -955,13 +960,13 @@
         "Before merging a helper contract change, grep every call site across open branches and add a characterization test per consumer"
       ],
       "portable": true,
-      "count": 37,
+      "count": 49,
       "domains": {
         "web-frontend": 18,
         "cross-cutting": 9,
-        "backend": 10
+        "backend": 22
       },
-      "n_projects": 5,
+      "n_projects": 6,
       "related": [
         "FS-40",
         "FS-19",
@@ -1027,14 +1032,14 @@
         "Read and assert every API write response (id, status, changed field) and print it; a write whose response was not read did not happen"
       ],
       "portable": true,
-      "count": 34,
+      "count": 46,
       "domains": {
-        "backend": 18,
-        "cross-cutting": 5,
+        "backend": 27,
+        "cross-cutting": 8,
         "web-frontend": 9,
         "mobile": 2
       },
-      "n_projects": 5,
+      "n_projects": 6,
       "related": [
         "FS-32",
         "FS-44",
@@ -1070,14 +1075,14 @@
         "Redact by secret-marked key with a minimum value length, and test with a 1-character value"
       ],
       "portable": true,
-      "count": 60,
+      "count": 80,
       "domains": {
         "web-frontend": 16,
-        "backend": 38,
-        "cross-cutting": 4,
+        "backend": 57,
+        "cross-cutting": 5,
         "mobile": 2
       },
-      "n_projects": 5,
+      "n_projects": 6,
       "related": [
         "FS-58",
         "FS-61",
@@ -1108,14 +1113,14 @@
         "Copy the permissions: block and PR-creation action from sibling workflows; match the non-obvious fields of sibling fixtures, not only the literal expected value"
       ],
       "portable": true,
-      "count": 29,
+      "count": 57,
       "domains": {
-        "backend": 7,
+        "backend": 31,
         "web-frontend": 13,
-        "cross-cutting": 8,
+        "cross-cutting": 12,
         "mobile": 1
       },
-      "n_projects": 6,
+      "n_projects": 7,
       "related": [
         "FS-32",
         "FS-40",
@@ -1140,7 +1145,8 @@
         "a stdlib urllib client on a python.org macOS build; writing an absolute machine path into a committed settings file; staging a restore file for a service account under a mode-700 home or tmp dir",
         "a skill or pipeline helper imports an optional module (fitz/PyMuPDF, numpy, pyzbar) or shells out to a renderer chain (pdftoppm, mutool, magick/convert) or a native lib (zbar), and runs in a fresh per-run sandbox or parallel benchmark worktree (recurs: every parallel sandbox rediscovers the same missing module on its first action even though this trigger was listed)",
         "building a redirect Location or absolute URL from the request path/host in an app served behind a reverse proxy with a path prefix",
-        "new syntax or stdlib API (backslashes or reused quotes inside f-string expressions, match, newer typing features) in code that also runs on hosts with an older supported interpreter"
+        "new syntax or stdlib API (backslashes or reused quotes inside f-string expressions, match, newer typing features) in code that also runs on hosts with an older supported interpreter",
+        "code ships to a cluster, engine or managed runtime whose interpreter, SQL dialect or pinned library version differs from the local one"
       ],
       "preventive_checks": [
         "Verify reachability from inside the real runtime (curl from the container or systemd unit), not from your shell",
@@ -1155,17 +1161,18 @@
         "Probe the sandbox once before the first step that needs it (python -c 'import fitz, numpy'; command -v pdftoppm mutool magick; decode a trivial barcode image to prove the zbar dylib loads), record the working choice, and route every later call to it",
         "Make helpers import optional dependencies inside try/except and fall straight through to the next working renderer or a Pillow/stdlib-only path, and bake native libs (poppler, zbar) into the sandbox image instead of installing them mid-task",
         "Build public URLs from a configured public base URL (or trusted forwarded headers) and curl the public host to assert the Location header before go-live",
-        "Set the linter/compiler target to the minimum supported runtime (ruff target-version, tsconfig target) and compile or run the tests under that floor interpreter in CI"
+        "Set the linter/compiler target to the minimum supported runtime (ruff target-version, tsconfig target) and compile or run the tests under that floor interpreter in CI",
+        "Name the executing runtime, engine and pinned library version before writing code, and run one representative job or query there before handing over"
       ],
       "portable": true,
-      "count": 48,
+      "count": 85,
       "domains": {
-        "cross-cutting": 40,
-        "backend": 5,
+        "cross-cutting": 51,
+        "backend": 31,
         "web-frontend": 2,
         "mobile": 1
       },
-      "n_projects": 8,
+      "n_projects": 9,
       "related": [
         "FS-18",
         "FS-21",
@@ -1196,13 +1203,13 @@
         "After any scripted per-hunk ours/theirs resolution run eslint and tsc on every resolved file; prefer whole-file theirs for rewritten specs"
       ],
       "portable": true,
-      "count": 27,
+      "count": 37,
       "domains": {
-        "cross-cutting": 24,
-        "backend": 2,
+        "cross-cutting": 33,
+        "backend": 3,
         "web-frontend": 1
       },
-      "n_projects": 5,
+      "n_projects": 6,
       "related": [
         "FS-05",
         "FS-14",
@@ -1234,13 +1241,13 @@
         "For lists written by other actors, refetch on mount/focus or push invalidation; test by creating a row out-of-band and reopening the page"
       ],
       "portable": true,
-      "count": 27,
+      "count": 32,
       "domains": {
         "web-frontend": 13,
-        "backend": 9,
+        "backend": 14,
         "cross-cutting": 5
       },
-      "n_projects": 3,
+      "n_projects": 4,
       "related": [
         "FS-01",
         "FS-22",
@@ -1266,12 +1273,12 @@
         "Test the failure path: counters persist across a raised exception and nothing is notified when validation fails"
       ],
       "portable": true,
-      "count": 23,
+      "count": 24,
       "domains": {
-        "backend": 20,
+        "backend": 21,
         "web-frontend": 3
       },
-      "n_projects": 1,
+      "n_projects": 2,
       "related": [
         "FS-37",
         "FS-44",
@@ -1300,13 +1307,13 @@
         "Make fakes reproduce the real input-dependent behavior; grep the suite for reliance on excluded dirs (git rev-parse) and compare harness pass counts with a full checkout"
       ],
       "portable": true,
-      "count": 22,
+      "count": 26,
       "domains": {
-        "backend": 3,
-        "cross-cutting": 16,
+        "backend": 6,
+        "cross-cutting": 17,
         "web-frontend": 3
       },
-      "n_projects": 3,
+      "n_projects": 4,
       "related": [
         "FS-15",
         "FS-38",
@@ -1343,13 +1350,13 @@
         "Make one untimed warm-up request with the same URL shape on the same data before counting, and run every new test alone in a fresh process as well as in the parallel full run"
       ],
       "portable": true,
-      "count": 49,
+      "count": 50,
       "domains": {
-        "cross-cutting": 28,
+        "cross-cutting": 29,
         "web-frontend": 14,
         "backend": 7
       },
-      "n_projects": 4,
+      "n_projects": 5,
       "related": [
         "FS-09",
         "FS-08",
@@ -1387,13 +1394,13 @@
         "Create a fresh project per run, or assert the target is empty before starting, and compare the result against the run's own inputs"
       ],
       "portable": true,
-      "count": 35,
+      "count": 38,
       "domains": {
-        "cross-cutting": 25,
-        "backend": 5,
+        "cross-cutting": 27,
+        "backend": 6,
         "web-frontend": 5
       },
-      "n_projects": 4,
+      "n_projects": 5,
       "related": [
         "FS-01",
         "FS-10",
@@ -1425,14 +1432,14 @@
         "Lock design and auth decisions with the user before fanning out lanes; superseded lanes are the cost of skipping this"
       ],
       "portable": true,
-      "count": 28,
+      "count": 34,
       "domains": {
-        "cross-cutting": 19,
+        "cross-cutting": 20,
         "web-frontend": 6,
-        "backend": 1,
+        "backend": 6,
         "mobile": 2
       },
-      "n_projects": 5,
+      "n_projects": 6,
       "related": [
         "FS-20",
         "FS-44",
@@ -1548,14 +1555,14 @@
         "Merge the base branch into the integration branch every wave and re-run every lane's scoped tests on the merged tree; record spec deviations in the spec as they happen"
       ],
       "portable": true,
-      "count": 33,
+      "count": 36,
       "domains": {
-        "cross-cutting": 15,
+        "cross-cutting": 18,
         "backend": 15,
         "web-frontend": 2,
         "mobile": 1
       },
-      "n_projects": 5,
+      "n_projects": 6,
       "related": [
         "FS-07",
         "FS-32",
@@ -1590,12 +1597,12 @@
         "Read the rows you will write only after the lock is held; allocate per-parent sequences under a locked counter row or retry on IntegrityError"
       ],
       "portable": true,
-      "count": 41,
+      "count": 44,
       "domains": {
-        "backend": 40,
+        "backend": 43,
         "cross-cutting": 1
       },
-      "n_projects": 3,
+      "n_projects": 4,
       "related": [
         "FS-38",
         "FS-16",
@@ -1651,7 +1658,9 @@
         "a poll/settle parser or error reader written from a vendor integration guide; a webhook-only payment rail (bank wire, virtual IBAN) handled with the redirect rail's correlation key; synthetic identifiers generated for a provider field",
         "a Play Publisher edits.commit or App Store Connect reviewSubmissions call scripted for the first time, or for an app's first-ever submission",
         "an integration needs two same-vendor credential types (GitHub OAuth App vs GitHub App); pinning an input on a third-party CI action to remove its network call",
-        "a cluster bootstrapped with a placeholder pull secret, followed by an in-cluster build (BuildConfig / oc start-build), dynamic PVC provisioning, or any platform pod restart after a DiskPressure image GC"
+        "a cluster bootstrapped with a placeholder pull secret, followed by an in-cluster build (BuildConfig / oc start-build), dynamic PVC provisioning, or any platform pod restart after a DiskPressure image GC",
+        "first use of an infrastructure-as-code resource type, a region-scoped or global service, or a resource with state-dependent update rules",
+        "changing an LLM call's reasoning effort, model or items per request, or using default sampling for strict JSON extraction"
       ],
       "preventive_checks": [
         "Read the provider docs for pagination, empty bodies, error ids, partial-update endpoints and trigger conditions, and write them down",
@@ -1661,19 +1670,21 @@
         "Hit the live/sandbox endpoint once and assert the real payload shape and error-key casing; write the webhook test from a notification payload that carries no internal payment id; generate synthetic ids to the provider's documented format and test that format",
         "Submit an app's first-ever version through the store console (it names the real blocking field); retry a Play commit once with changesNotSentForReview toggled on the 400 naming it, and log which branch ran",
         "Name each credential type by exact product, settings URL and the capability it serves before asking the user; read the action's action.yml/entrypoint to confirm which code path an input actually skips",
-        "On a placeholder-secret cluster treat every platform feature whose images come from the authenticated registry as untested: check builder/CSI image registries first, plan an external build (podman) and static/hostPath volumes up front, and after any DiskPressure or eviction event confirm CSI, registry and ingress pods are Running before relying on them"
+        "On a placeholder-secret cluster treat every platform feature whose images come from the authenticated registry as untested: check builder/CSI image registries first, plan an external build (podman) and static/hostPath volumes up front, and after any DiskPressure or eviction event confirm CSI, registry and ingress pods are Running before relying on them",
+        "Read the provider schema and the cloud API constraints for every argument, check region availability, and deploy once to a personal stack before merging a first-of-kind resource",
+        "Size max_tokens to reasoning budget plus worst-case output per item times items, check finish_reason on a sample run, and use temperature 0 for extraction"
       ],
       "portable": true,
-      "count": 25,
+      "count": 62,
       "domains": {
-        "backend": 11,
-        "cross-cutting": 10,
+        "backend": 36,
+        "cross-cutting": 22,
         "mobile": 4
       },
-      "n_projects": 8,
+      "n_projects": 9,
       "related": [
-        "FS-71",
         "FS-18",
+        "FS-71",
         "FS-27",
         "FS-25"
       ]
@@ -1697,11 +1708,11 @@
         "Make the deployed code tolerate the new row shape first, or schedule the prod deploy right after staging; test the old code path against new-shape rows"
       ],
       "portable": true,
-      "count": 13,
+      "count": 16,
       "domains": {
-        "backend": 13
+        "backend": 16
       },
-      "n_projects": 2,
+      "n_projects": 3,
       "related": [
         "FS-32",
         "FS-06",
@@ -1747,12 +1758,12 @@
         "Run long-lived services under launchd/systemd or in the user's terminal; harness background shells die at the harness time limit"
       ],
       "portable": true,
-      "count": 42,
+      "count": 43,
       "domains": {
-        "cross-cutting": 40,
+        "cross-cutting": 41,
         "mobile": 2
       },
-      "n_projects": 7,
+      "n_projects": 8,
       "related": [
         "FS-73",
         "FS-64",
@@ -1947,13 +1958,13 @@
         "Normalize both sides to resolved repo-relative paths before comparing, and test absolute, ./-prefixed and relative inputs"
       ],
       "portable": true,
-      "count": 15,
+      "count": 21,
       "domains": {
-        "backend": 11,
+        "backend": 17,
         "web-frontend": 3,
         "cross-cutting": 1
       },
-      "n_projects": 4,
+      "n_projects": 5,
       "related": []
     },
     "FS-52": {
@@ -2008,14 +2019,14 @@
         "Add the learned step to every remaining brief and reviewer checklist in the batch immediately"
       ],
       "portable": true,
-      "count": 20,
+      "count": 22,
       "domains": {
         "backend": 4,
-        "cross-cutting": 12,
+        "cross-cutting": 14,
         "mobile": 2,
         "web-frontend": 2
       },
-      "n_projects": 5,
+      "n_projects": 6,
       "related": [
         "FS-50",
         "FS-49",
@@ -2078,13 +2089,13 @@
         "Key self-trigger suppression on the actor of the triggering event, not the record's author; test a bot-filed item woken by a human"
       ],
       "portable": true,
-      "count": 24,
+      "count": 32,
       "domains": {
-        "backend": 20,
+        "backend": 25,
         "mobile": 1,
-        "cross-cutting": 3
+        "cross-cutting": 6
       },
-      "n_projects": 6,
+      "n_projects": 7,
       "related": [
         "FS-45",
         "FS-63",
@@ -2253,12 +2264,12 @@
         "Track the leak as a blocking ops item, not a memory note, and scrub secret-shaped strings from output before surfacing it"
       ],
       "portable": true,
-      "count": 8,
+      "count": 10,
       "domains": {
-        "backend": 3,
+        "backend": 5,
         "cross-cutting": 5
       },
-      "n_projects": 1,
+      "n_projects": 2,
       "related": [
         "FS-26",
         "FS-12",
@@ -2281,12 +2292,13 @@
         "Add one regression test per sibling or subtype, and extract the shared piece into a helper"
       ],
       "portable": true,
-      "count": 8,
+      "count": 12,
       "domains": {
-        "backend": 7,
-        "web-frontend": 1
+        "backend": 8,
+        "web-frontend": 1,
+        "cross-cutting": 3
       },
-      "n_projects": 2,
+      "n_projects": 3,
       "related": [
         "FS-07",
         "FS-04",
@@ -2317,13 +2329,13 @@
         "Persist ids once into the source records and key outputs on (source, id)"
       ],
       "portable": true,
-      "count": 21,
+      "count": 25,
       "domains": {
-        "backend": 16,
+        "backend": 19,
         "web-frontend": 2,
-        "cross-cutting": 3
+        "cross-cutting": 4
       },
-      "n_projects": 4,
+      "n_projects": 5,
       "related": [
         "FS-53",
         "FS-55",
@@ -2382,12 +2394,12 @@
         "Pass --settings explicitly and print the resolved settings module and DB host as the first output line of any prod ops command"
       ],
       "portable": true,
-      "count": 7,
+      "count": 11,
       "domains": {
-        "cross-cutting": 5,
+        "cross-cutting": 9,
         "backend": 2
       },
-      "n_projects": 2,
+      "n_projects": 3,
       "related": []
     },
     "FS-66": {
@@ -2412,14 +2424,16 @@
         "Run gcloud auth print-access-token right before any queued deploy step and use a deploy-scoped service account instead of a personal OAuth session for automated deploys"
       ],
       "portable": true,
-      "count": 9,
+      "count": 16,
       "domains": {
-        "cross-cutting": 6,
+        "cross-cutting": 13,
         "backend": 3
       },
-      "n_projects": 4,
+      "n_projects": 5,
       "related": [
-        "FS-12"
+        "FS-12",
+        "FS-18",
+        "FS-123"
       ]
     },
     "FS-67": {
@@ -2921,13 +2935,15 @@
         "After removing a dependency, pip show / pip list inside the built image to confirm it is gone and run a bare import smoke test in a throwaway container on the target arch"
       ],
       "portable": true,
-      "count": 9,
+      "count": 28,
       "domains": {
-        "cross-cutting": 7,
-        "backend": 2
+        "cross-cutting": 21,
+        "backend": 7
       },
-      "n_projects": 4,
-      "related": []
+      "n_projects": 5,
+      "related": [
+        "FS-29"
+      ]
     },
     "FS-85": {
       "name": "Status-gated behavior written for the states in view, not every value of the enum",
@@ -3089,12 +3105,17 @@
         "Pin the runtime per repo (.nvmrc, .python-version) in every lane env and hook, and make the lane test command provision its DB (migrate deploy) first"
       ],
       "portable": true,
-      "count": 12,
+      "count": 32,
       "domains": {
-        "cross-cutting": 12
+        "cross-cutting": 32
       },
-      "n_projects": 4,
-      "related": []
+      "n_projects": 5,
+      "related": [
+        "FS-18",
+        "FS-115",
+        "FS-15",
+        "FS-42"
+      ]
     },
     "FS-91": {
       "name": "Written claim in docs, comments or commit prose not re-derived from what it cites",
@@ -3116,12 +3137,12 @@
         "Produce patch notes with git diff from a scratch branch and run git apply --check on a clean checkout before committing"
       ],
       "portable": true,
-      "count": 6,
+      "count": 11,
       "domains": {
-        "backend": 3,
-        "cross-cutting": 3
+        "backend": 5,
+        "cross-cutting": 6
       },
-      "n_projects": 2,
+      "n_projects": 3,
       "related": []
     },
     "FS-92": {
@@ -3327,12 +3348,14 @@
         "Give every removal or skip heuristic a negative example, confirm matches against structure (TOC entries map to real headings) before deleting content, and guard a generalized fix with the condition of the sample it came from"
       ],
       "portable": true,
-      "count": 6,
+      "count": 17,
       "domains": {
-        "backend": 6
+        "backend": 17
       },
-      "n_projects": 1,
-      "related": []
+      "n_projects": 2,
+      "related": [
+        "FS-29"
+      ]
     },
     "FS-100": {
       "name": "Async job result or system write applied without a current-state or supersession check",
@@ -3579,11 +3602,11 @@
         "Test the resolver never arriving: kill the watcher or drop the callback, advance the clock past the deadline, and assert the state ends and liveness resumes"
       ],
       "portable": true,
-      "count": 1,
+      "count": 2,
       "domains": {
-        "backend": 1
+        "backend": 2
       },
-      "n_projects": 1,
+      "n_projects": 2,
       "related": []
     },
     "FS-110": {
@@ -3604,6 +3627,324 @@
       "count": 1,
       "domains": {
         "cross-cutting": 1
+      },
+      "n_projects": 1,
+      "related": []
+    },
+    "FS-123": {
+      "name": "Data type, unit, layout or source assumed from a name or sample instead of read from the producer",
+      "family": "data-query",
+      "moment": "implement",
+      "mechanism": "Queries, schemas, joins and DQ checks are written from a column's name, a pasted sample, a test fixture, a TS interface or a couple of sampled files: string dates treated as DATE, epoch unit guessed, partition layout asserted, a Glue/Spark schema typed from field names, a similar column taken from the wrong table, uniqueness or absence-as-NULL assumed. Code runs and returns plausible numbers, so the mismatch shows only when a user checks real rows.",
+      "trigger_signals": [
+        "writing SQL/PySpark against a table or column not yet inspected in this session",
+        "a type, unit or format inferred from a field name (user_id, created_at, *_code) or a single pasted value",
+        "hand-writing a Glue/StructType/DDL schema for a vendor payload or from a design doc",
+        "two tables expose a similarly named column, or a dedup is removed because a table is 'already unique'",
+        "a backfill over months of files whose encoding was checked on one or two samples",
+        "claims about what an API returns derived from type definitions or mapper code"
+      ],
+      "preventive_checks": [
+        "Read the producer first: Glue schema (get-table), the writer's partition_keys/MERGE key, or the mapper that emits the field",
+        "Sample real rows (DISTINCT, min/max, typeof, count by format) across the full date range before fixing a type, unit, grain or encoding boundary",
+        "Check join-key uniqueness with GROUP BY key HAVING count(*)>1 before joining or dropping a dedup",
+        "Validate a hand-written schema against one real payload/parquet file per time slice",
+        "State the source table and column for every metric before computing it"
+      ],
+      "portable": true,
+      "count": 34,
+      "domains": {
+        "backend": 30,
+        "cross-cutting": 4
+      },
+      "n_projects": 1,
+      "related": [
+        "FS-09",
+        "FS-66",
+        "FS-42",
+        "FS-26"
+      ]
+    },
+    "FS-112": {
+      "name": "Change exceeds or deviates from the explicit ask",
+      "family": "requirements-scope",
+      "moment": "implement",
+      "mechanism": "The agent adds things nobody asked for (feature flags, bypasses, filters, extra alarms, speculative parsing, one-off abstractions, refactors, version bumps, prod-mutating migrations), substitutes its own design, method or evidence source for the one named, or silently changes a derivation or invariant while doing a narrow edit. Reviewers must then unpick unrelated diff and the requested behavior is subtly different.",
+      "trigger_signals": [
+        "the request is a short imperative (remove X, rename Y, add Z to these N places)",
+        "the user names a target function, method of verification, table set or rule",
+        "copying a sibling pattern that carries a flag, guard or abstraction the ask didn't mention",
+        "the diff is much larger than the ask, or touches a shared helper/lib for a single-service ask",
+        "a delegation prompt paraphrases the user's rules for a subagent"
+      ],
+      "preventive_checks": [
+        "Before finishing, walk every hunk and map it to a sentence in the ask; revert hunks that map to nothing or call them out as questions",
+        "Use the exact function, evidence source and tables the user named; ask before substituting",
+        "Never add exceptions to an access/deny rule, relax an assert into a fallback, or delete a feature to resolve a bug without asking",
+        "Pass the user's requirement verbatim to subagents instead of paraphrasing it",
+        "Keep temporary instrumentation minimal and local; no structural rewrites"
+      ],
+      "portable": true,
+      "count": 31,
+      "domains": {
+        "backend": 22,
+        "cross-cutting": 9
+      },
+      "n_projects": 1,
+      "related": [
+        "FS-115",
+        "FS-29"
+      ]
+    },
+    "FS-113": {
+      "name": "Capacity, concurrency or quota set without the platform's resource math",
+      "family": "deploy-infra",
+      "moment": "implement",
+      "mechanism": "Memory, vCPU, executor counts, thread pools, parallel transfers and task counts are tuned from a hypothesis or copied numbers without checking the platform's fixed limits (EMR Serverless memory/vCPU ratios, Batch CE overhead, account quotas), the host's size, per-host S3 limits, connection-pool sizes or shared quotas like a vendor thread pool. Jobs OOM, get throttled, or exceed a quota that the test account still had room for.",
+      "trigger_signals": [
+        "changing cpu/memory/executor/initialCapacity settings for EMR Serverless, EMR or Batch",
+        "copying parallelism defaults from a bigger machine or a daily job to a backfill",
+        "a thread pool around a boto3 client, or scaling tasks that share a capped external pool",
+        "adding a quota-capped AWS resource (on-demand Kinesis stream, Batch CE) in prod"
+      ],
+      "preventive_checks": [
+        "Read the Pulumi worker size and the service's documented limits before editing Spark conf; fit conf to infra, not infra to guesses",
+        "Compute concurrency x per-unit memory against the instance; leave agent/OS overhead on Batch",
+        "Match boto3 max_pool_connections to thread count; model shared quotas (vendor thread pools) from measured peak, not stated baseline",
+        "Check current account quota usage in prod before adding capped resources",
+        "Size backfill windows from per-run shuffle volume, not calendar units"
+      ],
+      "portable": true,
+      "count": 16,
+      "domains": {
+        "backend": 13,
+        "cross-cutting": 3
+      },
+      "n_projects": 1,
+      "related": [
+        "FS-29",
+        "FS-18"
+      ]
+    },
+    "FS-114": {
+      "name": "Git commit, reset or push run without checking the current branch and PR state",
+      "family": "integration-merge",
+      "moment": "merge",
+      "mechanism": "The agent commits, resets or pushes on whatever is checked out: directly on the base branch, on an unrelated feature branch, on a branch whose PR already squash-merged (recreating it), in a worktree on the wrong branch, or after switching back to base and writing follow-ups there. Partial commits leave imports to uncommitted files, and deleted worktrees keep holding branches.",
+      "trigger_signals": [
+        "about to commit/push via a UI action or a one-line command",
+        "returning to a PR branch after hours or days",
+        "the current branch name doesn't relate to the change, or is the base branch (dev/main)",
+        "creating or removing a worktree; staging only some of the changed files"
+      ],
+      "preventive_checks": [
+        "Run git status -sb and gh pr view --json state,headRefName before every commit/push",
+        "Never commit to the base branch; create a branch with --no-track from origin/<base>",
+        "If the PR is merged, start a new branch from origin/<base>",
+        "Check staged files import nothing unstaged (git stash -k && build) before a partial commit",
+        "Remove worktrees with git worktree remove, then git worktree prune"
+      ],
+      "portable": true,
+      "count": 13,
+      "domains": {
+        "cross-cutting": 13
+      },
+      "n_projects": 1,
+      "related": []
+    },
+    "FS-115": {
+      "name": "Orchestrator schedule, catchup, timeout or trigger semantics changed without re-deriving dependents",
+      "family": "deploy-infra",
+      "moment": "implement",
+      "mechanism": "Airflow DAG cadence, catchup, start_date, execution_timeout, waiter attempts, trigger rules, TaskGroup factories and XCom flows are edited in isolation: lookback and day-of-month logic still assume the old cadence, catchup replays from a stale start_date, timeouts are shorter than the external job and retries start a second writer, fixed task_ids collide in factories, wall-clock values are recomputed across an approval gate, and recovery advice relies on XCom from a hand-marked task.",
+      "trigger_signals": [
+        "changing schedule_interval/cron, catchup or start_date",
+        "adding an EMR/Batch operator or sensor with waiter_max_attempts or execution_timeout",
+        "a fan-in task after .expand(), or a TaskGroup factory called per platform",
+        "tasks that each compute dates from now(), or a recovery plan that marks tasks success"
+      ],
+      "preventive_checks": [
+        "Grep the DAG for every value derived from the schedule (lookback, day-of-month, data_interval) and update them together",
+        "Size timeouts and waiter attempts x delay to the measured p99 job runtime; confirm retries terminate the underlying job",
+        "When enabling catchup, move start_date to the deploy date",
+        "Compute time-derived values once and pass them via XCom/params; ensure downstream tasks tolerate a hand-marked upstream"
+      ],
+      "portable": true,
+      "count": 12,
+      "domains": {
+        "backend": 12
+      },
+      "n_projects": 1,
+      "related": [
+        "FS-06",
+        "FS-90",
+        "FS-26",
+        "FS-112"
+      ]
+    },
+    "FS-116": {
+      "name": "IAM policy written from SDK names or memory instead of the client's actual API calls",
+      "family": "tenancy-authz",
+      "moment": "implement",
+      "mechanism": "Policies are drafted from SDK method names, guessed condition attribute names, or 'least privilege' intuition: tools like rsync need list/read on the destination, ListBucket is evaluated on the bucket resource with s3:prefix including parent prefixes, condition keys apply only to some actions, managed services read with their own service agent, new principals need propagation time. A missing grant gets 'fixed' with a wildcard.",
+      "trigger_signals": [
+        "writing a least-privilege policy for a CLI/tool or managed service",
+        "an action name copied from an SDK method (HeadObject, ListObjectsV2)",
+        "a prefix-scoped condition or a CEL/condition key typed from memory",
+        "AccessDenied on one resource in an allow-list policy"
+      ],
+      "preventive_checks": [
+        "Look up each action and condition key in the service authorization reference",
+        "Enumerate the API calls the tool makes (CloudTrail, --debug) and grant exactly those",
+        "Add the missing resource rather than a wildcard; include parent prefixes in s3:prefix conditions",
+        "Grant managed-service agents explicitly and wait for/verify principal propagation"
+      ],
+      "portable": true,
+      "count": 10,
+      "domains": {
+        "cross-cutting": 6,
+        "backend": 4
+      },
+      "n_projects": 1,
+      "related": []
+    },
+    "FS-117": {
+      "name": "Refactor or rewrite silently drops behavior the original had",
+      "family": "contract-logic",
+      "moment": "implement",
+      "mechanism": "Extracting into a shared helper, consolidating files, renaming, or rewriting a body by hand rather than moving it loses steps (warm-up, classloader semantics, existence checks, dependency order, fields, docstrings) or smuggles logic changes into a 'mechanical' change. Nothing fails until the dropped behavior is needed.",
+      "trigger_signals": [
+        "extracting working code into a shared library or factory",
+        "merging several files, or a 'rename only' task that also touches bodies",
+        "rewriting a class/function body that has docstrings, guards or ordering"
+      ],
+      "preventive_checks": [
+        "Move code verbatim first, then diff old vs new and account for every removed line",
+        "Keep rename-only commits free of body edits",
+        "Diff task dependency order before and after a TaskGroup/factory extraction",
+        "Run the original call path's tests against the refactored code"
+      ],
+      "portable": true,
+      "count": 8,
+      "domains": {
+        "backend": 5,
+        "cross-cutting": 3
+      },
+      "n_projects": 1,
+      "related": []
+    },
+    "FS-118": {
+      "name": "Sibling module copied wholesale without auditing what it carries",
+      "family": "contract-logic",
+      "moment": "implement",
+      "mechanism": "A new lambda, infra file, bucket, DQ suite or table is cloned from a sibling and keeps its baggage: unrenamed identifiers, import-time env reads for unset vars, IAM and env vars the new use never needs, legacy versioning state, deprecated patterns, layer placement and thresholds that fit the sibling only.",
+      "trigger_signals": [
+        "creating a file by copying a sibling module or 'exactly the same' resource",
+        "a sibling resource with historical or legacy config",
+        "per-platform suites or configs generated from one template"
+      ],
+      "preventive_checks": [
+        "After copying, grep for the sibling's name and walk each env var, grant and setting asking whether the new one reads it",
+        "Check provider deprecations before copying a pattern",
+        "Derive thresholds/config per target from its own data, not the sibling's values"
+      ],
+      "portable": true,
+      "count": 7,
+      "domains": {
+        "backend": 5,
+        "cross-cutting": 2
+      },
+      "n_projects": 1,
+      "related": []
+    },
+    "FS-119": {
+      "name": "Consumer or edge patched to tolerate bad state instead of fixing the producer",
+      "family": "contract-logic",
+      "moment": "implement",
+      "mechanism": "When one producer emits inconsistent state, the fix lands in a shared consumer (per-table flag in a shared job, override in the optimizer), at the outermost presentation mapper, in the data to satisfy a validator, or as a hardcoded field list. Other consumers still see the bad state and shared code grows special cases.",
+      "trigger_signals": [
+        "a review says a shared job breaks on one new table/producer",
+        "the quickest fix is a flag or field list in shared/downstream code",
+        "a bug visible in one API surface that re-maps an upstream service"
+      ],
+      "preventive_checks": [
+        "Trace the bad value to the mutation that creates it and fix there",
+        "Fix in the shared upstream service that every surface reads, not one edge mapper",
+        "If a check fails on canonical data, fix the check, not the data"
+      ],
+      "portable": true,
+      "count": 6,
+      "domains": {
+        "backend": 6
+      },
+      "n_projects": 1,
+      "related": []
+    },
+    "FS-120": {
+      "name": "Cost or rate metric computed with the wrong denominator, tier or components",
+      "family": "data-query",
+      "moment": "verify",
+      "mechanism": "Per-unit costs and rates are derived from totals that include unrelated spend (evaluator cost), divided by a proxy count, labelled with a pricing tier the formula doesn't apply, or copy a per-request aggregate onto every exploded row. The number looks reasonable and drives a decision.",
+      "trigger_signals": [
+        "estimating prod cost from a benchmark or bill",
+        "a column name that claims a tier/unit the formula must honor",
+        "exploding a batched response that carries a per-request usage field"
+      ],
+      "preventive_checks": [
+        "Write the formula with numerator and denominator sources named, and recompute from stored inputs",
+        "Exclude benchmark-only components from prod extrapolations",
+        "Divide per-request aggregates across exploded rows or keep them at request grain"
+      ],
+      "portable": true,
+      "count": 5,
+      "domains": {
+        "backend": 4,
+        "cross-cutting": 1
+      },
+      "n_projects": 1,
+      "related": []
+    },
+    "FS-121": {
+      "name": "Step run under retries or reruns is not idempotent",
+      "family": "data-query",
+      "moment": "implement",
+      "mechanism": "Airflow retries, SQS redrive and same-day reruns re-execute steps that create DDL, emit terminal-failure events, append without dedup, or overwrite fixed keys from mutated inputs. The second attempt fails or duplicates side effects.",
+      "trigger_signals": [
+        "a task with retries running CREATE/append/notify",
+        "an SQS handler that emits failure events and relies on redrive",
+        "a request to remove a dedup guard from a retried job"
+      ],
+      "preventive_checks": [
+        "Make DDL IF NOT EXISTS / CREATE OR REPLACE and writes MERGE or overwrite-by-partition",
+        "Emit terminal-failure side effects only on the final attempt",
+        "Flag retry semantics before removing an idempotency guard"
+      ],
+      "portable": true,
+      "count": 4,
+      "domains": {
+        "backend": 4
+      },
+      "n_projects": 1,
+      "related": []
+    },
+    "FS-122": {
+      "name": "Integration or tool declared unavailable without discovering configured tools",
+      "family": "agent-orchestration",
+      "moment": "plan",
+      "mechanism": "Given a Slack/Notion/Linear link or a research task, the agent checks only its static tool list, tries a web fetch or browser automation, or dispatches a subagent type that lacks the needed tools, then stops or degrades instead of discovering the configured MCP namespaces.",
+      "trigger_signals": [
+        "the prompt contains a Slack/Notion/Linear URL or asks to write to one",
+        "dispatching subagents for web research or external lookups"
+      ],
+      "preventive_checks": [
+        "Run the agent's dynamic tool/MCP discovery for the matching namespace before declaring anything unavailable",
+        "Prefer MCP tools over browser automation",
+        "Check the subagent type's tool set before delegating work that needs it"
+      ],
+      "portable": true,
+      "count": 4,
+      "domains": {
+        "cross-cutting": 4
       },
       "n_projects": 1,
       "related": []
@@ -3631,7 +3972,7 @@
       ],
       "description": "Read-side API work: list or detail serializers with per-row fields, counts/sums/rollups, dashboard metrics, new filter dimensions on a scoped list, tree/hierarchy payloads, and query-count or perf tuning of those reads.",
       "predicts": {
-        "FS-06": 23,
+        "FS-06": 27,
         "FS-07": 6,
         "FS-03": 4,
         "FS-26": 11,
@@ -3647,7 +3988,8 @@
         "FS-55": 2,
         "FS-23": 1,
         "FS-31": 1,
-        "FS-63": 1
+        "FS-63": 1,
+        "FS-62": 1
       }
     },
     "write-endpoint": {
@@ -3678,7 +4020,7 @@
         "FS-60": 3,
         "FS-49": 7,
         "FS-54": 1,
-        "FS-07": 13,
+        "FS-07": 14,
         "FS-26": 4,
         "FS-40": 6,
         "FS-04": 2,
@@ -3693,7 +4035,9 @@
         "FS-51": 1,
         "FS-23": 1,
         "FS-55": 2,
-        "FS-15": 1
+        "FS-15": 2,
+        "FS-27": 1,
+        "FS-42": 1
       }
     },
     "tenant-scoped-ids": {
@@ -3725,7 +4069,8 @@
         "FS-51": 1,
         "FS-63": 2,
         "FS-38": 4,
-        "FS-07": 1
+        "FS-07": 1,
+        "FS-03": 1
       }
     },
     "permissions-auth": {
@@ -3766,7 +4111,11 @@
         "FS-12": 1,
         "FS-22": 1,
         "FS-32": 1,
-        "FS-15": 2
+        "FS-15": 2,
+        "FS-116": 7,
+        "FS-27": 1,
+        "FS-112": 1,
+        "FS-18": 1
       }
     },
     "untrusted-input-validation": {
@@ -3790,16 +4139,23 @@
       ],
       "description": "Serializer validators or parsers that ingest client, bot, CSV, HTML or free-form input: type guards, bounds, max_length, sanitization, date sanity checks.",
       "predicts": {
-        "FS-21": 27,
+        "FS-21": 30,
         "FS-15": 3,
-        "FS-26": 4,
+        "FS-26": 6,
         "FS-03": 1,
         "FS-48": 1,
         "FS-25": 1,
         "FS-82": 1,
         "FS-04": 1,
         "FS-63": 1,
-        "FS-51": 1
+        "FS-51": 2,
+        "FS-99": 6,
+        "FS-36": 1,
+        "FS-42": 1,
+        "FS-07": 2,
+        "FS-23": 1,
+        "FS-27": 1,
+        "FS-119": 1
       }
     },
     "third-party-integration": {
@@ -3823,19 +4179,26 @@
       ],
       "description": "Building or changing a client for an external system (chat platform, email/SMS provider, payment rail, HR system, AI vendor): pagination, idempotency, None bodies, trigger conditions, per-entity vs bulk calls, revoke flows.",
       "predicts": {
-        "FS-32": 2,
-        "FS-06": 4,
-        "FS-42": 15,
+        "FS-32": 3,
+        "FS-06": 5,
+        "FS-42": 18,
         "FS-55": 2,
         "FS-26": 1,
         "FS-15": 3,
         "FS-40": 1,
         "FS-37": 3,
-        "FS-25": 4,
+        "FS-25": 5,
         "FS-33": 1,
-        "FS-03": 3,
-        "FS-09": 1,
-        "FS-22": 2
+        "FS-03": 7,
+        "FS-09": 2,
+        "FS-22": 2,
+        "FS-27": 2,
+        "FS-99": 1,
+        "FS-07": 1,
+        "FS-109": 1,
+        "FS-02": 2,
+        "FS-113": 2,
+        "FS-31": 1
       }
     },
     "side-effects-async": {
@@ -3860,14 +4223,14 @@
       "description": "Side effects that must be ordered against a DB commit or delivery outcome: cache deletes, provisioning chains, notification/email sends, outbox dispatch paths, sent-ledgers and alerting.",
       "predicts": {
         "FS-32": 11,
-        "FS-15": 1,
-        "FS-07": 5,
-        "FS-27": 1,
-        "FS-25": 2,
-        "FS-40": 2,
+        "FS-15": 2,
+        "FS-07": 7,
+        "FS-27": 2,
+        "FS-25": 5,
+        "FS-40": 3,
         "FS-23": 1,
         "FS-06": 2,
-        "FS-31": 5,
+        "FS-31": 6,
         "FS-95": 1,
         "FS-09": 1,
         "FS-59": 2,
@@ -3877,7 +4240,9 @@
         "FS-85": 1,
         "FS-12": 1,
         "FS-107": 2,
-        "FS-108": 1
+        "FS-108": 1,
+        "FS-121": 1,
+        "FS-11": 1
       }
     },
     "schema-model-change": {
@@ -3901,11 +4266,11 @@
       ],
       "description": "Schema-level work: new models or fields, NOT NULL/defaults on a shared DB, uniqueness constraints, soft-delete managers, cascade/restore on self-referential trees.",
       "predicts": {
-        "FS-44": 10,
+        "FS-44": 13,
         "FS-38": 12,
         "FS-40": 3,
         "FS-07": 1,
-        "FS-27": 2,
+        "FS-27": 4,
         "FS-36": 1,
         "FS-92": 1,
         "FS-52": 3,
@@ -3913,10 +4278,20 @@
         "FS-51": 1,
         "FS-53": 2,
         "FS-39": 5,
-        "FS-21": 2,
-        "FS-23": 1,
-        "FS-06": 1,
-        "FS-84": 1
+        "FS-21": 3,
+        "FS-23": 3,
+        "FS-06": 4,
+        "FS-84": 1,
+        "FS-121": 1,
+        "FS-119": 1,
+        "FS-15": 1,
+        "FS-112": 3,
+        "FS-123": 4,
+        "FS-118": 1,
+        "FS-29": 4,
+        "FS-02": 1,
+        "FS-19": 2,
+        "FS-42": 1
       }
     },
     "state-transition-guard": {
@@ -3956,7 +4331,8 @@
         "FS-38": 4,
         "FS-19": 2,
         "FS-100": 4,
-        "FS-109": 1
+        "FS-109": 1,
+        "FS-25": 1
       }
     },
     "merge-clone-dedup": {
@@ -3981,21 +4357,26 @@
       "description": "Routines that combine, duplicate or re-identify records: user/account merges, org clone engines, merge-candidate detection, dedup heuristics, rename/merge sweeps and the FKs they repoint.",
       "predicts": {
         "FS-23": 2,
-        "FS-55": 1,
+        "FS-55": 2,
         "FS-03": 1,
         "FS-52": 3,
-        "FS-63": 2,
+        "FS-63": 4,
         "FS-51": 2,
-        "FS-26": 3,
+        "FS-26": 7,
         "FS-38": 3,
         "FS-21": 1,
         "FS-60": 2,
         "FS-25": 1,
         "FS-54": 1,
-        "FS-07": 2,
+        "FS-07": 3,
         "FS-27": 1,
         "FS-50": 1,
-        "FS-39": 1
+        "FS-39": 1,
+        "FS-31": 1,
+        "FS-06": 1,
+        "FS-121": 1,
+        "FS-123": 2,
+        "FS-42": 1
       }
     },
     "seed-import-backfill": {
@@ -4018,25 +4399,41 @@
       ],
       "description": "Scripts and data migrations that populate or transform rows: seed/demo commands, external-system imports (Jira), backfills, delete-then-recreate migrations, create-or-reuse scripts.",
       "predicts": {
-        "FS-40": 3,
+        "FS-40": 4,
         "FS-07": 8,
-        "FS-03": 2,
-        "FS-15": 6,
-        "FS-21": 6,
+        "FS-03": 3,
+        "FS-15": 11,
+        "FS-21": 7,
         "FS-25": 1,
         "FS-49": 1,
         "FS-38": 1,
         "FS-44": 2,
         "FS-19": 1,
         "FS-35": 3,
-        "FS-26": 3,
+        "FS-26": 9,
         "FS-32": 1,
         "FS-62": 1,
         "FS-52": 2,
         "FS-63": 2,
         "FS-48": 1,
-        "FS-55": 1,
-        "FS-53": 1
+        "FS-55": 2,
+        "FS-53": 1,
+        "FS-123": 8,
+        "FS-113": 5,
+        "FS-06": 10,
+        "FS-02": 3,
+        "FS-115": 7,
+        "FS-23": 1,
+        "FS-29": 2,
+        "FS-42": 3,
+        "FS-31": 2,
+        "FS-51": 2,
+        "FS-09": 1,
+        "FS-112": 2,
+        "FS-121": 1,
+        "FS-27": 1,
+        "FS-119": 1,
+        "FS-14": 1
       }
     },
     "ledger-posting": {
@@ -4138,33 +4535,39 @@
       ],
       "description": "Operating on real data: one-off cleanup or bulk delete scripts, balance-sheet reconcile and day rebuilds, drift/violation scanners, audit reports over many locations, manage.py against prod.",
       "predicts": {
-        "FS-36": 1,
+        "FS-36": 2,
         "FS-65": 2,
         "FS-09": 7,
         "FS-59": 2,
-        "FS-06": 4,
+        "FS-06": 7,
         "FS-56": 9,
         "FS-14": 10,
         "FS-50": 16,
         "FS-57": 5,
         "FS-03": 4,
         "FS-64": 2,
-        "FS-27": 1,
-        "FS-11": 2,
+        "FS-27": 2,
+        "FS-11": 3,
         "FS-58": 1,
-        "FS-63": 2,
-        "FS-26": 2,
+        "FS-63": 3,
+        "FS-26": 5,
         "FS-49": 1,
         "FS-53": 3,
-        "FS-55": 3,
+        "FS-55": 6,
         "FS-54": 2,
-        "FS-51": 2,
+        "FS-51": 3,
         "FS-48": 2,
         "FS-30": 1,
         "FS-41": 1,
         "FS-47": 1,
         "FS-60": 2,
-        "FS-21": 1
+        "FS-21": 1,
+        "FS-29": 13,
+        "FS-123": 15,
+        "FS-112": 5,
+        "FS-42": 5,
+        "FS-120": 1,
+        "FS-99": 1
       }
     },
     "llm-extraction-pipeline": {
@@ -4188,15 +4591,20 @@
       "description": "Agentic document pipelines: rasterizing PDFs, OCR/vision reads, barcode decoding, LLM-authored callback payloads, reconciliation gates before apply, retry/timeout loops.",
       "predicts": {
         "FS-29": 8,
-        "FS-21": 3,
+        "FS-21": 7,
         "FS-58": 1,
-        "FS-25": 1,
+        "FS-25": 2,
         "FS-96": 1,
         "FS-15": 1,
         "FS-26": 1,
         "FS-55": 1,
         "FS-11": 1,
-        "FS-35": 1
+        "FS-35": 1,
+        "FS-06": 1,
+        "FS-42": 5,
+        "FS-120": 3,
+        "FS-14": 1,
+        "FS-91": 1
       }
     },
     "fe-state-hooks": {
@@ -4376,7 +4784,8 @@
         "FS-07": 1,
         "FS-53": 1,
         "FS-06": 1,
-        "FS-85": 1
+        "FS-85": 1,
+        "FS-09": 1
       }
     },
     "fe-routing-navigation": {
@@ -4620,17 +5029,23 @@
       ],
       "description": "Cross-tier work where producer and consumer must agree: payload field names, list filter params, response shapes, duplicated business rules, UI built for backend capability (or vice versa), markup through sanitizers.",
       "predicts": {
-        "FS-15": 22,
+        "FS-15": 25,
         "FS-22": 5,
         "FS-19": 7,
         "FS-03": 3,
-        "FS-51": 2,
+        "FS-51": 4,
         "FS-11": 2,
         "FS-33": 1,
         "FS-68": 1,
         "FS-26": 1,
         "FS-23": 1,
-        "FS-07": 1
+        "FS-07": 2,
+        "FS-112": 1,
+        "FS-120": 1,
+        "FS-36": 1,
+        "FS-27": 1,
+        "FS-119": 1,
+        "FS-123": 1
       }
     },
     "refactor-rename-shared": {
@@ -4653,15 +5068,17 @@
       ],
       "description": "Changes to something many callers depend on: renaming exports, redesigning a shared component's DOM, adding required fields to shared types, copy/format swaps, extracting modules - and the tests/drivers/mocks that assert the old shape.",
       "predicts": {
-        "FS-19": 16,
-        "FS-23": 6,
-        "FS-27": 1,
+        "FS-19": 17,
+        "FS-23": 13,
+        "FS-27": 4,
         "FS-07": 4,
-        "FS-09": 1,
-        "FS-11": 2,
+        "FS-09": 2,
+        "FS-11": 3,
         "FS-14": 1,
-        "FS-03": 2,
-        "FS-13": 1
+        "FS-03": 3,
+        "FS-13": 1,
+        "FS-117": 7,
+        "FS-119": 2
       }
     },
     "write-e2e-spec": {
@@ -4688,7 +5105,7 @@
         "FS-34": 31,
         "FS-14": 1,
         "FS-26": 2,
-        "FS-35": 21,
+        "FS-35": 22,
         "FS-27": 2,
         "FS-03": 13,
         "FS-09": 9,
@@ -4731,27 +5148,35 @@
       "description": "Backend and FE unit/integration tests: fixtures that reach the branch under test, independent expected values, mocks that match the real call, suite isolation, benchmark cases.",
       "predicts": {
         "FS-06": 4,
-        "FS-04": 32,
-        "FS-34": 9,
-        "FS-33": 13,
+        "FS-04": 37,
+        "FS-34": 10,
+        "FS-33": 17,
         "FS-15": 2,
         "FS-29": 1,
         "FS-03": 2,
-        "FS-19": 3,
+        "FS-19": 5,
         "FS-08": 4,
         "FS-59": 1,
         "FS-68": 1,
         "FS-89": 3,
         "FS-53": 1,
         "FS-14": 1,
-        "FS-35": 2,
+        "FS-35": 3,
         "FS-27": 1,
         "FS-95": 1,
         "FS-96": 1,
         "FS-48": 1,
-        "FS-09": 1,
+        "FS-09": 3,
         "FS-40": 1,
-        "FS-102": 1
+        "FS-102": 1,
+        "FS-26": 1,
+        "FS-02": 1,
+        "FS-07": 2,
+        "FS-42": 2,
+        "FS-90": 2,
+        "FS-123": 1,
+        "FS-118": 1,
+        "FS-99": 2
       }
     },
     "run-local-verification": {
@@ -4777,8 +5202,8 @@
       "predicts": {
         "FS-05": 31,
         "FS-18": 6,
-        "FS-02": 30,
-        "FS-29": 7,
+        "FS-02": 34,
+        "FS-29": 8,
         "FS-20": 2,
         "FS-35": 5,
         "FS-81": 4,
@@ -4794,9 +5219,11 @@
         "FS-94": 1,
         "FS-04": 1,
         "FS-66": 1,
-        "FS-19": 1,
+        "FS-19": 2,
         "FS-101": 1,
-        "FS-102": 2
+        "FS-102": 2,
+        "FS-90": 5,
+        "FS-25": 3
       }
     },
     "triage-failure": {
@@ -4819,8 +5246,8 @@
       ],
       "description": "Diagnosing: attributing red tests to the diff vs a pre-existing baseline, confirming root causes with direct evidence, reproducing reported bugs.",
       "predicts": {
-        "FS-14": 33,
-        "FS-09": 1,
+        "FS-14": 44,
+        "FS-09": 3,
         "FS-49": 1,
         "FS-34": 5,
         "FS-15": 1,
@@ -4829,7 +5256,10 @@
         "FS-94": 1,
         "FS-30": 1,
         "FS-04": 1,
-        "FS-18": 1
+        "FS-18": 1,
+        "FS-29": 1,
+        "FS-65": 1,
+        "FS-55": 1
       }
     },
     "start-work-branch": {
@@ -4852,14 +5282,15 @@
       ],
       "description": "The opening move of a task: choosing an isolated worktree vs the shared checkout, syncing with the latest base, checking whether the work already exists elsewhere, provisioning deps in a fresh worktree.",
       "predicts": {
-        "FS-30": 8,
+        "FS-30": 13,
         "FS-20": 15,
         "FS-02": 6,
         "FS-90": 4,
         "FS-05": 1,
         "FS-71": 1,
         "FS-25": 1,
-        "FS-46": 2
+        "FS-46": 2,
+        "FS-114": 11
       }
     },
     "dispatch-parallel-agents": {
@@ -4881,14 +5312,14 @@
       ],
       "description": "Orchestration: fanning work out to agents/worktrees, allocating shared ids and files, pinning base SHAs, liveness checks on background agents, resuming vs re-dispatching, cleanup.",
       "predicts": {
-        "FS-39": 16,
+        "FS-39": 19,
         "FS-45": 31,
         "FS-05": 14,
         "FS-20": 3,
         "FS-30": 5,
         "FS-66": 1,
         "FS-11": 2,
-        "FS-18": 2,
+        "FS-18": 4,
         "FS-14": 1,
         "FS-64": 4,
         "FS-36": 3,
@@ -4897,7 +5328,9 @@
         "FS-91": 2,
         "FS-101": 3,
         "FS-102": 1,
-        "FS-110": 1
+        "FS-110": 1,
+        "FS-112": 1,
+        "FS-122": 1
       }
     },
     "commit-push": {
@@ -4924,9 +5357,12 @@
         "FS-24": 7,
         "FS-09": 3,
         "FS-18": 6,
-        "FS-90": 2,
+        "FS-90": 13,
         "FS-14": 1,
-        "FS-64": 1
+        "FS-64": 1,
+        "FS-112": 1,
+        "FS-114": 2,
+        "FS-62": 1
       }
     },
     "merge-promote-branch": {
@@ -4950,10 +5386,10 @@
       "description": "Moving work between branches: merging or rebasing onto a moved base, promotion hops (feature to dev/test/staging/main), migration-graph collisions, phantom conflicts, reverts and cherry-picks on shared branches.",
       "predicts": {
         "FS-39": 10,
-        "FS-30": 11,
+        "FS-30": 14,
         "FS-09": 4,
         "FS-20": 2,
-        "FS-53": 6,
+        "FS-53": 7,
         "FS-24": 2,
         "FS-46": 26,
         "FS-97": 7,
@@ -4982,21 +5418,24 @@
       "description": "Running or changing a deploy: deploy scripts and CI deploy workflows, where the build happens, what the pipeline carries, which checkout it deploys from, and checking the environment actually serves the change.",
       "predicts": {
         "FS-18": 5,
-        "FS-12": 27,
+        "FS-12": 29,
         "FS-24": 5,
-        "FS-09": 3,
+        "FS-09": 4,
         "FS-66": 1,
-        "FS-14": 1,
+        "FS-14": 2,
         "FS-25": 1,
-        "FS-29": 1,
+        "FS-29": 3,
         "FS-71": 1,
         "FS-23": 1,
         "FS-73": 1,
         "FS-45": 1,
-        "FS-65": 3,
+        "FS-65": 4,
         "FS-05": 1,
         "FS-44": 1,
-        "FS-104": 1
+        "FS-104": 1,
+        "FS-62": 1,
+        "FS-115": 1,
+        "FS-42": 1
       }
     },
     "env-server-config": {
@@ -5020,28 +5459,33 @@
       ],
       "description": "Configuring where code runs: settings that read env/.env files or secret stores, host-dependent URLs and addresses, live service config (Postgres, nginx, systemd), containers/clusters, SSH sessions and cloud CLI credentials on remote boxes.",
       "predicts": {
-        "FS-29": 13,
-        "FS-12": 18,
+        "FS-29": 17,
+        "FS-12": 20,
         "FS-93": 4,
-        "FS-66": 6,
-        "FS-61": 8,
-        "FS-65": 2,
-        "FS-42": 2,
+        "FS-66": 12,
+        "FS-61": 10,
+        "FS-65": 4,
+        "FS-42": 9,
         "FS-51": 1,
-        "FS-27": 1,
+        "FS-27": 5,
         "FS-14": 2,
         "FS-06": 1,
         "FS-03": 1,
         "FS-21": 1,
         "FS-80": 1,
-        "FS-25": 1,
+        "FS-25": 2,
         "FS-71": 1,
         "FS-20": 1,
         "FS-05": 1,
         "FS-102": 2,
-        "FS-07": 2,
+        "FS-07": 3,
         "FS-18": 1,
-        "FS-26": 1
+        "FS-26": 1,
+        "FS-113": 8,
+        "FS-118": 5,
+        "FS-62": 1,
+        "FS-116": 3,
+        "FS-09": 1
       }
     },
     "ci-pipeline": {
@@ -5064,7 +5508,7 @@
       ],
       "description": "CI configuration: what jobs actually run, sharding and result aggregation, pipefail, queued pipelines, schema/cache snapshots, secret scanning, typecheck coverage.",
       "predicts": {
-        "FS-09": 12,
+        "FS-09": 13,
         "FS-18": 1,
         "FS-92": 2,
         "FS-53": 1,
@@ -5077,7 +5521,9 @@
         "FS-27": 1,
         "FS-94": 1,
         "FS-25": 1,
-        "FS-29": 1
+        "FS-29": 2,
+        "FS-30": 1,
+        "FS-35": 1
       }
     },
     "shell-scripting": {
@@ -5101,15 +5547,21 @@
       ],
       "description": "Shell mechanics: exit codes through pipes, pkill/pgrep self-matches, cwd and relative paths, quoting and word-splitting, bash versions, inline code in commands, gitignore/pathspec semantics.",
       "predicts": {
-        "FS-18": 56,
+        "FS-18": 80,
         "FS-20": 1,
-        "FS-06": 1,
-        "FS-29": 5,
+        "FS-06": 3,
+        "FS-29": 6,
         "FS-05": 3,
         "FS-74": 1,
         "FS-07": 1,
         "FS-63": 2,
-        "FS-55": 1
+        "FS-55": 1,
+        "FS-84": 1,
+        "FS-27": 1,
+        "FS-03": 5,
+        "FS-09": 2,
+        "FS-123": 1,
+        "FS-45": 1
       }
     },
     "wrap-up-report": {
@@ -5136,14 +5588,16 @@
         "FS-03": 1,
         "FS-24": 9,
         "FS-09": 10,
-        "FS-91": 4,
+        "FS-91": 8,
         "FS-89": 1,
         "FS-53": 2,
-        "FS-11": 4,
-        "FS-14": 2,
+        "FS-11": 7,
+        "FS-14": 3,
         "FS-04": 1,
         "FS-18": 1,
-        "FS-45": 1
+        "FS-45": 1,
+        "FS-55": 2,
+        "FS-123": 1
       }
     },
     "plan-scope": {
@@ -5166,16 +5620,19 @@
       ],
       "description": "Before building: enumerating the full scope, resolving ambiguous terms or targets by asking, matching a mockup/reference product, modelling unusual personas (review/demo accounts).",
       "predicts": {
-        "FS-36": 14,
-        "FS-11": 20,
+        "FS-36": 16,
+        "FS-11": 22,
         "FS-07": 1,
         "FS-87": 2,
-        "FS-27": 4,
+        "FS-27": 9,
         "FS-22": 1,
         "FS-03": 5,
         "FS-42": 1,
         "FS-18": 3,
-        "FS-102": 2
+        "FS-102": 2,
+        "FS-112": 15,
+        "FS-30": 1,
+        "FS-63": 1
       }
     },
     "tooling-dependency": {
@@ -5199,14 +5656,20 @@
       "predicts": {
         "FS-21": 1,
         "FS-05": 1,
-        "FS-90": 3,
+        "FS-90": 5,
         "FS-12": 1,
         "FS-02": 4,
         "FS-20": 1,
-        "FS-84": 8,
-        "FS-29": 8,
+        "FS-84": 26,
+        "FS-29": 11,
         "FS-36": 1,
-        "FS-100": 1
+        "FS-100": 1,
+        "FS-03": 2,
+        "FS-14": 1,
+        "FS-27": 2,
+        "FS-23": 1,
+        "FS-53": 1,
+        "FS-66": 1
       }
     },
     "concurrent-write-locking": {
@@ -5229,8 +5692,9 @@
       "description": "Any write path that takes row, parent-row, counter or advisory locks, or that must stay correct under concurrent requests, workers or bot callbacks: adding a lock, reordering locks, or adding a new operation to an entity family that other paths already lock.",
       "predicts": {
         "FS-33": 2,
-        "FS-40": 17,
-        "FS-07": 1
+        "FS-40": 18,
+        "FS-07": 1,
+        "FS-113": 1
       }
     },
     "document-parser-import": {
@@ -5256,7 +5720,7 @@
       "predicts": {
         "FS-21": 6,
         "FS-63": 6,
-        "FS-99": 6,
+        "FS-99": 7,
         "FS-79": 1
       }
     },

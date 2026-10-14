@@ -3,7 +3,7 @@ type: task
 title: Change permissions, roles, RBAC codenames or auth / session gating
 tags: [backend, permission, rbac, role, codename, auth, login, session, token, rls, gate]
 resource: permissions-auth
-timestamp: 2026-10-12
+timestamp: 2026-10-14
 ---
 
 # Task · Change permissions, roles, RBAC codenames or auth / session gating
@@ -14,6 +14,7 @@ in-domain: [backend](../domains/backend.md)
 
 predicts (incidents while doing this task):
 - [FS-37](../patterns/fs-37.md) Authorization decided on a proxy instead of the real identity or entitlement (19)
+- [FS-116](../patterns/fs-116.md) IAM policy written from SDK names or memory instead of the client's actual API calls (7)
 - [FS-04](../patterns/fs-04.md) Tests pass without proving the requirement (5)
 - [FS-31](../patterns/fs-31.md) Cache identity or invalidation misses a dependency (3)
 - [FS-19](../patterns/fs-19.md) Behavior change leaves dependent tests, drivers and mocks stale (3)

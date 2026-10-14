@@ -3,7 +3,7 @@ type: task
 title: Add or change component state, hooks, refs or URL-synced state
 tags: [web-frontend, state, hook, useeffect, usestate, ref, url, searchparams, store, context, derived]
 resource: fe-state-hooks
-timestamp: 2026-10-12
+timestamp: 2026-10-14
 ---
 
 # Task · Add or change component state, hooks, refs or URL-synced state

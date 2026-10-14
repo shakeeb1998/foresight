@@ -3,7 +3,7 @@ type: moment
 title: dispatch
 tags: [tripwire]
 resource: dispatch
-timestamp: 2026-10-12
+timestamp: 2026-10-14
 ---
 
 # Moment · dispatch
