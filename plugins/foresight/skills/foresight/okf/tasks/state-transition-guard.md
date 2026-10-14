@@ -3,7 +3,7 @@ type: task
 title: Add or change a status transition, workflow state, lock or guard
 tags: [backend, status, state, transition, workflow, lock, guard, blocked, enum, approve, undo]
 resource: state-transition-guard
-timestamp: 2026-10-12
+timestamp: 2026-10-14
 ---
 
 # Task · Add or change a status transition, workflow state, lock or guard

@@ -3,7 +3,7 @@ type: task
 title: Add or change a desktop (Electron / Capacitor) shell feature
 tags: [web-frontend, electron, desktop, capacitor, shortcut, window, native, tray, capture, ipc, userdata]
 resource: desktop-electron
-timestamp: 2026-10-12
+timestamp: 2026-10-14
 ---
 
 # Task · Add or change a desktop (Electron / Capacitor) shell feature

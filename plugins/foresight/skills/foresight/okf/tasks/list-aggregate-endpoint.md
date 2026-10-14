@@ -3,7 +3,7 @@ type: task
 title: Add, change or optimize a list / aggregate / dashboard / tree read endpoint
 tags: [backend, list, endpoint, serializer, queryset, aggregate, count, filter, dashboard, pagination, prefetch]
 resource: list-aggregate-endpoint
-timestamp: 2026-10-12
+timestamp: 2026-10-14
 ---
 
 # Task · Add, change or optimize a list / aggregate / dashboard / tree read endpoint
@@ -13,7 +13,7 @@ Read-side API work: list or detail serializers with per-row fields, counts/sums/
 in-domain: [backend](../domains/backend.md)
 
 predicts (incidents while doing this task):
-- [FS-06](../patterns/fs-06.md) Per-row queries and unbounded fetches invisible at seed scale (23)
+- [FS-06](../patterns/fs-06.md) Per-row queries and unbounded fetches invisible at seed scale (27)
 - [FS-26](../patterns/fs-26.md) Boundary values and NULL/join semantics not exercised (11)
 - [FS-07](../patterns/fs-07.md) Parallel code paths for one operation diverge (6)
 - [FS-38](../patterns/fs-38.md) Soft-deleted and terminal-state rows ignored by constraints and queries (5)
