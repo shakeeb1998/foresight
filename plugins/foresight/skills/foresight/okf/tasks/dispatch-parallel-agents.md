@@ -15,7 +15,7 @@ in-domain: [cross-cutting](../domains/cross-cutting.md)
 predicts (incidents while doing this task):
 - [FS-45](../patterns/fs-45.md) Agent turn ends waiting on an unverified async mechanism (31)
 - [FS-39](../patterns/fs-39.md) Parallel agents dispatched onto overlapping files or allocators (19)
-- [FS-05](../patterns/fs-05.md) Concurrent sessions contend for one local DB, port, cache or CPU (14)
+- [FS-05](../patterns/fs-05.md) Concurrent sessions contend for one local DB, port, cache or CPU (15)
 - [FS-30](../patterns/fs-30.md) Working from a stale base or without checking existing work (5)
 - [FS-18](../patterns/fs-18.md) Shell and CLI step semantics assumed (4)
 - [FS-64](../patterns/fs-64.md) Destructive or prod-wide write started without an explicit go-ahead for that scope (4)

@@ -13,7 +13,7 @@ Visual work: CSS cascade and shared classes, dark-mode tokens, overlays' stackin
 in-domain: [web-frontend](../domains/web-frontend.md)
 
 predicts (incidents while doing this task):
-- [FS-13](../patterns/fs-13.md) Styling correct only in the context that was eyeballed (31)
+- [FS-13](../patterns/fs-13.md) Styling correct only in the context that was eyeballed (34)
 - [FS-83](../patterns/fs-83.md) Shared CSS class, combinator or container rule reused beyond the shape it was written for (7)
 - [FS-10](../patterns/fs-10.md) Interaction verified only on the mouse happy path (4)
 - [FS-86](../patterns/fs-86.md) Hand-rolled CSS geometry trusted without a real render (4)

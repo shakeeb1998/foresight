@@ -14,8 +14,8 @@ in-domain: [cross-cutting](../domains/cross-cutting.md)
 
 predicts (incidents while doing this task):
 - [FS-04](../patterns/fs-04.md) Tests pass without proving the requirement (37)
-- [FS-33](../patterns/fs-33.md) Test double or harness silently diverges from the real runtime (17)
-- [FS-34](../patterns/fs-34.md) Nondeterministic test timing and ordering (10)
+- [FS-33](../patterns/fs-33.md) Test double or harness silently diverges from the real runtime (19)
+- [FS-34](../patterns/fs-34.md) Nondeterministic test timing and ordering (11)
 - [FS-19](../patterns/fs-19.md) Behavior change leaves dependent tests, drivers and mocks stale (5)
 - [FS-06](../patterns/fs-06.md) Per-row queries and unbounded fetches invisible at seed scale (4)
 - [FS-08](../patterns/fs-08.md) E2E locator or assertion coupled to incidental page content (4)

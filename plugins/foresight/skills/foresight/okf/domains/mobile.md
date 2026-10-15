@@ -18,11 +18,11 @@ tasks:
 - [mobile-store-release](../tasks/mobile-store-release.md) Release a mobile build or change store-facing config (upload, signing, listing, in-app purchases)
 
 patterns (most frequent first):
-- [FS-18](../patterns/fs-18.md) Shell and CLI step semantics assumed (115)
-- [FS-42](../patterns/fs-42.md) Third-party system semantics not honored (62)
-- [FS-13](../patterns/fs-13.md) Styling correct only in the context that was eyeballed (44)
+- [FS-18](../patterns/fs-18.md) Shell and CLI step semantics assumed (116)
+- [FS-42](../patterns/fs-42.md) Third-party system semantics not honored (63)
+- [FS-13](../patterns/fs-13.md) Styling correct only in the context that was eyeballed (49)
 - [FS-67](../patterns/fs-67.md) On-device check runs a stale JS bundle or a dev-client path unlike the shipped build (9)
-- [FS-68](../patterns/fs-68.md) User-facing copy, enum labels or digits bypass the localization layer (8)
+- [FS-68](../patterns/fs-68.md) User-facing copy, enum labels or digits bypass the localization layer (9)
 - [FS-70](../patterns/fs-70.md) Mobile behavior verified on one OS or only on the Simulator (8)
 - [FS-71](../patterns/fs-71.md) Store build inputs taken from local state instead of asserted against the release target (8)
 - [FS-69](../patterns/fs-69.md) Store purchase, offer or redemption flow built on assumed platform semantics (7)

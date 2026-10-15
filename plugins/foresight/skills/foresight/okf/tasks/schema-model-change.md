@@ -14,7 +14,7 @@ in-domain: [backend](../domains/backend.md)
 
 predicts (incidents while doing this task):
 - [FS-44](../patterns/fs-44.md) Migration unsafe for code or data already in the shared DB (13)
-- [FS-38](../patterns/fs-38.md) Soft-deleted and terminal-state rows ignored by constraints and queries (12)
+- [FS-38](../patterns/fs-38.md) Soft-deleted and terminal-state rows ignored by constraints and queries (13)
 - [FS-39](../patterns/fs-39.md) Parallel agents dispatched onto overlapping files or allocators (5)
 - [FS-27](../patterns/fs-27.md) Existing primitive or house pattern bypassed (4)
 - [FS-06](../patterns/fs-06.md) Per-row queries and unbounded fetches invisible at seed scale (4)

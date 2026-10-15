@@ -20,6 +20,6 @@ predicts (incidents while doing this task):
 - [FS-100](../patterns/fs-100.md) Async job result or system write applied without a current-state or supersession check (4)
 - [FS-03](../patterns/fs-03.md) Code written against an assumed interface instead of the real one (3)
 - [FS-26](../patterns/fs-26.md) Boundary values and NULL/join semantics not exercised (3)
+- [FS-55](../patterns/fs-55.md) Rule keyed on a proxy signal instead of the defining type, status or link (3)
 - [FS-36](../patterns/fs-36.md) Ambiguous or constraint-bearing ask resolved without asking (2)
 - [FS-32](../patterns/fs-32.md) Side effects not ordered against the commit or outcome they depend on (2)
-- [FS-55](../patterns/fs-55.md) Rule keyed on a proxy signal instead of the defining type, status or link (2)

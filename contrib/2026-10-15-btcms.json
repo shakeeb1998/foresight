@@ -1,0 +1,411 @@
+{
+ "generated": "2026-10-15",
+ "patterns": {
+  "FS-02": {
+   "count": 1,
+   "n_projects": 0,
+   "domains": {
+    "cross-cutting": 1
+   },
+   "related": []
+  },
+  "FS-04": {
+   "count": 1,
+   "n_projects": 0,
+   "domains": {
+    "cross-cutting": 1
+   },
+   "related": []
+  },
+  "FS-05": {
+   "count": 3,
+   "n_projects": 0,
+   "domains": {
+    "cross-cutting": 3
+   },
+   "related": [
+    "FS-10"
+   ]
+  },
+  "FS-07": {
+   "count": 1,
+   "n_projects": 0,
+   "domains": {
+    "backend": 1
+   },
+   "related": []
+  },
+  "FS-08": {
+   "count": 2,
+   "n_projects": 0,
+   "domains": {
+    "cross-cutting": 2
+   },
+   "related": []
+  },
+  "FS-09": {
+   "count": 3,
+   "n_projects": 0,
+   "domains": {
+    "cross-cutting": 3
+   },
+   "related": [
+    "FS-10"
+   ]
+  },
+  "FS-10": {
+   "count": 8,
+   "n_projects": 0,
+   "domains": {
+    "web-frontend": 8
+   },
+   "related": [
+    "FS-09",
+    "FS-05",
+    "FS-13"
+   ]
+  },
+  "FS-11": {
+   "count": 1,
+   "n_projects": 0,
+   "domains": {
+    "backend": 1
+   },
+   "related": []
+  },
+  "FS-13": {
+   "count": 5,
+   "n_projects": 0,
+   "domains": {
+    "web-frontend": 5
+   },
+   "related": [
+    "FS-10"
+   ]
+  },
+  "FS-14": {
+   "count": 1,
+   "n_projects": 0,
+   "domains": {
+    "cross-cutting": 1
+   },
+   "related": []
+  },
+  "FS-16": {
+   "count": 1,
+   "n_projects": 0,
+   "domains": {
+    "backend": 1
+   },
+   "related": []
+  },
+  "FS-18": {
+   "count": 1,
+   "n_projects": 0,
+   "domains": {
+    "cross-cutting": 1
+   },
+   "related": []
+  },
+  "FS-19": {
+   "count": 2,
+   "n_projects": 0,
+   "domains": {
+    "cross-cutting": 2
+   },
+   "related": []
+  },
+  "FS-21": {
+   "count": 3,
+   "n_projects": 0,
+   "domains": {
+    "backend": 3
+   },
+   "related": []
+  },
+  "FS-22": {
+   "count": 3,
+   "n_projects": 0,
+   "domains": {
+    "web-frontend": 3
+   },
+   "related": []
+  },
+  "FS-23": {
+   "count": 2,
+   "n_projects": 0,
+   "domains": {
+    "web-frontend": 1,
+    "cross-cutting": 1
+   },
+   "related": []
+  },
+  "FS-25": {
+   "count": 3,
+   "n_projects": 0,
+   "domains": {
+    "web-frontend": 3
+   },
+   "related": []
+  },
+  "FS-26": {
+   "count": 2,
+   "n_projects": 0,
+   "domains": {
+    "cross-cutting": 1,
+    "backend": 1
+   },
+   "related": []
+  },
+  "FS-27": {
+   "count": 2,
+   "n_projects": 0,
+   "domains": {
+    "web-frontend": 2
+   },
+   "related": []
+  },
+  "FS-31": {
+   "count": 3,
+   "n_projects": 0,
+   "domains": {
+    "web-frontend": 3
+   },
+   "related": []
+  },
+  "FS-33": {
+   "count": 2,
+   "n_projects": 0,
+   "domains": {
+    "web-frontend": 2
+   },
+   "related": []
+  },
+  "FS-34": {
+   "count": 1,
+   "n_projects": 0,
+   "domains": {
+    "web-frontend": 1
+   },
+   "related": []
+  },
+  "FS-38": {
+   "count": 1,
+   "n_projects": 0,
+   "domains": {
+    "backend": 1
+   },
+   "related": []
+  },
+  "FS-41": {
+   "count": 1,
+   "n_projects": 0,
+   "domains": {
+    "backend": 1
+   },
+   "related": []
+  },
+  "FS-42": {
+   "count": 1,
+   "n_projects": 0,
+   "domains": {
+    "backend": 1
+   },
+   "related": []
+  },
+  "FS-45": {
+   "count": 2,
+   "n_projects": 0,
+   "domains": {
+    "cross-cutting": 2
+   },
+   "related": []
+  },
+  "FS-55": {
+   "count": 1,
+   "n_projects": 0,
+   "domains": {
+    "backend": 1
+   },
+   "related": []
+  },
+  "FS-68": {
+   "count": 1,
+   "n_projects": 0,
+   "domains": {
+    "web-frontend": 1
+   },
+   "related": []
+  },
+  "FS-85": {
+   "count": 1,
+   "n_projects": 0,
+   "domains": {
+    "web-frontend": 1
+   },
+   "related": []
+  },
+  "FS-90": {
+   "count": 1,
+   "n_projects": 0,
+   "domains": {
+    "cross-cutting": 1
+   },
+   "related": []
+  },
+  "FS-97": {
+   "count": 2,
+   "n_projects": 0,
+   "domains": {
+    "backend": 1,
+    "cross-cutting": 1
+   },
+   "related": []
+  },
+  "FS-103": {
+   "count": 1,
+   "n_projects": 0,
+   "domains": {
+    "web-frontend": 1
+   },
+   "related": []
+  }
+ },
+ "tasks": {
+  "list-aggregate-endpoint": {
+   "predicts": {
+    "FS-97": 1,
+    "FS-41": 1,
+    "FS-42": 1,
+    "FS-26": 1
+   }
+  },
+  "write-endpoint": {
+   "predicts": {
+    "FS-21": 1
+   }
+  },
+  "tenant-scoped-ids": {
+   "predicts": {
+    "FS-16": 1
+   }
+  },
+  "untrusted-input-validation": {
+   "predicts": {
+    "FS-21": 1
+   }
+  },
+  "schema-model-change": {
+   "predicts": {
+    "FS-38": 1
+   }
+  },
+  "state-transition-guard": {
+   "predicts": {
+    "FS-55": 1
+   }
+  },
+  "fe-state-hooks": {
+   "predicts": {
+    "FS-103": 1
+   }
+  },
+  "fe-rtk-query": {
+   "predicts": {
+    "FS-25": 2,
+    "FS-31": 3
+   }
+  },
+  "fe-list-page": {
+   "predicts": {
+    "FS-68": 1,
+    "FS-10": 1,
+    "FS-25": 1,
+    "FS-22": 2
+   }
+  },
+  "fe-interactive-component": {
+   "predicts": {
+    "FS-10": 7,
+    "FS-13": 2,
+    "FS-85": 1,
+    "FS-27": 2,
+    "FS-22": 1
+   }
+  },
+  "fe-styling-layout": {
+   "predicts": {
+    "FS-13": 3
+   }
+  },
+  "refactor-rename-shared": {
+   "predicts": {
+    "FS-23": 1,
+    "FS-19": 1
+   }
+  },
+  "write-e2e-spec": {
+   "predicts": {
+    "FS-08": 2,
+    "FS-09": 2
+   }
+  },
+  "write-unit-tests": {
+   "predicts": {
+    "FS-33": 2,
+    "FS-34": 1,
+    "FS-26": 1
+   }
+  },
+  "run-local-verification": {
+   "predicts": {
+    "FS-05": 2,
+    "FS-90": 1,
+    "FS-45": 2,
+    "FS-18": 1
+   }
+  },
+  "triage-failure": {
+   "predicts": {
+    "FS-14": 1,
+    "FS-19": 1
+   }
+  },
+  "dispatch-parallel-agents": {
+   "predicts": {
+    "FS-05": 1
+   }
+  },
+  "merge-promote-branch": {
+   "predicts": {
+    "FS-97": 1
+   }
+  },
+  "deploy-release": {
+   "predicts": {
+    "FS-02": 1
+   }
+  },
+  "env-server-config": {
+   "predicts": {
+    "FS-21": 1
+   }
+  },
+  "wrap-up-report": {
+   "predicts": {
+    "FS-04": 1,
+    "FS-09": 1
+   }
+  },
+  "plan-scope": {
+   "predicts": {
+    "FS-11": 1
+   }
+  },
+  "concurrent-write-locking": {
+   "predicts": {
+    "FS-07": 1
+   }
+  }
+ }
+}

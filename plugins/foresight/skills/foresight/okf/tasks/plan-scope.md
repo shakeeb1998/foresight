@@ -13,7 +13,7 @@ Before building: enumerating the full scope, resolving ambiguous terms or target
 in-domain: [cross-cutting](../domains/cross-cutting.md)
 
 predicts (incidents while doing this task):
-- [FS-11](../patterns/fs-11.md) Enumerable scope silently shrinks between ask and done (22)
+- [FS-11](../patterns/fs-11.md) Enumerable scope silently shrinks between ask and done (23)
 - [FS-36](../patterns/fs-36.md) Ambiguous or constraint-bearing ask resolved without asking (16)
 - [FS-112](../patterns/fs-112.md) Change exceeds or deviates from the explicit ask (15)
 - [FS-27](../patterns/fs-27.md) Existing primitive or house pattern bypassed (9)
