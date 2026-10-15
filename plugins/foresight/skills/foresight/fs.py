@@ -19,6 +19,7 @@ Binding guards (the ledger; see ledger.py / gates.py):
   fs.py status [--strict]                     # flags + tripwires; --strict exits 1 if any open
   fs.py close [--force] "<reason>"            # archive the ledger (force abandons open flags, on record)
   fs.py gate dispatch|commit|stop             # hook entry points (payload JSON on stdin)
+  fs.py hooks status|install|decline [--agent claude|cursor]   # first use: are the gates installed?
 
 Works from any agent that can run a shell command: Claude Code, Cursor, Codex, etc.
 Bundles searched in order (first hit wins for show/moment):
@@ -220,6 +221,10 @@ def main() -> None:
         except (ValueError, ledger.LedgerError) as exc:
             sys.exit(f"not closed: {exc}")
         print(f"ledger closed; abandoned on record: {', '.join(data['closed']['abandoned']) or 'none'}")
+    elif cmd == "hooks":
+        import onboard
+
+        sys.exit(onboard.run(args))
     elif cmd == "gate":
         import gates
 

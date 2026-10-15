@@ -17,6 +17,17 @@ and others.
 **Core principle:** a prediction is only a guard once it becomes a failing test, a
 command, or a question, attached to the moment it matters.
 
+## 0. First use: install the gates
+
+On every invoke, run `python3 <this skill dir>/fs.py hooks status` (add `--agent cursor` in Cursor).
+If it exits 1 (a gate is missing and the user has not declined):
+
+1. Tell the user which gates are missing and what each enforces, one line each (the status
+   output has both).
+2. Ask whether to install them. Never install without asking.
+3. Only on an explicit yes, run `fs.py hooks install`. On a no, run `fs.py hooks decline`;
+   the opt-out is recorded and nobody is asked again.
+
 ## Navigate the graph; never read all of it
 
 The graph is an OKF bundle: markdown concept files with frontmatter, where the links are
