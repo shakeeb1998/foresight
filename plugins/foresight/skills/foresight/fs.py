@@ -101,7 +101,7 @@ def words(s: str) -> set[str]:
 def match(query: str, lane: str = "", record: bool = True, root: Path | None = None, branch: str = "",
           explicit: str = "", new_task: bool = False) -> None:
     root = root or ledger.toplevel()
-    work, note = domains.work_domains(explicit, query, root)
+    work, note = domains.work_domains(explicit, query, root, write=record)
     if note:
         print(note)
     if work:

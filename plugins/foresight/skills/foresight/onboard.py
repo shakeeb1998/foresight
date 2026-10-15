@@ -56,7 +56,7 @@ def status(agent: str) -> int:
     state = installed(agent)
     print(f"foresight gates for {agent} ({_settings(agent)}):")
     for kind, event, what in GATES:
-        print(f"  {'installed' if state[kind] else 'missing':<10}{kind:<9} {event}: {what}")
+        print(f"  {'installed' if state[kind] else 'missing':<11}{kind:<9} {event}: {what}")
     if all(state.values()):
         return 0
     dec = _declined(agent)

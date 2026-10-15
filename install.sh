@@ -81,4 +81,4 @@ fi
 
 echo
 echo "Check:"
-python3 "$SKILLS/foresight/fs.py" match "add a paginated list endpoint with per-row counts" | head -4
+python3 "$SKILLS/foresight/fs.py" match --no-record "add a paginated list endpoint with per-row counts" | head -4

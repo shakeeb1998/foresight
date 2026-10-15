@@ -182,21 +182,24 @@ def init_profile(root: Path) -> tuple[Path, dict]:
     return p, data
 
 
-def ensure_profile(root: Path) -> tuple[set[str], str]:
-    """The repo's domains, creating the profile on first use. Returns (domains, note to print or "")."""
+def ensure_profile(root: Path, write: bool = True) -> tuple[set[str], str]:
+    """The repo's domains, creating the profile on first use (`write`; otherwise detected in memory).
+    Returns (domains, note to print or "")."""
     data = load_profile(root)
     if data is not None:
         return set(data.get("domains") or []), ""
     if not (root / ".git").exists():
         return set(), ""  # not a repo checkout (e.g. $HOME): never write a profile there
+    if not write:
+        return detect(root)[0], ""
     p, data = init_profile(root)
     found = ", ".join(data["domains"]) or "nothing (no filter)"
     return set(data["domains"]), f"profile: detected {found} for {root}; wrote {p} (edit it to change)"
 
 
-def work_domains(explicit: str, query: str, root: Path) -> tuple[set[str], str]:
+def work_domains(explicit: str, query: str, root: Path, write: bool = True) -> tuple[set[str], str]:
     """The domains a match filters to: --domains, else the query's domains within the profile."""
-    prof, note = ensure_profile(root)
+    prof, note = ensure_profile(root, write)
     if explicit:
         return parse(explicit), note
     q = infer(query)
