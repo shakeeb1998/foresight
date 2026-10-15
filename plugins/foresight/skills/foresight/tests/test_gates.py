@@ -93,6 +93,8 @@ class GateContract(Harness):
         payload["tool_input"]["prompt"] = "Build the widget list.\n" + brief
         self.assertIn("moment dispatch", self.denied(self.gate("dispatch", payload)))
         self.fs("moment", "dispatch")
+        self.assertIn("guard table", self.denied(self.gate("dispatch", payload)))
+        self.fill_guards()
         self.assertEqual(self.gate("dispatch", payload), {})
 
     def lane0(self) -> None:
@@ -107,6 +109,7 @@ class GateContract(Harness):
         self.lane0()
         self.fs("moment", "dispatch")
         for lane, mine, other in (("a", "FS-01", "FS-03"), ("b", "FS-03", "FS-01")):
+            self.fill_guards(lane)
             brief = self.fs("brief", "--lane", lane).stdout
             self.assertIn(f"lane={lane}", brief)
             self.assertIn(mine, brief)
@@ -128,6 +131,7 @@ class GateContract(Harness):
         self.fs("match", "--lane", "a", "widget list page with pagination")
         self.fs("match", "--lane", "b", "other widget thing")
         self.fs("moment", "dispatch")
+        self.fill_guards("a")
         payload = {"tool_name": "Agent", "cwd": str(self.repo),
                    "tool_input": {"prompt": "Lane a.\n" + self.fs("brief", "--lane", "a").stdout}}
         self.assertIn("lane0", self.denied(self.gate("dispatch", payload)))
@@ -140,6 +144,7 @@ class GateContract(Harness):
     def test_single_lane_needs_no_lane0(self) -> None:
         self.fs("match", "--lane", "a", "widget list page with pagination")
         self.fs("moment", "dispatch")
+        self.fill_guards("a")
         payload = {"tool_name": "Agent", "cwd": str(self.repo),
                    "tool_input": {"prompt": "Lane a.\n" + self.fs("brief", "--lane", "a").stdout}}
         self.assertEqual(self.gate("dispatch", payload), {})
@@ -154,6 +159,7 @@ class GateContract(Harness):
         self.assertIn("FS-03", self.fs("status", "--root", str(other)).stdout)
         self.assertNotIn("FS-03", self.fs("status").stdout)
         self.fs("moment", "dispatch", "--root", str(other))
+        self.fill_guards("x", "--root", str(other))
         brief = self.fs("brief", "--root", str(other), "--lane", "x").stdout
         self.assertIn(f"root={other.resolve()}", brief)
         payload = {"tool_name": "Agent", "cwd": str(self.repo), "tool_input": {"prompt": "Lane x.\n" + brief}}

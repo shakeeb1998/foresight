@@ -63,26 +63,34 @@ Run `fs.py` through the agent's terminal or shell tool. If no shell is available
 often rank highest. If `match` finds nothing, open `okf/index.md`, choose your domain, then
 choose the task.
 
-## 1. Pre-flight: the Foresight Brief (plan time, before code)
+## 1. Pre-flight: brief to concrete guards (plan time, before code)
 
 1. Run `fs.py match` for each distinct part of the work: backend, web, mobile, tests, deploy.
+   Start new work with `--new-task`, so flags left by earlier tasks in this checkout never
+   reach its brief. Matching keeps to the repo's domains (`fs.py profile`, auto-created on
+   first use and editable); `--domains web,backend` overrides it.
 2. Open only the pattern nodes it returns. Follow a `related-to` edge only when its title
    plausibly applies.
-3. Put the brief in the plan, in this shape:
+3. Turn the brief into a **guard table** per lane (`main` without `--lane`):
 
-```markdown
-## Foresight - <ticket or task>
-Tasks matched: <task node names>
-| FS | What breaks in THIS change | Guard (test name / command / question) | Lands in |
-|----|----------------------------|----------------------------------------|----------|
-| FS-06 | per-member count computed per row in WorkloadSerializer | `test_workload_query_count_flat` at 2 vs 10 rows, written first | step 2 |
-Tripwires ahead: <moment nodes this task will pass through>
-Ask user: <ambiguity to resolve, or "none">
+```bash
+python3 fs.py guards --lane api --init    # writes <ledger dir>/guards-api.md from the lane's top flags
 ```
 
-Each row must name the concrete file, field, screen or endpoint, and give a guard that
-would go red. Keep at most 10 rows, highest incident counts first. Guard tests are written
-first and become plan steps.
+```markdown
+| id | concrete target in THIS change (file/field/endpoint) | named guard test or command | owner lane | status |
+|----|----|----|----|----|
+| FS-06 | WorkloadSerializer.member_counts | `test_workload_query_count_flat` at 2 vs 10 rows | api | open |
+```
+
+   Fill every TODO: the concrete file, field, screen or endpoint, and a test or command that
+   would go red. At most 10 rows. Dispatch is refused while a cell says TODO or the table is
+   empty.
+4. **Lane 0 writes the named guard tests and runs them RED** before any lane is dispatched.
+5. **Paste the guard table FIRST** in every agent prompt, then the verbatim `fs.py brief`.
+6. **Each lane self-reviews its diff against its guard table** before it reports, row by row.
+7. **Never trust a lane's green.** After each merge, re-run that lane's guard tests and the
+   scoped gates on the merged tree yourself.
 
 ## 1b. Flagged guards are binding (the ledger)
 
@@ -91,19 +99,22 @@ first and become plan steps.
 disposition, with a sentence:
 
 ```bash
-python3 fs.py resolve FS-13 applied "seeded 5x rows + 80-char titles; sweep re-run on merged tree"
+python3 fs.py resolve FS-13 applied "seeded 5x rows; \`pytest -k overflow\` re-run on merged tree"
 python3 fs.py resolve FS-84 na "no dependency or lockfile is touched by this change"
 python3 fs.py status            # open flags + tripwires opened
 ```
+
+`applied` must cite evidence that exists: a file path in the repo, a test name found in the
+test files, or a command in backticks. `na` needs a reason.
 
 Rules, with no exceptions for small changes or time pressure:
 
 1. **Never paraphrase a guard and never drop one.** If you think a guard does not apply,
    record that with `resolve <ID> na "<why>"`. The judgement is allowed; making it
    silently is not.
-2. **Agents get the guards verbatim.** Paste `fs.py brief` (or `fs.py brief --lane <name>`)
-   unchanged into every subagent, background agent or worktree prompt, and require each
-   id's disposition in the agent's final report. Resolve the parent ledger from those reports.
+2. **Agents get the guards verbatim.** Paste the lane's filled guard table, then `fs.py brief`
+   (or `fs.py brief --lane <name>`) unchanged, into every subagent, background agent or
+   worktree prompt, and require each id's disposition in the agent's final report. Resolve the parent ledger from those reports.
 3. **Tripwires are recorded.** `fs.py moment <name>` marks the moment as opened. Commits,
    pushes and PRs need `verify` and `merge`; a PR merge or deploy also needs `deploy`;
    dispatch needs `dispatch`.
@@ -117,8 +128,9 @@ Rules, with no exceptions for small changes or time pressure:
 
 With the gates installed (`./install.sh --hooks`, or the plugin's `hooks/hooks.json`),
 Claude Code enforces this:
-- dispatch is refused without the verbatim brief and the dispatch tripwire, and, once two
-  or more lanes are flagged, until lane 0 is flagged and resolved (section 3);
+- dispatch is refused without the verbatim brief, the dispatch tripwire and a filled guard
+  table, and, once two or more lanes are flagged, until lane 0 is flagged and resolved
+  (section 3);
 - `git push` / `gh pr create|merge` are refused while any flag is open or a required
   tripwire was skipped; `git commit` only waits for lane-less and lane-0 flags, so the
   integration branch can take commits while lanes run;

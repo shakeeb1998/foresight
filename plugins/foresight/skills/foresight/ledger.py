@@ -26,6 +26,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import re
 import subprocess
 import time
 import uuid
@@ -279,3 +280,70 @@ def brief_block(data: dict, lane: str | None = None) -> str:
     lines.append("Report each id's disposition in your final message (applied + evidence, or n/a + reason).")
     lines.append("<!-- /foresight-brief -->")
     return "\n".join(lines)
+
+
+# -- guard tables: the brief made concrete before dispatch ------------------------
+GUARD_HEAD = ("| id | concrete target in THIS change (file/field/endpoint) | named guard test or command "
+              "| owner lane | status |")
+MAX_ROWS = 10
+
+
+def guards_path(root: Path, lane: str = "") -> Path:
+    """<ledger dir>/guards-<lane>.md; the lane-less (plain brief) table is `main`."""
+    return path_for(root).with_suffix("") / f"guards-{lane or 'main'}.md"
+
+
+def _cell(text: str) -> str:
+    return " ".join(text.replace("|", "/").split())
+
+
+def init_guards(root: Path, data: dict, lane: str = "") -> Path:
+    """Write the lane's guard table from its top flags: id and guard text filled, target and test TODO."""
+    p = guards_path(root, lane)
+    rows = owed(data, lane or None)[:MAX_ROWS]
+    lines = [
+        f"<!-- foresight-guards lane={lane or 'main'} root={root} -->",
+        f"# Guards - {'lane ' + lane if lane else 'main'}",
+        "",
+        "Fill every TODO: the concrete file / field / endpoint in THIS change, and the named test or",
+        "command that goes red without the guard. Lane 0 writes these tests and runs them RED before",
+        "dispatch. Paste this table FIRST in the agent prompt, then the verbatim `fs.py brief`.",
+        "",
+        GUARD_HEAD,
+        "|----|----|----|----|----|",
+    ]
+    for f in rows:
+        lines.append(f"| {f['id']} | TODO | TODO (guard: {_cell(f['guard'])}) | {f.get('lane') or lane or 'main'} "
+                     f"| {f['status']} |")
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text("\n".join(lines) + "\n")
+    return p
+
+
+def read_guards(root: Path, lane: str = "") -> tuple[Path, list[list[str]] | None]:
+    """(path, rows) where each row is its cells; rows is None when there is no table."""
+    p = guards_path(root, lane)
+    if not p.exists():
+        return p, None
+    rows = []
+    for line in p.read_text().splitlines():
+        cells = [c.strip() for c in line.strip().strip("|").split("|")]
+        if line.lstrip().startswith("|") and cells and re.fullmatch(r"(FS-\d+|L-[a-z0-9-]+)", cells[0]):
+            rows.append(cells)
+    return p, rows
+
+
+def guard_problem(root: Path, lane: str = "") -> str:
+    """Why the lane's guard table is not ready for dispatch, or ""."""
+    p, rows = read_guards(root, lane)
+    flag = f" --lane {lane}" if lane else ""
+    if rows is None:
+        return (f"no guard table for {'lane ' + lane if lane else 'the plain brief'}. Run `fs.py guards{flag} --init`, "
+                f"then fill each row's concrete target and named guard test or command in {p}")
+    if not rows:
+        return f"the guard table {p} has zero rows. Re-run `fs.py guards{flag} --init` and fill it"
+    todo = [r[0] for r in rows if any("TODO" in c for c in r)]
+    if todo:
+        return (f"the guard table {p} still has TODO cells ({', '.join(todo)}). Replace each TODO with the concrete "
+                "file / field / endpoint in this change and the named test or command that guards it")
+    return ""

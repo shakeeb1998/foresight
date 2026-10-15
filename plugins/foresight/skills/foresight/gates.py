@@ -3,8 +3,10 @@
 Called by Claude Code hooks with the hook payload (JSON) on stdin:
 
     fs.py gate dispatch   PreToolUse  Agent|Task  - the prompt must carry every flagged
-                                                    guard verbatim (`fs.py brief`) and the
-                                                    dispatch tripwire must have been opened
+                                                    guard verbatim (`fs.py brief`), the
+                                                    dispatch tripwire must have been opened,
+                                                    and the lane's guard table (`fs.py guards`)
+                                                    must have rows and no TODO cell
     fs.py gate commit     PreToolUse  Bash        - git push and gh pr create|merge are refused
                                                     while any flag is open; git commit while a
                                                     lane-less or lane-0 flag is open (lanes may
@@ -222,6 +224,10 @@ def gate_dispatch(payload: dict) -> None:
                      "into the prompt unchanged.")
     if "dispatch" not in data.get("moments", {}):
         return _deny("foresight gate: dispatch refused, open `fs.py moment dispatch` first and apply what it lists.")
+    problem = ledger.guard_problem(root, lane)
+    if problem:
+        return _deny(f"foresight gate: dispatch refused, {problem}. Paste the filled table first in the prompt, "
+                     "then the verbatim brief.")
     # Two or more parallel lanes: the shared guards are built once, on the base, first.
     if lane and lane != ledger.LANE0 and len(ledger.lanes(data)) >= 2:
         zero = [f for f in ledger.task_flags(data) if f.get("lane") == ledger.LANE0]

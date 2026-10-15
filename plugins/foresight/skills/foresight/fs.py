@@ -19,6 +19,9 @@ Binding guards (the ledger; see ledger.py / gates.py):
   lands in, when the session runs elsewhere. Lane 0 (`--lane lane0`) holds the shared
   guards and must be resolved before 2+ lanes are dispatched.
   fs.py brief [--lane <name>]                 # verbatim block for every agent prompt
+  fs.py guards [--lane <name>] [--init]       # <ledger dir>/guards-<lane>.md: id | concrete target | named
+                                              # guard test or command | owner lane | status (max 10 rows);
+                                              # dispatch is refused while it has TODO cells or no rows
   fs.py resolve FS-13 applied "<evidence>"    # the guard ran: test / command / file
   fs.py resolve FS-13 na "<reason>"           # does not apply to this change, and why
   fs.py status [--strict]                     # flags + tripwires; --strict exits 1 if any open
@@ -207,6 +210,28 @@ def status(strict: bool, root: Path | None = None) -> int:
     return 1 if strict and still else 0
 
 
+def guards(root: Path, lane: str, init: bool) -> int:
+    """Write (--init) or check the lane's guard table; exit 1 while it is not ready for dispatch."""
+    try:
+        data = ledger.load(root)
+    except ledger.LedgerError as exc:
+        print(f"LEDGER ERROR: {exc}")
+        return 1
+    if not data:
+        print("nothing flagged here: run `fs.py match` first")
+        return 1
+    p = ledger.guards_path(root, lane)
+    if init and not p.exists():
+        print(f"wrote {ledger.init_guards(root, data, lane)}")
+    else:
+        print(f"{'exists' if init else 'table'} {p}")
+    if p.exists():
+        print(p.read_text().rstrip())
+    problem = ledger.guard_problem(root, lane)
+    print(f"NOT READY: {problem}" if problem else "ready: every row names a concrete target and a guard")
+    return 1 if problem and not init else 0
+
+
 def main() -> None:
     if len(sys.argv) < 2:
         print(__doc__)
@@ -234,6 +259,9 @@ def main() -> None:
         lane, _ = _opt(args, "--lane")
         data = ledger.load(root)
         print(ledger.brief_block(data, lane or None) if data else "nothing flagged here: run `fs.py match` first")
+    elif cmd == "guards":
+        lane, args = _opt(args, "--lane")
+        sys.exit(guards(root, lane, "--init" in args))
     elif cmd == "resolve":
         lane, args = _opt(args, "--lane")
         if len(args) < 3:
