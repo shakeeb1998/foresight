@@ -100,7 +100,7 @@ class GateContract(Harness):
     def lane0(self) -> None:
         self.assertIn("FLAGGED", self.fs("match", "--lane", "lane0", "widget list page shared setup").stdout)
         for fid in ("FS-01", "FS-02"):
-            r = self.fs("resolve", fid, "applied", "lane-0 shared guard built on the base branch", "--lane", "lane0")
+            r = self.fs("resolve", fid, "applied", "lane-0 shared guard built in tests/test_widget.py", "--lane", "lane0")
             self.assertEqual(r.returncode, 0, r.stderr)
 
     def test_parallel_lanes_dispatch_with_their_own_brief(self) -> None:
@@ -185,7 +185,7 @@ class GateContract(Harness):
         self.assertIn("FS-01", reason)
         self.assertNotIn("FS-03", reason, "lane b's open flags must not block lane a")
         for fid in ("FS-01", "FS-02"):
-            self.fs("resolve", fid, "applied", "lane a report: test_widget_roundtrip green", "--lane", "a")
+            self.fs("resolve", fid, "applied", "lane a report: test_widget_list_pagination_roundtrip green", "--lane", "a")
         self.assertEqual(self.bash("git merge --no-ff lane-a -m 'merge lane a'"), {})
 
     # -- never merge inside a tree a running server is serving -----------------

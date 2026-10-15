@@ -177,6 +177,10 @@ def resolve(root: Path, fid: str, status: str, note: str, lane: str = "") -> dic
         raise ValueError("status must be `applied` or `na`")
     if len(note.strip()) < MIN_REASON:
         raise ValueError(f"give the {'evidence' if status == 'applied' else 'reason'} in a sentence (>= {MIN_REASON} chars)")
+    if status == "applied":
+        missing = evidence_problem(root, note)
+        if missing:
+            raise ValueError(missing)
     data = load(root)
     if not data:
         raise ValueError("no active ledger here: nothing was flagged (run `fs.py match` first)")
@@ -190,6 +194,56 @@ def resolve(root: Path, fid: str, status: str, note: str, lane: str = "") -> dic
         f["at"] = time.strftime("%Y-%m-%dT%H:%M:%S")
     save(root, data)
     return data
+
+
+TEST_FILE = re.compile(r"(^test_.*\.py$|_test\.(py|go|rb)$|\.(test|spec)\.[cm]?[jt]sx?$|Tests?\.(kt|java|swift)$)")
+SOURCE_EXT = re.compile(r"\w\.(py|[cm]?[jt]sx?|go|rb|java|kt|swift|sql|md|json|ya?ml|toml|sh|css|html)$")
+TEST_DIRS = {"tests", "test", "__tests__", "e2e", "spec", "specs"}
+SKIP_DIRS = {".git", "node_modules", "venv", ".venv", "__pycache__", "dist", "build", "Pods", ".next", "vendor"}
+
+
+def _test_files(root: Path, limit: int = 5000):
+    n = 0
+    for dirpath, dirnames, filenames in os.walk(root):
+        dirnames[:] = [d for d in dirnames if d not in SKIP_DIRS]
+        in_tests = bool(TEST_DIRS & set(Path(dirpath).relative_to(root).parts))
+        for f in filenames:
+            if TEST_FILE.search(f) or (in_tests and Path(f).suffix in (".py", ".ts", ".tsx", ".js", ".jsx", ".go")):
+                n += 1
+                if n > limit:
+                    return
+                yield Path(dirpath) / f
+
+
+def evidence_problem(root: Path, note: str) -> str:
+    """Why `applied` evidence cites nothing that exists, or "".
+
+    Evidence is a command in backticks, a file path that exists in the repo, or a test
+    name found in the repo's test files."""
+    if re.search(r"`[^`]+`", note):
+        return ""
+    tokens = [t.strip(".,;:()[]{}'\"") for t in note.split()]
+    # `path:12` and `path::test_name` cite the file too.
+    bare = [re.sub(r":\d+(:\d+)?$", "", t.split("::")[0]) for t in tokens]
+    paths = [t for t in bare if "/" in t or SOURCE_EXT.search(t)]
+    for t in paths:
+        cand = Path(t) if t.startswith("/") else root / t
+        if t and cand.exists():
+            return ""
+    names = set(re.findall(r"\b(test_\w+|\w+_test|Test\w+|\w+Test)\b", note))
+    names |= {t.split("::")[-1] for t in tokens if "::" in t}
+    if names:
+        for f in _test_files(root):
+            try:
+                text = f.read_text(errors="replace")
+            except OSError:
+                continue
+            if any(n in text for n in names):
+                return ""
+    checked = ", ".join([*paths, *sorted(names)]) or "nothing that looks like a path or a test name"
+    return ("`applied` needs evidence that exists: a file path in the repo (tests/test_widget.py), a test name "
+            "found in the repo's test files (test_widget_roundtrip), or the command that ran, in backticks "
+            f"(`pytest -q -k widget`). Checked: {checked}. If the guard does not apply, use `na \"<why>\"`.")
 
 
 def visit(root: Path, moment: str) -> None:
