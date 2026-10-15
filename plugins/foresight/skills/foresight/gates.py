@@ -303,6 +303,8 @@ def gate_commit(payload: dict) -> None:
                 if reason:
                     return _deny(reason)
                 continue
+            if not (ledger.task_flags(data) or (branch and ledger.lane_for_branch(data, branch))):
+                continue  # nothing flagged for the current task or this branch
             if action == "commit":
                 # A commit on the integration branch may land while lanes are still running; their
                 # flags hold back push / PR / merge (and the lane's own `git merge <branch>`).
@@ -334,8 +336,8 @@ def gate_dispatch(payload: dict) -> None:
         data = ledger.load(root)
     except ledger.LedgerError as exc:
         return _deny(f"foresight gate: {exc}")
-    if not data:
-        return
+    if not data or not ledger.task_flags(data):
+        return  # nothing flagged for the current task
     # A lane brief (`fs.py brief --lane X`) owes that lane's guards plus the lane-less
     # ones; a plain brief owes every flag of the current task (ledger.owed).
     owed = ledger.owed(data, lane or None)
@@ -353,9 +355,10 @@ def gate_dispatch(payload: dict) -> None:
     # Two or more parallel lanes: the shared guards are built once, on the base, first.
     if lane and lane != ledger.LANE0 and len(ledger.lanes(data)) >= 2:
         zero = [f for f in ledger.task_flags(data) if f.get("lane") == ledger.LANE0]
-        if not zero or ledger.open_flags(data, ledger.LANE0, scoped=True):
+        zero_open = ledger.open_flags(data, ledger.LANE0, scoped=True)
+        if not zero or zero_open:
             return _deny("foresight gate: dispatch refused, " + str(len(ledger.lanes(data))) + " lanes are flagged but "
-                         "lane0 is " + ("not flagged" if not zero else "unresolved: " + _list(ledger.open_flags(data, ledger.LANE0, scoped=True)))
+                         "lane0 is " + ("not flagged" if not zero else "unresolved: " + _list(zero_open))
                          + ". Run `fs.py match --lane lane0 \"<shared setup work>\"`, build and resolve those guards "
                          "on the base branch, then dispatch the lanes.")
 

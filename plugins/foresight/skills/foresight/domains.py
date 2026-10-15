@@ -187,6 +187,8 @@ def ensure_profile(root: Path) -> tuple[set[str], str]:
     data = load_profile(root)
     if data is not None:
         return set(data.get("domains") or []), ""
+    if not (root / ".git").exists():
+        return set(), ""  # not a repo checkout (e.g. $HOME): never write a profile there
     p, data = init_profile(root)
     found = ", ".join(data["domains"]) or "nothing (no filter)"
     return set(data["domains"]), f"profile: detected {found} for {root}; wrote {p} (edit it to change)"
