@@ -8,10 +8,13 @@ Called by Claude Code hooks with the hook payload (JSON) on stdin:
                                                     and the lane's guard table (`fs.py guards`)
                                                     must have rows and no TODO cell
     fs.py gate commit     PreToolUse  Bash        - git push and gh pr create|merge are refused
-                                                    while any flag is open; git commit while a
-                                                    lane-less or lane-0 flag is open (lanes may
-                                                    still be running); all need the verify /
-                                                    merge (/ deploy) tripwires.
+                                                    while a flag owed by the shipped branch is
+                                                    open (its bound lane + the current task's
+                                                    lane-less flags); the ledger is found from
+                                                    the branch, so another cwd is no bypass;
+                                                    git commit while a lane-less or lane-0 flag
+                                                    is open (lanes may still be running); all
+                                                    need the verify / merge (/ deploy) tripwires.
                                                     git merge <lane branch> waits for that
                                                     lane's flags; git merge|pull|rebase|
                                                     cherry-pick|am is refused inside a checkout a
@@ -169,34 +172,153 @@ def _gate_integrate(root: Path, data: dict, args: list[str]) -> str:
     return ""
 
 
+GH_VALUED = {"-R", "--repo", "-t", "--title", "--subject", "-b", "--body", "-F", "--body-file", "-B", "--base",
+             "-H", "--head", "--match-head-commit", "-A", "--author-email", "-r", "--reviewer", "-a", "--assignee",
+             "-l", "--label", "-m", "--milestone", "-p", "--project", "-T", "--template"}
+
+
+def _git(root: Path | str, *args: str) -> subprocess.CompletedProcess[str] | None:
+    try:
+        return subprocess.run(["git", "-C", str(root), *args], capture_output=True, text=True, timeout=5)
+    except (OSError, subprocess.TimeoutExpired):
+        return None
+
+
+def _current_branch(root: Path | str) -> str:
+    r = _git(root, "rev-parse", "--abbrev-ref", "HEAD")
+    b = r.stdout.strip() if r and r.returncode == 0 else ""
+    return "" if b == "HEAD" else b
+
+
+def _has_branch(root: Path, branch: str) -> bool:
+    r = _git(root, "show-ref", "--verify", "--quiet", f"refs/heads/{branch}")
+    return bool(r and r.returncode == 0)
+
+
+def _opt_value(args: list[str], *names: str) -> str:
+    for i, a in enumerate(args):
+        for n in names:
+            if a == n and i + 1 < len(args):
+                return args[i + 1]
+            if a.startswith(n + "=") and n.startswith("--"):
+                return a.split("=", 1)[1]
+    return ""
+
+
+def _positional(args: list[str], valued: set[str]) -> list[str]:
+    out, skip = [], False
+    for a in args:
+        if skip:
+            skip = False
+        elif a in valued:
+            skip = True
+        elif not a.startswith("-"):
+            out.append(a)
+    return out
+
+
+def _branch_of(action: str, args: list[str], here: str) -> str:
+    """The branch a push / PR create / PR merge ships ("" when it cannot be told)."""
+    if action == "push":
+        pos = _positional(args, {"-o", "--push-option", "--repo", "--receive-pack", "--exec"})
+        if len(pos) < 2:
+            return _current_branch(here)
+        src = pos[1].lstrip("+").split(":")[0] or pos[1].split(":")[-1]
+        return _current_branch(here) if src == "HEAD" else src.removeprefix("refs/heads/")
+    if action == "pr":
+        return _opt_value(args, "-H", "--head") or _current_branch(here)
+    pos = _positional(args, GH_VALUED)
+    if not pos:
+        return _current_branch(here)
+    ref = pos[0]
+    if not re.fullmatch(r"\d+|https?://\S+", ref):
+        return ref
+    repo = _opt_value(args, "-R", "--repo")
+    try:
+        r = subprocess.run(["gh", "pr", "view", ref, "--json", "headRefName", "-q", ".headRefName",
+                            *(["-R", repo] if repo else [])], capture_output=True, text=True, timeout=10,
+                           cwd=here if Path(here).is_dir() else None)
+    except (OSError, subprocess.TimeoutExpired):
+        return ""
+    return r.stdout.strip() if r.returncode == 0 else ""
+
+
+def _roots_for(branch: str, here: str, repo: str) -> list[tuple[Path, bool]]:
+    """(root, own) for every ledger that owes guards to `branch`.
+
+    The session's own checkout first; then any ledger with a lane bound to the branch;
+    and, when the session's checkout is not the repo the branch belongs to (running from
+    another cwd), every active ledger whose repo has that branch (narrowed by `-R`)."""
+    own = ledger.toplevel(here)
+    out = [(own, True)]
+    if not branch:
+        return out
+    bound = [r for r, d in ledger.active() if r != own and ledger.lane_for_branch(d, branch)]
+    out += [(r, False) for r in bound]
+    if not bound and not _has_branch(own, branch):
+        for r, _ in ledger.active():
+            if r == own or not _has_branch(r, branch):
+                continue
+            if repo:
+                url = _git(r, "remote", "get-url", "origin")
+                if not url or repo.lower() not in url.stdout.lower():
+                    continue
+            out.append((r, False))
+    return out
+
+
+def _owed_by_branch(data: dict, branch: str) -> list[dict]:
+    """Open flags that hold back shipping `branch`: the lane bound to it plus the current task's
+    lane-less flags; for a branch no lane is bound to, the current task's flags minus lanes
+    bound to other branches. Flags of unrelated lanes and earlier tasks never block."""
+    cur = ledger.open_flags(data, scoped=True)
+    lane = ledger.lane_for_branch(data, branch) if branch else ""
+    if lane:
+        return ledger.open_flags(data, lane) + [f for f in cur if not f.get("lane")]
+    bound = {name for name, meta in (data.get("lanes") or {}).items() if meta.get("branch")}
+    return [f for f in cur if f.get("lane", "") not in bound]
+
+
 def gate_commit(payload: dict) -> None:
     cmd = (payload.get("tool_input") or {}).get("command") or ""
     cwd = payload.get("cwd") or "."
-    for action, where, args in classify(cmd, cwd):
-        root = ledger.toplevel(where)
-        try:
-            data = ledger.load(root)
-        except ledger.LedgerError as exc:
-            return _deny(f"foresight gate: {exc}")
-        if not data:
-            continue
-        if action == "integrate":
-            reason = _gate_integrate(root, data, args)
-            if reason:
-                return _deny(reason)
-            continue
-        # A commit on the integration branch may land while lanes are still running; their
-        # flags hold back push / PR / merge (and the lane's own `git merge <branch>`).
-        still = [f for f in ledger.open_flags(data, scoped=True)
-                 if action != "commit" or f.get("lane", "") in ("", ledger.LANE0)]
-        if still:
-            return _deny(f"foresight gate: `{action}` refused, {len(still)} flagged guard(s) in {root} have no "
-                         f"disposition: {_list(still)}. {_resolve_hint()}")
-        missing = [m for m in REQUIRED[action] if m not in data.get("moments", {})]
-        if missing:
-            return _deny(f"foresight gate: `{action}` refused, tripwire(s) not opened for {root}: "
-                         + ", ".join(f"`fs.py moment {m}`" for m in missing)
-                         + ". Open each and apply what it lists before this step.")
+    found = classify(cmd, cwd)
+    if not found or not any((ledger.home() / "ledgers").glob("*.json")):
+        return  # nothing flagged anywhere: skip the git / gh lookups
+    for action, where, args in found:
+        if action in ("push", "pr", "merge"):
+            branch = _branch_of(action, args, where)
+            roots = _roots_for(branch, where, _opt_value(args, "-R", "--repo"))
+        else:
+            branch, roots = "", [(ledger.toplevel(where), True)]
+        for root, own in roots:
+            try:
+                data = ledger.load(root)
+            except ledger.LedgerError as exc:
+                return _deny(f"foresight gate: {exc}")
+            if not data:
+                continue
+            if action == "integrate":
+                reason = _gate_integrate(root, data, args)
+                if reason:
+                    return _deny(reason)
+                continue
+            if action == "commit":
+                # A commit on the integration branch may land while lanes are still running; their
+                # flags hold back push / PR / merge (and the lane's own `git merge <branch>`).
+                still = [f for f in ledger.open_flags(data, scoped=True) if f.get("lane", "") in ("", ledger.LANE0)]
+            else:
+                still = _owed_by_branch(data, branch)
+            what = f"`{action}`" + (f" of `{branch}`" if branch else "")
+            if still:
+                return _deny(f"foresight gate: {what} refused, {len(still)} flagged guard(s) in {root} have no "
+                             f"disposition: {_list(still)}. {_resolve_hint()}"
+                             + ("" if own else f" (Pass `--root {root}` to fs.py.)"))
+            missing = [m for m in REQUIRED[action] if m not in data.get("moments", {})] if own else []
+            if missing:
+                return _deny(f"foresight gate: {what} refused, tripwire(s) not opened for {root}: "
+                             + ", ".join(f"`fs.py moment {m}`" for m in missing)
+                             + ". Open each and apply what it lists before this step.")
 
 
 BRIEF = re.compile(r"<!-- foresight-brief v1(?: lane=(?P<lane>[^ >]+))?(?: root=(?P<root>[^>]+?))? -->")

@@ -131,9 +131,11 @@ Claude Code enforces this:
 - dispatch is refused without the verbatim brief, the dispatch tripwire and a filled guard
   table, and, once two or more lanes are flagged, until lane 0 is flagged and resolved
   (section 3);
-- `git push` / `gh pr create|merge` are refused while any flag is open or a required
-  tripwire was skipped; `git commit` only waits for lane-less and lane-0 flags, so the
-  integration branch can take commits while lanes run;
+- `git push <branch>` / `gh pr create|merge` are refused while a flag owed by that branch is
+  open (the lane bound to it with `--branch`, plus this task's lane-less flags) or a required
+  tripwire was skipped. Unrelated lanes and earlier tasks never block. The ledger is found
+  from the branch, so running from another cwd is no bypass. `git commit` only waits for
+  lane-less and lane-0 flags, so the integration branch can take commits while lanes run;
 - `git merge <lane branch>` is refused until that lane's flags have a disposition;
 - `git merge|pull|rebase|cherry-pick|am` is refused inside a checkout that a listening
   server runs from (`--ff-only`, `--abort`, `--continue` pass) (FS-111);

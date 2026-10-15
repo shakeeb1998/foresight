@@ -79,6 +79,21 @@ def load(root: Path) -> dict | None:
     return data if data.get("state") == "active" else None
 
 
+def active() -> list[tuple[Path, dict]]:
+    """(root, ledger) for every active ledger under home(); unreadable ones are skipped."""
+    out = []
+    for p in sorted((home() / "ledgers").glob("*.json")):
+        if p.name.endswith(".closed.json"):
+            continue
+        try:
+            data = json.loads(p.read_text())
+        except (OSError, ValueError):
+            continue
+        if isinstance(data, dict) and data.get("state") == "active" and data.get("root"):
+            out.append((Path(data["root"]), data))
+    return out
+
+
 def save(root: Path, data: dict) -> Path:
     p = path_for(root)
     p.parent.mkdir(parents=True, exist_ok=True)
