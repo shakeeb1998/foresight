@@ -183,8 +183,9 @@ the scoped tests, then `git -C <served> merge --ff-only <integration branch>`.
 Then, for the rest of the plan:
 
 1. **Brief per lane.** Run `fs.py match --lane <name> --branch <lane branch> "<lane work>"`
-   for each lane and paste `fs.py brief --lane <name>` verbatim into its dispatch prompt
-   (section 1b). `--branch` lets the gate hold `git merge <branch>` until that lane is done.
+   for each lane, fill `fs.py guards --lane <name> --init`, and paste the table, then
+   `fs.py brief --lane <name>` verbatim, into its dispatch prompt (section 1). `--branch` lets
+   the gate hold `git merge <branch>`, `git push <branch>` and its PR until that lane is done.
 2. **Lanes merge only when green on their own branch** (their own e2e specs plus scoped
    unit tests, FS-04) **and resolved:** record each guard's disposition from the lane's
    report with `fs.py resolve <ID> applied|na "<evidence>" --lane <name>` at merge time,

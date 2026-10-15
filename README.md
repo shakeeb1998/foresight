@@ -15,7 +15,8 @@ then contribute an anonymized version back.
 plugins/foresight/skills/
 ├── foresight/                 # use it: plan-time brief + tripwires
 │   ├── SKILL.md
-│   ├── fs.py                  # navigator: match / show / moment / index
+│   ├── fs.py                  # navigator: match / show / moment / index, ledger, guards, hooks
+│   ├── domains.json           # explicit domain tags for task / pattern nodes (accounting, mobile, ...)
 │   └── okf/                   # the graph (Open Knowledge Format bundle)
 │       ├── index.md           # entry: domains → tasks
 │       ├── domains/           # backend · web-frontend · mobile · cross-cutting
@@ -83,14 +84,36 @@ so Claude Code enforces it:
 
 ```bash
 ./install.sh --claude --hooks     # merges three hooks into ~/.claude/settings.json (backed up first)
+python3 fs.py hooks status        # installed / missing per gate (--agent cursor for ~/.cursor/hooks.json)
+python3 fs.py hooks install       # same merge as --hooks;  `fs.py hooks decline` records an opt-out
 ```
 
-- **dispatch** (`PreToolUse` Agent/Task): the prompt must carry every flagged guard verbatim, and `fs.py moment dispatch` must have been opened. Once two or more lanes are flagged, no lane is dispatched until **lane 0** (`fs.py match --lane lane0 ...`, the shared setup) is flagged and resolved.
+On first use the skill runs `fs.py hooks status`. If a gate is missing, it lists what each one
+enforces and asks before installing. A "no" is recorded, so you are not asked again.
+
+- **dispatch** (`PreToolUse` Agent/Task): the prompt must carry every flagged guard verbatim, `fs.py moment dispatch` must have been opened, and the lane's guard table (`fs.py guards --lane <name> --init`, then fill it) must have rows and no TODO cell. Once two or more lanes are flagged, no lane is dispatched until **lane 0** (`fs.py match --lane lane0 ...`, the shared setup) is flagged and resolved.
 - **commit** (`PreToolUse` Bash):
-  - `git push` / `gh pr create|merge` are refused while any flag is open, or while the `verify` / `merge` (and for merges, `deploy`) tripwires were skipped; `git commit` waits only for lane-less and lane-0 flags, so an integration branch can take commits while lanes run.
+  - `git push <branch>` / `gh pr create|merge` are refused while a flag owed by that branch is open (the lane bound to it with `--branch`, plus the current task's lane-less flags), or while the `verify` / `merge` (and for merges, `deploy`) tripwires were skipped. Flags of unrelated lanes and of earlier tasks never block. The ledger is found from the branch (`gh pr view` gives a PR's head), so running from another cwd is not a bypass. `git commit` waits only for lane-less and lane-0 flags, so an integration branch can take commits while lanes run.
   - `git merge <branch>` is refused while the lane that delivers on that branch (`fs.py match --lane X --branch <branch>`) has open flags: each lane is resolved when it merges, not in one batch.
   - `git merge|pull|rebase|cherry-pick|am` is refused in a checkout that a listening server runs from (found with `lsof`); `--ff-only`, `--abort`, `--continue` pass. Merge in a separate integration worktree, then fast-forward the served one (FS-111).
 - **stop**: ending the turn with open flags is refused once.
+
+**Guard tables.** `fs.py guards --lane <name> --init` writes `~/.foresight/ledgers/<id>/guards-<name>.md`,
+at most 10 rows: `| id | concrete target in THIS change | named guard test or command | owner lane | status |`.
+Fill the TODO cells, write the named tests in lane 0 and run them red, then paste the table first in the
+agent prompt, before the verbatim brief.
+
+**Evidence.** `fs.py resolve <ID> applied "<evidence>"` must cite something that exists: a file path in
+the repo, a test name found in the repo's test files, or a command in backticks. `na` needs a reason.
+
+**Repo profile and task scope.** The first `match` in a repo writes `.foresight/profile.json` (or into an
+existing `.claude/foresight` / `.cursor/foresight` dir) with the domains it detects: `backend` (manage.py,
+Django / FastAPI / Flask), `web-frontend` (React / Vue / Svelte), `mobile` (react-native, expo, ios/,
+android/), `accounting` (ledger / journal-entry markers), `doc-parsing`. Edit it freely. `match` and `brief`
+skip task and pattern nodes outside those domains (`--domains web,backend` overrides; cross-cutting nodes
+always stay), so a Django + React change gets no mobile, RTL or accounting rows. Every flag also records the
+task that raised it (`$FORESIGHT_TASK`, or an id generated on the task's first match; `match --new-task`
+starts a new one): briefs and gates only owe the current task's flags.
 
 **Work landing in another checkout.** Every ledger command takes `--root <path>` (or `FORESIGHT_ROOT`): the session can run in one repo while the flags, briefs and gates follow the repo the change lands in. Briefs carry `root=`, so the dispatch gate checks the right ledger.
 
