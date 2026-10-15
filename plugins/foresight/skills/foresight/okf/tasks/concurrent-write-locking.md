@@ -15,3 +15,4 @@ in-domain: [backend](../domains/backend.md)
 predicts (incidents while doing this task):
 - [FS-40](../patterns/fs-40.md) Invariant enforced in app code without a lock or DB constraint (18)
 - [FS-33](../patterns/fs-33.md) Test double or harness silently diverges from the real runtime (2)
+- [FS-07](../patterns/fs-07.md) Parallel code paths for one operation diverge (2)

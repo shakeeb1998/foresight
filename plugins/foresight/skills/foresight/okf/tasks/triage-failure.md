@@ -13,6 +13,6 @@ Diagnosing: attributing red tests to the diff vs a pre-existing baseline, confir
 in-domain: [cross-cutting](../domains/cross-cutting.md)
 
 predicts (incidents while doing this task):
-- [FS-14](../patterns/fs-14.md) Failure cause attributed without a controlled comparison (44)
+- [FS-14](../patterns/fs-14.md) Failure cause attributed without a controlled comparison (45)
 - [FS-34](../patterns/fs-34.md) Nondeterministic test timing and ordering (5)
 - [FS-09](../patterns/fs-09.md) Green signal whose scope doesn't cover the claim (3)

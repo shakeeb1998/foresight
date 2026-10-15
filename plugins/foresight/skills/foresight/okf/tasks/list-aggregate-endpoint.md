@@ -14,10 +14,11 @@ in-domain: [backend](../domains/backend.md)
 
 predicts (incidents while doing this task):
 - [FS-06](../patterns/fs-06.md) Per-row queries and unbounded fetches invisible at seed scale (27)
-- [FS-26](../patterns/fs-26.md) Boundary values and NULL/join semantics not exercised (11)
+- [FS-26](../patterns/fs-26.md) Boundary values and NULL/join semantics not exercised (12)
 - [FS-07](../patterns/fs-07.md) Parallel code paths for one operation diverge (6)
 - [FS-38](../patterns/fs-38.md) Soft-deleted and terminal-state rows ignored by constraints and queries (5)
 - [FS-03](../patterns/fs-03.md) Code written against an assumed interface instead of the real one (4)
 - [FS-02](../patterns/fs-02.md) Verification against an environment not running the code under test (2)
+- [FS-41](../patterns/fs-41.md) Client derives answers from one page of a paginated list (2)
 - [FS-16](../patterns/fs-16.md) Client-supplied id resolved outside the tenant-scoped queryset (2)
 - [FS-55](../patterns/fs-55.md) Rule keyed on a proxy signal instead of the defining type, status or link (2)

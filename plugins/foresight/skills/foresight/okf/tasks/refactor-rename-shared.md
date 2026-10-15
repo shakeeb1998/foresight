@@ -13,8 +13,8 @@ Changes to something many callers depend on: renaming exports, redesigning a sha
 in-domain: [cross-cutting](../domains/cross-cutting.md)
 
 predicts (incidents while doing this task):
-- [FS-19](../patterns/fs-19.md) Behavior change leaves dependent tests, drivers and mocks stale (17)
-- [FS-23](../patterns/fs-23.md) Shared identifier changed or claimed without enumerating its users (13)
+- [FS-19](../patterns/fs-19.md) Behavior change leaves dependent tests, drivers and mocks stale (18)
+- [FS-23](../patterns/fs-23.md) Shared identifier changed or claimed without enumerating its users (14)
 - [FS-117](../patterns/fs-117.md) Refactor or rewrite silently drops behavior the original had (7)
 - [FS-27](../patterns/fs-27.md) Existing primitive or house pattern bypassed (4)
 - [FS-07](../patterns/fs-07.md) Parallel code paths for one operation diverge (4)
