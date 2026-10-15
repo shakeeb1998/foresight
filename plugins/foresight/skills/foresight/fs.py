@@ -10,6 +10,11 @@ Binding guards (the ledger; see ledger.py / gates.py):
   match records the top task's predictions as flags for this checkout
   [--lane <name>] tags them for one parallel lane; [--branch <b>] records the lane's branch
   (`git merge <b>` waits for that lane's flags); [--no-record] only prints.
+  [--domains web,backend,...] filters tasks and patterns to those domains; without it the
+  query's domains within the repo profile are used (`fs.py profile`, auto-created).
+  [--new-task] starts a new task: flags of earlier tasks never reach its brief or gates
+  ($FORESIGHT_TASK names the task explicitly).
+  fs.py profile [--init|--show]               # <repo>/.foresight/profile.json: the repo's domains
   Every ledger command takes [--root <path>] (or $FORESIGHT_ROOT): the checkout the work
   lands in, when the session runs elsewhere. Lane 0 (`--lane lane0`) holds the shared
   guards and must be resolved before 2+ lanes are dispatched.
@@ -37,6 +42,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
+import domains  # noqa: E402
 import ledger  # noqa: E402
 STOP = {"a", "an", "the", "to", "for", "of", "and", "or", "in", "on", "with", "add", "new", "fix"}
 STOP |= {"make", "build", "update", "when", "is", "it", "this", "that"}
@@ -89,12 +95,22 @@ def words(s: str) -> set[str]:
     return {w for w in re.findall(r"[a-z0-9]+", s.lower()) if w not in STOP and len(w) > 2}
 
 
-def match(query: str, lane: str = "", record: bool = True, root: Path | None = None, branch: str = "") -> None:
+def match(query: str, lane: str = "", record: bool = True, root: Path | None = None, branch: str = "",
+          explicit: str = "", new_task: bool = False) -> None:
+    root = root or ledger.toplevel()
+    work, note = domains.work_domains(explicit, query, root)
+    if note:
+        print(note)
+    if work:
+        print(f"domains: {', '.join(sorted(work))} (tasks and patterns outside them are skipped)\n")
     q = words(query)
     scored = []
     for b in bundles():
         for t in (b / "tasks").glob("*.md"):
             meta, body = front(t)
+            tdoms = domains.task_domains(t.stem, meta.get("domains") or meta.get("tags", ""))
+            if not domains.allowed(tdoms, work):
+                continue
             desc = body.split("predicts")[0]
             score = 3 * len(q & words(meta.get("title", "") + " " + meta.get("tags", ""))) + len(
                 q & words(desc)
@@ -112,21 +128,25 @@ def match(query: str, lane: str = "", record: bool = True, root: Path | None = N
             m = re.match(r"- \[(FS-\d+|L-[a-z0-9-]+)\]\([^)]*\)\s*(.*?)(?:\s*\(\d+\))?$", line)
             if m:
                 fid = m.group(1)
-                guard = first_guard(t.parent.parent / "patterns" / f"{fid.lower()}.md")
+                pfile = t.parent.parent / "patterns" / f"{fid.lower()}.md"
+                pdoms = domains.pattern_domains(fid, front(pfile)[0].get("tags", "") if pfile.exists() else "")
+                if not domains.allowed(pdoms, work):
+                    continue
+                guard = first_guard(pfile)
                 print(f"{line}\n    guard: {guard}")
                 if rank == 0 and len(flags) < 10:
-                    flags.append({"id": fid, "title": m.group(2).strip(), "guard": guard})
+                    flags.append({"id": fid, "title": m.group(2).strip(), "guard": guard, "domains": pdoms})
         print()
     if record and flags:
-        root = root or ledger.toplevel()
         try:
-            data = ledger.record_flags(root, query, top[0][2].stem, flags, lane, branch)
+            data = ledger.record_flags(root, query, top[0][2].stem, flags, lane, branch, work, new_task)
         except ledger.LedgerError as exc:
             print(f"LEDGER ERROR: {exc}")
             return
-        n = len(ledger.open_flags(data))
+        n = len(ledger.open_flags(data, scoped=True))
         print(f"FLAGGED ({top[0][2].stem}{', lane ' + lane if lane else ''}): {len(flags)} guard(s) are now binding "
-              f"for {root} ({n} open). Each needs `fs.py resolve <ID> applied|na \"<sentence>\"`. "
+              f"for {root} ({n} open, task {ledger.current_task(data)}). Each needs "
+              "`fs.py resolve <ID> applied|na \"<sentence>\"`. "
               "Paste `fs.py brief` verbatim into every agent prompt. Commits, PRs and dispatch are gated until resolved.")
 
 
@@ -173,13 +193,17 @@ def status(strict: bool, root: Path | None = None) -> int:
     if not data:
         print(f"no active ledger for {root}: nothing flagged, gates are open")
         return 0
-    print(f"ledger for {root} (since {data['created']})")
-    for f in data["flags"]:
+    print(f"ledger for {root} (since {data['created']}, task {ledger.current_task(data) or 'untracked'})")
+    for f in ledger.task_flags(data):
         lane = f" [{f['lane']}]" if f.get("lane") else ""
         note = f" - {f.get('note', '')}" if f["status"] != "open" else ""
         print(f"  {f['status']:<8} {f['id']}{lane}  {f['title']}{note}")
     print("  tripwires opened: " + (", ".join(sorted(data.get("moments", {}))) or "none"))
-    still = ledger.open_flags(data)
+    earlier = [f for f in data["flags"] if not ledger.in_task(data, f)]
+    if earlier:
+        print(f"  {len(earlier)} flag(s) from earlier tasks hidden "
+              f"({len([f for f in earlier if f['status'] == 'open'])} still open; they never reach a brief or a gate)")
+    still = ledger.open_flags(data, scoped=True)
     return 1 if strict and still else 0
 
 
@@ -194,8 +218,16 @@ def main() -> None:
     if cmd == "match":
         lane, args = _opt(args, "--lane")
         branch, args = _opt(args, "--branch")
+        doms, args = _opt(args, "--domains")
         record = "--no-record" not in args
-        match(" ".join(a for a in args if a != "--no-record"), lane, record, root, branch)
+        new_task = "--new-task" in args
+        query = " ".join(a for a in args if a not in ("--no-record", "--new-task"))
+        match(query, lane, record, root, branch, doms, new_task)
+    elif cmd == "profile":
+        if "--init" in args or domains.load_profile(root) is None:
+            p, _ = domains.init_profile(root)
+            print(f"wrote {p}", file=sys.stderr)
+        print(domains.profile_path(root).read_text().rstrip())
     elif cmd == "show":
         show(args)
     elif cmd == "brief":

@@ -185,7 +185,7 @@ def gate_commit(payload: dict) -> None:
             continue
         # A commit on the integration branch may land while lanes are still running; their
         # flags hold back push / PR / merge (and the lane's own `git merge <branch>`).
-        still = [f for f in ledger.open_flags(data)
+        still = [f for f in ledger.open_flags(data, scoped=True)
                  if action != "commit" or f.get("lane", "") in ("", ledger.LANE0)]
         if still:
             return _deny(f"foresight gate: `{action}` refused, {len(still)} flagged guard(s) in {root} have no "
@@ -212,9 +212,9 @@ def gate_dispatch(payload: dict) -> None:
         return _deny(f"foresight gate: {exc}")
     if not data:
         return
-    # A lane brief (`fs.py brief --lane X`) owes that lane's guards plus the
-    # lane-less ones; a plain brief owes every flag in the ledger.
-    owed = [f for f in data["flags"] if not lane or f.get("lane", "") in ("", lane)]
+    # A lane brief (`fs.py brief --lane X`) owes that lane's guards plus the lane-less
+    # ones; a plain brief owes every flag of the current task (ledger.owed).
+    owed = ledger.owed(data, lane or None)
     absent = [f for f in owed if f"[{f['id']}]" not in prompt or f["guard"][:60] not in prompt]
     if absent:
         return _deny("foresight gate: dispatch refused, the prompt does not carry these flagged guards verbatim: "
@@ -224,10 +224,10 @@ def gate_dispatch(payload: dict) -> None:
         return _deny("foresight gate: dispatch refused, open `fs.py moment dispatch` first and apply what it lists.")
     # Two or more parallel lanes: the shared guards are built once, on the base, first.
     if lane and lane != ledger.LANE0 and len(ledger.lanes(data)) >= 2:
-        zero = [f for f in data["flags"] if f.get("lane") == ledger.LANE0]
-        if not zero or ledger.open_flags(data, ledger.LANE0):
+        zero = [f for f in ledger.task_flags(data) if f.get("lane") == ledger.LANE0]
+        if not zero or ledger.open_flags(data, ledger.LANE0, scoped=True):
             return _deny("foresight gate: dispatch refused, " + str(len(ledger.lanes(data))) + " lanes are flagged but "
-                         "lane0 is " + ("not flagged" if not zero else "unresolved: " + _list(ledger.open_flags(data, ledger.LANE0)))
+                         "lane0 is " + ("not flagged" if not zero else "unresolved: " + _list(ledger.open_flags(data, ledger.LANE0, scoped=True)))
                          + ". Run `fs.py match --lane lane0 \"<shared setup work>\"`, build and resolve those guards "
                          "on the base branch, then dispatch the lanes.")
 
@@ -241,7 +241,7 @@ def gate_stop(payload: dict) -> None:
         return
     # Lane flags belong to the agents dispatched with them; their reports resolve
     # them, and commits / PRs stay gated until they do. Stop holds only the rest.
-    still = [f for f in ledger.open_flags(data) if not f.get("lane")]
+    still = [f for f in ledger.open_flags(data, scoped=True) if not f.get("lane")]
     if not still:
         return
     msg = f"foresight gate: {len(still)} flagged guard(s) have no disposition: {_list(still)}. {_resolve_hint()}"

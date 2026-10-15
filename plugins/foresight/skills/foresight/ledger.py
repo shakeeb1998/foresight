@@ -13,6 +13,11 @@ is never committed and parallel worktrees never share one:
 
     ~/.foresight/ledgers/<sha1(toplevel)[:12]>.json   ($FORESIGHT_HOME overrides ~/.foresight)
 
+Flags are scoped to the task that recorded them. The current task id comes from
+$FORESIGHT_TASK, else it is generated on the first match of a task and stored here
+(`current_task`). Briefs and gates only owe the current task's flags, so lanes and
+flags left by earlier work in the same checkout never leak into a new brief.
+
 Stdlib only.
 """
 
@@ -23,9 +28,11 @@ import json
 import os
 import subprocess
 import time
+import uuid
 from pathlib import Path
 
 MIN_REASON = 15  # a disposition is a sentence, not "n/a" or "done"
+TASK_IDLE = 6 * 3600  # a lane-less match after this long without a match starts a new task
 
 
 class LedgerError(Exception):
@@ -85,25 +92,81 @@ def _new(root: Path) -> dict:
     return {"root": str(root), "state": "active", "created": now, "flags": [], "moments": {}, "log": []}
 
 
-def record_flags(root: Path, query: str, task: str, flags: list[dict], lane: str = "", branch: str = "") -> dict:
+def current_task(data: dict | None) -> str | None:
+    """The task the ledger is working on; None for a ledger written before tasks were tracked."""
+    return (data or {}).get("current_task")
+
+
+def in_task(data: dict | None, f: dict) -> bool:
+    cur = current_task(data)
+    return cur is None or f.get("task_id") == cur
+
+
+def task_flags(data: dict | None) -> list[dict]:
+    return [f for f in (data or {}).get("flags", []) if in_task(data, f)]
+
+
+def _idle(data: dict) -> bool:
+    last = next((e.get("at") for e in reversed(data.get("log", [])) if e.get("task_id") == current_task(data)), None)
+    try:
+        return time.time() - time.mktime(time.strptime(last, "%Y-%m-%dT%H:%M:%S")) > TASK_IDLE
+    except (TypeError, ValueError):
+        return True
+
+
+def _start_task(data: dict, lane: str, new_task: bool) -> None:
+    """Rotate `current_task` when this match starts new work.
+
+    New work: $FORESIGHT_TASK names another task (or was set before and is not now),
+    `--new-task`, a ledger with no current task, or a lane-less match once the current
+    task has nothing open or has been idle for TASK_IDLE. Each new task gets fresh tripwires.
+    """
+    env = os.environ.get("FORESIGHT_TASK", "").strip()
+    cur, src = current_task(data), data.get("task_source")
+    if env:
+        rotate, tid = env != cur, env
+    else:
+        tid = time.strftime("%Y%m%d%H%M%S-") + uuid.uuid4().hex[:6]
+        rotate = new_task or cur is None or src == "env" or (
+            not lane and (not open_flags(data, scoped=True) or _idle(data)))
+    if rotate:
+        data["current_task"], data["task_source"] = tid, "env" if env else "generated"
+        data["moments"] = {}
+        data.setdefault("tasks", []).append({"id": tid, "since": time.strftime("%Y-%m-%dT%H:%M:%S")})
+
+
+def record_flags(root: Path, query: str, task: str, flags: list[dict], lane: str = "", branch: str = "",
+                 domains: set[str] | None = None, new_task: bool = False) -> dict:
     """Add the flags one `match` produced. A flag already open or resolved keeps its state.
 
     `branch` records the git branch a lane delivers on, so `git merge <branch>` can be
-    held until that lane's flags have a disposition (gates.gate_commit).
+    held until that lane's flags have a disposition (gates.gate_commit). `domains` are
+    the work's domains; the brief drops flags whose pattern domains miss them.
     """
     data = load(root) or _new(root)
-    if lane and branch:
-        data.setdefault("lanes", {})[lane] = {"branch": branch}
-    known = {(f["id"], f.get("lane", "")) for f in data["flags"]}
+    _start_task(data, lane, new_task)
+    tid = current_task(data)
+    if lane:
+        meta = data.setdefault("lanes", {}).setdefault(lane, {})
+        if branch:
+            meta["branch"] = branch
+        if domains is not None:
+            meta["domains"] = sorted(domains)
+        meta["task_id"] = tid
+    elif domains is not None:
+        data["task_domains"] = sorted(domains)
+    known = {(f["id"], f.get("lane", "")) for f in data["flags"] if f.get("task_id") == tid}
     for f in flags:
         key = (f["id"], lane)
         if key in known:
             continue
         data["flags"].append(
-            {"id": f["id"], "title": f["title"], "guard": f["guard"], "task": task, "lane": lane, "status": "open"}
+            {"id": f["id"], "title": f["title"], "guard": f["guard"], "task": task, "lane": lane, "status": "open",
+             "task_id": tid, "domains": sorted(f.get("domains") or [])}
         )
         known.add(key)
-    data["log"].append({"at": time.strftime("%Y-%m-%dT%H:%M:%S"), "match": query, "task": task, "lane": lane})
+    data["log"].append({"at": time.strftime("%Y-%m-%dT%H:%M:%S"), "match": query, "task": task, "lane": lane,
+                        "task_id": tid})
     save(root, data)
     return data
 
@@ -117,6 +180,7 @@ def resolve(root: Path, fid: str, status: str, note: str, lane: str = "") -> dic
     if not data:
         raise ValueError("no active ledger here: nothing was flagged (run `fs.py match` first)")
     hits = [f for f in data["flags"] if f["id"].upper() == fid.upper() and (not lane or f.get("lane", "") == lane)]
+    hits = [f for f in hits if in_task(data, f)] or hits  # the current task's flag first
     if not hits:
         raise ValueError(f"{fid} is not flagged in this ledger; `fs.py status` lists what is")
     for f in hits:
@@ -138,18 +202,20 @@ def visit(root: Path, moment: str) -> None:
         save(root, data)
 
 
-def open_flags(data: dict | None, lane: str | None = None) -> list[dict]:
+def open_flags(data: dict | None, lane: str | None = None, scoped: bool = False) -> list[dict]:
+    """Open flags (of one lane); `scoped` keeps only the current task's."""
     if not data:
         return []
-    return [f for f in data["flags"] if f["status"] == "open" and (lane is None or f.get("lane", "") == lane)]
+    return [f for f in data["flags"] if f["status"] == "open" and (lane is None or f.get("lane", "") == lane)
+            and (not scoped or in_task(data, f))]
 
 
 LANE0 = "lane0"
 
 
 def lanes(data: dict | None) -> set[str]:
-    """Parallel lanes flagged in this ledger, lane 0 excluded."""
-    return {f.get("lane", "") for f in (data or {}).get("flags", [])} - {"", LANE0}
+    """Parallel lanes flagged for the current task, lane 0 excluded."""
+    return {f.get("lane", "") for f in task_flags(data)} - {"", LANE0}
 
 
 def lane_for_branch(data: dict | None, ref: str) -> str:
@@ -182,9 +248,27 @@ def close(root: Path, reason: str, force: bool) -> dict:
     return data
 
 
+def owed(data: dict, lane: str | None = None) -> list[dict]:
+    """The current task's flags a brief carries: one lane's plus the lane-less ones (all, with no
+    lane), minus flags whose pattern domains miss the work's domains, one row per id."""
+    work = set(((data.get("lanes") or {}).get(lane) or {}).get("domains") or data.get("task_domains") or []) \
+        if lane else set(data.get("task_domains") or [])
+    rows, seen = [], set()
+    for f in sorted(task_flags(data), key=lambda f: f.get("lane", "") != (lane or "")):
+        if lane is not None and f.get("lane", "") not in ("", lane):
+            continue
+        doms = set(f.get("domains") or [])
+        if work and doms and not doms & work:
+            continue
+        if f["id"] not in seen:
+            seen.add(f["id"])
+            rows.append(f)
+    return rows
+
+
 def brief_block(data: dict, lane: str | None = None) -> str:
     """The verbatim block every dispatched agent prompt must carry."""
-    rows = [f for f in data["flags"] if lane is None or f.get("lane", "") in ("", lane)]
+    rows = owed(data, lane)
     # root= names the checkout whose ledger owes these guards, so a lane dispatched from
     # a session opened in another repo is checked against the right ledger.
     root = f" root={data['root']}" if data.get("root") else ""

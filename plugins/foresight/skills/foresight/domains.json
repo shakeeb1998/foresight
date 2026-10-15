@@ -1,0 +1,18 @@
+{
+  "_doc": "Explicit domain tags for task and pattern nodes, applied on top of okf/ by fs.py and written into task frontmatter by foresight-relearn build_okf.py. A node listed here gets exactly these domains; others keep the domains in their tags. Domains: backend, web-frontend, mobile, accounting, doc-parsing, cross-cutting.",
+  "tasks": {
+    "live-data-fix-reconcile": ["accounting"],
+    "ledger-posting": ["accounting"],
+    "financial-report": ["accounting"],
+    "document-parser-import": ["doc-parsing"],
+    "mobile-device-verify": ["mobile"],
+    "mobile-native-build": ["mobile"],
+    "mobile-offline-sync": ["mobile"],
+    "mobile-screen": ["mobile"],
+    "mobile-store-release": ["mobile"]
+  },
+  "patterns": {
+    "FS-56": ["accounting"],
+    "FS-57": ["accounting"]
+  }
+}
