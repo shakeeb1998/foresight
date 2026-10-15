@@ -137,6 +137,19 @@ def cooccurrence(sess: dict[str, set[str]]) -> dict[str, list[str]]:
 # ---------------------------------------------------------------- render
 
 
+# Explicit task domains (accounting, mobile, doc-parsing, ...) live next to fs.py, which
+# filters briefs by them; the bundle carries them as `domains:` task frontmatter.
+DOMAIN_MAP = Path(__file__).resolve().parents[2] / "foresight" / "domains.json"
+
+
+def task_domains(t: str, td: dict) -> list[str]:
+    try:
+        explicit = json.loads(DOMAIN_MAP.read_text()).get("tasks", {}).get(t)
+    except (OSError, ValueError):
+        explicit = None
+    return explicit or [td["domain"]]
+
+
 def pattern_domains(p: dict) -> list[str]:
     n = sum(p["domains"].values()) or 1
     ds = [d for d, k in sorted(p["domains"].items(), key=lambda x: -x[1]) if k >= 3 or k / n >= 0.2]
@@ -211,6 +224,7 @@ def render(stats: dict, out: Path) -> None:
                 type="task",
                 title=td["title"],
                 tags=[td["domain"], *td.get("keywords", [])[:10]],
+                domains=task_domains(t, td),
                 resource=t,
                 timestamp=today,
             ),

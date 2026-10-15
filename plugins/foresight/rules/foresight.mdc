@@ -10,15 +10,15 @@ Use the **foresight** skill before you plan. Follow its SKILL.md.
    `./install.sh --cursor` puts that directory at `~/.cursor/skills/foresight`.
    A Cursor plugin install uses the `foresight` skill directory inside the plugin.
 2. Read only the pattern nodes it returns. For a full node, use `fs.py show FS-xx`.
-3. Put a **Foresight Brief** in your plan:
-   - one table row per predicted failure;
-   - each row names the concrete file, field or endpoint, plus a guard that would fail if
-     the mistake happened: a test name, a command, or a question for the user;
-   - at most 10 rows.
+3. Turn the brief into a guard table: `python3 fs.py guards --init` (per lane: `--lane <name>`).
+   - one row per flagged guard, at most 10;
+   - fill each row's concrete file, field or endpoint, and the named test or command that
+     would fail if the mistake happened;
+   - write those tests first and run them red; paste the table first in any agent prompt.
 4. Every flagged guard is binding: `match` records the top task's predictions in a
-   ledger. Resolve each one with `fs.py resolve <ID> applied "<evidence>"` or
-   `fs.py resolve <ID> na "<why it does not apply>"`. Never paraphrase or drop a guard.
-   Paste `fs.py brief` verbatim into any background or cloud agent's prompt.
+   ledger. Resolve each one with `fs.py resolve <ID> applied "<evidence>"` (an existing
+   file, a test name, or a command in backticks) or `fs.py resolve <ID> na "<why>"`.
+   Never paraphrase or drop a guard. Paste `fs.py brief` verbatim into any background or cloud agent's prompt.
 5. Re-check at the risky moments with `fs.py moment <dispatch|test-write|verify|merge|deploy>`.
 6. If something is caught after you called the work done, add one line to
    `.foresight/catches.log`:

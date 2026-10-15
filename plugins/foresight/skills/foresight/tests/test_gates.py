@@ -17,79 +17,10 @@ import textwrap
 import unittest
 from pathlib import Path
 
-FS = Path(__file__).resolve().parent.parent / "fs.py"
+from fsharness import FS, Harness, _bundle  # noqa: E402,F401
 
 
-def _write(p: Path, text: str) -> None:
-    p.parent.mkdir(parents=True, exist_ok=True)
-    p.write_text(textwrap.dedent(text).lstrip())
-
-
-def _bundle(root: Path) -> Path:
-    okf = root / "okf"
-    _write(okf / "index.md", "# index\n")
-    _write(okf / "moments" / "verify.md", "# Moment · verify\n")
-    _write(okf / "moments" / "merge.md", "# Moment · merge\n")
-    _write(okf / "moments" / "deploy.md", "# Moment · deploy\n")
-    _write(okf / "moments" / "dispatch.md", "# Moment · dispatch\n")
-    _write(okf / "tasks" / "widget-list.md", """
-        ---
-        title: widget list page
-        tags: widget list page pagination
-        ---
-        Build a widget list page.
-
-        predicts
-        - [FS-01](../patterns/fs-01.md) Client slices one page of a paginated list (9)
-        - [FS-02](../patterns/fs-02.md) Styling right only in the context that was eyeballed (4)
-        """)
-    _write(okf / "tasks" / "other.md", """
-        ---
-        title: other widget thing
-        tags: widget
-        ---
-        predicts
-        - [FS-03](../patterns/fs-03.md) Unrelated pattern from a weaker task (2)
-        """)
-    for fid, guard in (("01", "Send search/sort/page as query params"),
-                       ("02", "Screenshot at 3 widths with 3-5x seed rows and long labels"),
-                       ("03", "Never flagged because its task ranked second")):
-        _write(okf / "patterns" / f"fs-{fid}.md", f"# FS-{fid}\n\n**Guards**\n- {guard}\n")
-    return okf
-
-
-class GateContract(unittest.TestCase):
-    def setUp(self) -> None:
-        self.tmp = Path(tempfile.mkdtemp())
-        self.repo = self.tmp / "repo"
-        self.repo.mkdir()
-        subprocess.run(["git", "init", "-q", str(self.repo)], check=True)
-        self.env = dict(os.environ, FORESIGHT_HOME=str(self.tmp / "home"), FORESIGHT_OKF=str(_bundle(self.tmp)))
-
-    def fs(self, *args: str, stdin: str = "", cwd: Path | None = None) -> subprocess.CompletedProcess[str]:
-        return subprocess.run([sys.executable, str(FS), *args], input=stdin, text=True, capture_output=True,
-                              cwd=str(cwd or self.repo), env=self.env)
-
-    def gate(self, kind: str, payload: dict) -> dict:
-        out = self.fs("gate", kind, stdin=json.dumps(payload)).stdout.strip()
-        return json.loads(out) if out else {}
-
-    def bash(self, command: str, cwd: Path | None = None) -> dict:
-        return self.gate("commit", {"tool_name": "Bash", "tool_input": {"command": command}, "cwd": str(cwd or self.repo)})
-
-    def denied(self, result: dict) -> str:
-        hso = result.get("hookSpecificOutput") or {}
-        return hso.get("permissionDecisionReason", "") if hso.get("permissionDecision") == "deny" else ""
-
-    def flag(self) -> None:
-        out = self.fs("match", "widget list page with pagination")
-        self.assertIn("FLAGGED", out.stdout)
-
-    def resolve_all(self) -> None:
-        for fid in ("FS-01", "FS-02"):
-            r = self.fs("resolve", fid, "applied", "covered by test_widget_list_pagination_roundtrip")
-            self.assertEqual(r.returncode, 0, r.stderr)
-
+class GateContract(Harness):
     # -- nothing flagged: nothing enforced ------------------------------------
     def test_no_ledger_means_open_gates(self) -> None:
         self.assertEqual(self.bash("git commit -m x"), {})
@@ -162,12 +93,14 @@ class GateContract(unittest.TestCase):
         payload["tool_input"]["prompt"] = "Build the widget list.\n" + brief
         self.assertIn("moment dispatch", self.denied(self.gate("dispatch", payload)))
         self.fs("moment", "dispatch")
+        self.assertIn("guard table", self.denied(self.gate("dispatch", payload)))
+        self.fill_guards()
         self.assertEqual(self.gate("dispatch", payload), {})
 
     def lane0(self) -> None:
         self.assertIn("FLAGGED", self.fs("match", "--lane", "lane0", "widget list page shared setup").stdout)
         for fid in ("FS-01", "FS-02"):
-            r = self.fs("resolve", fid, "applied", "lane-0 shared guard built on the base branch", "--lane", "lane0")
+            r = self.fs("resolve", fid, "applied", "lane-0 shared guard built in tests/test_widget.py", "--lane", "lane0")
             self.assertEqual(r.returncode, 0, r.stderr)
 
     def test_parallel_lanes_dispatch_with_their_own_brief(self) -> None:
@@ -176,6 +109,7 @@ class GateContract(unittest.TestCase):
         self.lane0()
         self.fs("moment", "dispatch")
         for lane, mine, other in (("a", "FS-01", "FS-03"), ("b", "FS-03", "FS-01")):
+            self.fill_guards(lane)
             brief = self.fs("brief", "--lane", lane).stdout
             self.assertIn(f"lane={lane}", brief)
             self.assertIn(mine, brief)
@@ -197,6 +131,7 @@ class GateContract(unittest.TestCase):
         self.fs("match", "--lane", "a", "widget list page with pagination")
         self.fs("match", "--lane", "b", "other widget thing")
         self.fs("moment", "dispatch")
+        self.fill_guards("a")
         payload = {"tool_name": "Agent", "cwd": str(self.repo),
                    "tool_input": {"prompt": "Lane a.\n" + self.fs("brief", "--lane", "a").stdout}}
         self.assertIn("lane0", self.denied(self.gate("dispatch", payload)))
@@ -209,6 +144,7 @@ class GateContract(unittest.TestCase):
     def test_single_lane_needs_no_lane0(self) -> None:
         self.fs("match", "--lane", "a", "widget list page with pagination")
         self.fs("moment", "dispatch")
+        self.fill_guards("a")
         payload = {"tool_name": "Agent", "cwd": str(self.repo),
                    "tool_input": {"prompt": "Lane a.\n" + self.fs("brief", "--lane", "a").stdout}}
         self.assertEqual(self.gate("dispatch", payload), {})
@@ -223,6 +159,7 @@ class GateContract(unittest.TestCase):
         self.assertIn("FS-03", self.fs("status", "--root", str(other)).stdout)
         self.assertNotIn("FS-03", self.fs("status").stdout)
         self.fs("moment", "dispatch", "--root", str(other))
+        self.fill_guards("x", "--root", str(other))
         brief = self.fs("brief", "--root", str(other), "--lane", "x").stdout
         self.assertIn(f"root={other.resolve()}", brief)
         payload = {"tool_name": "Agent", "cwd": str(self.repo), "tool_input": {"prompt": "Lane x.\n" + brief}}
@@ -248,7 +185,7 @@ class GateContract(unittest.TestCase):
         self.assertIn("FS-01", reason)
         self.assertNotIn("FS-03", reason, "lane b's open flags must not block lane a")
         for fid in ("FS-01", "FS-02"):
-            self.fs("resolve", fid, "applied", "lane a report: test_widget_roundtrip green", "--lane", "a")
+            self.fs("resolve", fid, "applied", "lane a report: test_widget_list_pagination_roundtrip green", "--lane", "a")
         self.assertEqual(self.bash("git merge --no-ff lane-a -m 'merge lane a'"), {})
 
     # -- never merge inside a tree a running server is serving -----------------
