@@ -24,6 +24,10 @@ Binding guards (the ledger; see ledger.py / gates.py):
                                               # dispatch is refused while it has TODO cells or no rows
   fs.py resolve FS-13 applied "<evidence>"    # the guard ran: test / command / file
   fs.py resolve FS-13 na "<reason>"           # does not apply to this change, and why
+                                              # (the same sentence on a 3rd flag is refused unless --shared)
+  fs.py scope merge-only "<why>"              # staging sync / lane merge, no new code design: push, PR and
+                                              # merge then need only the tripwires, not the design-time flags
+  fs.py moment verify --ack "<what you re-checked>"   # optional: recorded and shown in status
   fs.py status [--strict]                     # flags + tripwires; --strict exits 1 if any open
   fs.py close [--force] "<reason>"            # archive the ledger (force abandons open flags, on record)
   fs.py gate dispatch|commit|stop             # hook entry points (payload JSON on stdin)
@@ -202,6 +206,10 @@ def status(strict: bool, root: Path | None = None) -> int:
         note = f" - {f.get('note', '')}" if f["status"] != "open" else ""
         print(f"  {f['status']:<8} {f['id']}{lane}  {f['title']}{note}")
     print("  tripwires opened: " + (", ".join(sorted(data.get("moments", {}))) or "none"))
+    for m, text in (data.get("acks") or {}).items():
+        print(f"    {m}: {text}")
+    if ledger.scope_waives(data):
+        print(f"  scope: merge-only ({data['scope']['reason']})")
     earlier = [f for f in data["flags"] if not ledger.in_task(data, f)]
     if earlier:
         print(f"  {len(earlier)} flag(s) from earlier tasks hidden "
@@ -262,12 +270,22 @@ def main() -> None:
     elif cmd == "guards":
         lane, args = _opt(args, "--lane")
         sys.exit(guards(root, lane, "--init" in args))
+    elif cmd == "scope":
+        if len(args) < 2:
+            sys.exit('usage: fs.py scope merge-only "<why this step adds no new code design>" [--root <path>]')
+        try:
+            ledger.set_scope(root, args[0], " ".join(args[1:]))
+        except (ValueError, ledger.LedgerError) as exc:
+            sys.exit(f"scope not set: {exc}")
+        print("scope merge-only recorded: push / PR / merge need only the verify, merge (and deploy) tripwires")
     elif cmd == "resolve":
+        shared = "--shared" in args
+        args = [a for a in args if a != "--shared"]
         lane, args = _opt(args, "--lane")
         if len(args) < 3:
             sys.exit('usage: fs.py resolve <ID> applied|na "<evidence or reason>" [--lane <name>] [--root <path>]')
         try:
-            ledger.resolve(root, args[0], args[1], " ".join(args[2:]), lane)
+            ledger.resolve(root, args[0], args[1], " ".join(args[2:]), lane, shared)
         except (ValueError, ledger.LedgerError) as exc:
             sys.exit(f"not resolved: {exc}")
         sys.exit(status(False, root))
@@ -295,7 +313,8 @@ def main() -> None:
             if (b / name).exists():
                 print((b / name).read_text())
                 if cmd == "moment" and args:
-                    ledger.visit(root, args[0])
+                    ack, _ = _opt(args[1:], "--ack")
+                    ledger.visit(root, args[0], ack)
                 break
     else:
         print(__doc__)

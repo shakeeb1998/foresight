@@ -30,6 +30,7 @@ Stdlib only; always exits 0 and speaks the hook JSON protocol.
 from __future__ import annotations
 
 import json
+import os
 import re
 import shlex
 import shutil
@@ -48,8 +49,13 @@ def _deny(reason: str) -> None:
                                              "permissionDecisionReason": reason}}))
 
 
+LIST_CAP = 5
+
+
 def _list(flags: list[dict]) -> str:
-    return "; ".join(f"[{f['id']}] {f['guard']}" for f in flags)
+    shown = "; ".join(f"[{f['id']}] {f['guard']}" for f in flags[:LIST_CAP])
+    more = len(flags) - LIST_CAP
+    return shown + (f"; (+{more} more, `fs.py status` lists them)" if more > 0 else "")
 
 
 def _resolve_hint() -> str:
@@ -82,6 +88,19 @@ def _strip_env(tokens: list[str]) -> list[str]:
     return tokens[i:]
 
 
+class UnresolvedPath(Exception):
+    """A `-C` / `cd` path still holds a shell variable the gate cannot know (`$PWD`, `$REPO`)."""
+
+
+def _abs(path: str, here: str) -> str:
+    """`~` expands, a relative path joins `here`; an unexpanded `$VAR` is refused, never guessed
+    (a literal `$PWD` used to resolve under the session cwd and blame an unrelated ledger)."""
+    path = os.path.expanduser(path)
+    if "$" in path or "`" in path:
+        raise UnresolvedPath(path)
+    return path if path.startswith("/") else str(Path(here) / path)
+
+
 def classify(command: str, cwd: str) -> list[tuple[str, str]]:
     """[(action, root)] for every guarded action in the command; action in commit|push|pr|merge."""
     found: list[tuple[str, str]] = []
@@ -91,14 +110,14 @@ def classify(command: str, cwd: str) -> list[tuple[str, str]]:
         if not toks:
             continue
         if toks[0] == "cd" and len(toks) > 1:
-            here = toks[1] if toks[1].startswith("/") else str(Path(here) / toks[1])
+            here = _abs(toks[1], here)
             continue
         if toks[0] == "git":
             root, i = here, 1
             while i < len(toks) and toks[i].startswith("-"):
                 if toks[i] in ("-C", "-c") and i + 1 < len(toks):
                     if toks[i] == "-C":
-                        root = toks[i + 1] if toks[i + 1].startswith("/") else str(Path(here) / toks[i + 1])
+                        root = _abs(toks[i + 1], here)
                     i += 2
                 else:
                     i += 1
@@ -282,9 +301,18 @@ def _owed_by_branch(data: dict, branch: str) -> list[dict]:
 def gate_commit(payload: dict) -> None:
     cmd = (payload.get("tool_input") or {}).get("command") or ""
     cwd = payload.get("cwd") or "."
-    found = classify(cmd, cwd)
-    if not found or not any((ledger.home() / "ledgers").glob("*.json")):
+    if not any((ledger.home() / "ledgers").glob("*.json")):
         return  # nothing flagged anywhere: skip the git / gh lookups
+    try:
+        found = classify(cmd, cwd)
+    except UnresolvedPath as exc:
+        # Only a guarded verb makes this matter; a plain `cd $X && ls` must pass.
+        if re.search(r"\bgit\b.*\b(commit|push|merge|pull|rebase|cherry-pick|am)\b|\bgh\s+pr\s+(create|merge)\b", cmd):
+            return _deny(f"foresight gate: cannot tell which checkout `{exc}` is (an unexpanded shell variable in "
+                         "`git -C` / `cd`). Write the literal absolute path so the right ledger is checked.")
+        return
+    if not found:
+        return
     for action, where, args in found:
         if action in ("push", "pr", "merge"):
             branch = _branch_of(action, args, where)
@@ -312,15 +340,20 @@ def gate_commit(payload: dict) -> None:
             else:
                 still = _owed_by_branch(data, branch)
             what = f"`{action}`" + (f" of `{branch}`" if branch else "")
+            if still and ledger.scope_waives(data):
+                still = []  # `fs.py scope merge-only`: design-time guards are not owed by a merge-only step
+            missing = [m for m in REQUIRED[action] if m not in data.get("moments", {})] if own else []
+            hint = "" if own else f" (Pass `--root {root}` to fs.py.)"
+            opens = ", ".join(f"`fs.py moment {m}`" for m in missing)
+            if still and missing:  # the cheap blocker first: each tripwire is one command
+                return _deny(f"foresight gate: {what} refused. First open {opens}; then {len(still)} flagged "
+                             f"guard(s) in {root} need a disposition: {_list(still)}. {_resolve_hint()}{hint}")
             if still:
                 return _deny(f"foresight gate: {what} refused, {len(still)} flagged guard(s) in {root} have no "
-                             f"disposition: {_list(still)}. {_resolve_hint()}"
-                             + ("" if own else f" (Pass `--root {root}` to fs.py.)"))
-            missing = [m for m in REQUIRED[action] if m not in data.get("moments", {})] if own else []
+                             f"disposition: {_list(still)}. {_resolve_hint()}{hint}")
             if missing:
-                return _deny(f"foresight gate: {what} refused, tripwire(s) not opened for {root}: "
-                             + ", ".join(f"`fs.py moment {m}`" for m in missing)
-                             + ". Open each and apply what it lists before this step.")
+                return _deny(f"foresight gate: {what} refused, tripwire(s) not opened for {root}: {opens}. "
+                             "Open each and apply what it lists before this step.")
 
 
 BRIEF = re.compile(r"<!-- foresight-brief v1(?: lane=(?P<lane>[^ >]+))?(?: root=(?P<root>[^>]+?))? -->")
