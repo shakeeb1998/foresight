@@ -45,6 +45,7 @@ patterns (most frequent first):
 - [FS-15](../patterns/fs-15.md) Producer and consumer of the same data disagree (62)
 - [FS-02](../patterns/fs-02.md) Verification against an environment not running the code under test (59)
 - [FS-05](../patterns/fs-05.md) Concurrent sessions contend for one local DB, port, cache or CPU (59)
+- [FS-124](../patterns/fs-124.md) Parallel lanes create test DBs, pools or ports named per lane, and nobody owns teardown (3)
 - [FS-27](../patterns/fs-27.md) Existing primitive or house pattern bypassed (59)
 - [FS-19](../patterns/fs-19.md) Behavior change leaves dependent tests, drivers and mocks stale (55)
 - [FS-11](../patterns/fs-11.md) Enumerable scope silently shrinks between ask and done (53)
