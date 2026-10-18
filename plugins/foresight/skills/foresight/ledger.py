@@ -148,6 +148,7 @@ def _start_task(data: dict, lane: str, new_task: bool) -> None:
     if rotate:
         data["current_task"], data["task_source"] = tid, "env" if env else "generated"
         data["moments"] = {}
+        data.pop("scope", None)
         data.setdefault("tasks", []).append({"id": tid, "since": time.strftime("%Y-%m-%dT%H:%M:%S")})
 
 
@@ -187,7 +188,30 @@ def record_flags(root: Path, query: str, task: str, flags: list[dict], lane: str
     return data
 
 
-def resolve(root: Path, fid: str, status: str, note: str, lane: str = "") -> dict:
+DUP_LIMIT = 2  # the same sentence on a third flag is paperwork; --shared says it is deliberate
+
+
+def scope_waives(data: dict | None) -> bool:
+    """True while the current task is declared `merge-only` (`fs.py scope merge-only "<why>"`)."""
+    s = (data or {}).get("scope") or {}
+    return s.get("kind") == "merge-only" and s.get("task_id") == current_task(data)
+
+
+def set_scope(root: Path, kind: str, reason: str) -> dict:
+    if kind != "merge-only":
+        raise ValueError("scope must be `merge-only`")
+    if len(reason.strip()) < MIN_REASON:
+        raise ValueError(f"say why in a sentence (>= {MIN_REASON} chars)")
+    data = load(root)
+    if not data:
+        raise ValueError("no active ledger here: nothing flagged, gates are already open")
+    data["scope"] = {"kind": kind, "reason": reason.strip(), "task_id": current_task(data),
+                     "at": time.strftime("%Y-%m-%dT%H:%M:%S")}
+    save(root, data)
+    return data
+
+
+def resolve(root: Path, fid: str, status: str, note: str, lane: str = "", shared: bool = False) -> dict:
     if status not in ("applied", "na"):
         raise ValueError("status must be `applied` or `na`")
     if len(note.strip()) < MIN_REASON:
@@ -199,6 +223,13 @@ def resolve(root: Path, fid: str, status: str, note: str, lane: str = "") -> dic
     data = load(root)
     if not data:
         raise ValueError("no active ledger here: nothing was flagged (run `fs.py match` first)")
+    same = [f for f in task_flags(data) if f["status"] != "open" and f.get("note") == note.strip()
+            and f["id"].upper() != fid.upper()]
+    ids = sorted({f["id"] for f in same})
+    if len(ids) >= DUP_LIMIT and not shared:
+        raise ValueError(f"the same reason is already on {len(ids)} other flags ({', '.join(ids)}). "
+                         "Write what is true for THIS guard, or pass --shared if one reason really covers them all "
+                         "(for example `fs.py scope merge-only` for a merge-only step)")
     hits = [f for f in data["flags"] if f["id"].upper() == fid.upper() and (not lane or f.get("lane", "") == lane)]
     hits = [f for f in hits if in_task(data, f)] or hits  # the current task's flag first
     if not hits:
@@ -261,14 +292,16 @@ def evidence_problem(root: Path, note: str) -> str:
             f"(`pytest -q -k widget`). Checked: {checked}. If the guard does not apply, use `na \"<why>\"`.")
 
 
-def visit(root: Path, moment: str) -> None:
-    """Record a tripwire visit (only while something is flagged)."""
+def visit(root: Path, moment: str, ack: str = "") -> None:
+    """Record a tripwire visit (only while something is flagged); `ack` says what was re-checked."""
     try:
         data = load(root)
     except LedgerError:
         return
     if data:
         data["moments"][moment] = time.strftime("%Y-%m-%dT%H:%M:%S")
+        if ack.strip():
+            data.setdefault("acks", {})[moment] = ack.strip()
         save(root, data)
 
 

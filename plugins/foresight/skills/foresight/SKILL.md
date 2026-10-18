@@ -107,6 +107,23 @@ python3 fs.py status            # open flags + tripwires opened
 `applied` must cite evidence that exists: a file path in the repo, a test name found in the
 test files, or a command in backticks. `na` needs a reason.
 
+**Merge-only steps.** A staging sync, a lane merge or a plain push of already-built work adds no new
+design, so the design-time flags (FS-03, FS-27 and similar) cannot be applied to it. Declare it once:
+
+```bash
+python3 fs.py scope merge-only "staging sync, additive conflicts only, no new code design"
+```
+
+Push, PR and merge then need only the `verify`, `merge` (and `deploy`) tripwires. The scope ends when a
+new task starts (`match --new-task`). The same sentence on a third flag is refused by `resolve` unless you
+pass `--shared`; write what is true for each guard instead of one boilerplate line.
+
+**Shell traps the gate cannot forgive.** Write `git -C /literal/absolute/path`; an unexpanded `$VAR`
+or `$PWD` is refused (it used to be read as a relative path and blame another checkout's ledger).
+`~` is expanded. In zsh a bare `$FS` does not word-split: use `FS=(python3 /path/fs.py)` and
+`"${FS[@]}" resolve ...`, and run `resolve` in its own call before the `git push` call (the gate
+inspects the whole command line, so a push mentioned in the same line is judged first).
+
 Rules, with no exceptions for small changes or time pressure:
 
 1. **Never paraphrase a guard and never drop one.** If you think a guard does not apply,
@@ -149,7 +166,7 @@ Nothing is enforced while nothing is flagged, and an unreadable ledger fails clo
 |---|---|---|
 | `dispatch` | `fs.py moment dispatch` | before fanning out to subagents, background agents or worktrees; paste `fs.py brief` verbatim into each agent's prompt; for 2+ lanes, lane 0 first (section 3) |
 | `test-write` | `fs.py moment test-write` | before writing e2e specs, mocks or fixtures |
-| `verify` | `fs.py moment verify` | before trusting any red or green result |
+| `verify` | `fs.py moment verify --ack "<what you re-checked>"` | before trusting any red or green result |
 | `merge` | `fs.py moment merge` | before a commit, merge, cherry-pick or consolidation; merge lanes outside the served tree |
 | `deploy` | `fs.py moment deploy` | before deploying, or saying merged / deployed / live |
 
@@ -191,8 +208,9 @@ Then, for the rest of the plan:
    report with `fs.py resolve <ID> applied|na "<evidence>" --lane <name>` at merge time,
    not in one batch before the PR. After each merge, re-run the earlier lanes' specs that
    share helpers with it.
-3. **Merge the base branch into the integration branch every wave** and re-run scoped
-   tests. A base change can break integration with no textual conflict.
+3. **Merge the base branch into the integration branch every wave**, run
+   `manage.py makemigrations --check` (two branches that both added `0029_*` leave two leaves; fix with
+   `makemigrations --merge`), and re-run scoped tests. A base change can break integration with no textual conflict.
 4. **Real inputs at plan time.** Get a real sample document or data file before
    designing a parser, and run it at the first gate. Every pointer interaction in an
    editor ships a keyboard route in the same task (FS-10).
