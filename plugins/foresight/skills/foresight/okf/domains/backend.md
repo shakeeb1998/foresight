@@ -30,7 +30,7 @@ tasks:
 - [write-endpoint](../tasks/write-endpoint.md) Add or change a create / update / bulk write endpoint or service method
 
 patterns (most frequent first):
-- [FS-18](../patterns/fs-18.md) Shell and CLI step semantics assumed (116)
+- [FS-18](../patterns/fs-18.md) Shell and CLI step semantics assumed (118)
 - [FS-29](../patterns/fs-29.md) Code assumes the host environment it was written on (85)
 - [FS-03](../patterns/fs-03.md) Code written against an assumed interface instead of the real one (84)
 - [FS-06](../patterns/fs-06.md) Per-row queries and unbounded fetches invisible at seed scale (82)
@@ -85,9 +85,9 @@ patterns (most frequent first):
 - [FS-115](../patterns/fs-115.md) Orchestrator schedule, catchup, timeout or trigger semantics changed without re-deriving dependents (12)
 - [FS-54](../patterns/fs-54.md) Stored copy of a financial figure not re-derived when its source changes (11)
 - [FS-91](../patterns/fs-91.md) Written claim in docs, comments or commit prose not re-derived from what it cites (11)
+- [FS-97](../patterns/fs-97.md) Base branch changes behaviour a feature branch relies on, with no textual conflict (11)
 - [FS-56](../patterns/fs-56.md) Ledger-wide change verified only where it was aimed (10)
 - [FS-61](../patterns/fs-61.md) Startup path echoes production credentials into captured output (10)
-- [FS-97](../patterns/fs-97.md) Base branch changes behaviour a feature branch relies on, with no textual conflict (10)
 - [FS-116](../patterns/fs-116.md) IAM policy written from SDK names or memory instead of the client's actual API calls (10)
 - [FS-57](../patterns/fs-57.md) Reconciliation tooling re-implements production posting logic and drifts (9)
 - [FS-59](../patterns/fs-59.md) Model save() side effects unknown to the caller (9)

@@ -1,0 +1,260 @@
+{
+ "generated": "2026-10-21",
+ "patterns": {
+  "FS-18": {
+   "name": "Shell and CLI step semantics assumed",
+   "family": "test-env",
+   "moment": "implement",
+   "mechanism": "Multi-step shell work assumes semantics that don't hold: persisted cwd, bash word-splitting under zsh, GNU vs BSD tools, pipes that buffer until exit, nohup without stdin redirect, SSH jobs not detached, one stdin shared by bash -s commands, wrapper exit codes that don't propagate, git add silently staging nothing. The step 'succeeds' or appears hung and the agent proceeds on a false outcome.",
+   "trigger_signals": [
+    "chained cd/source && command, or relative paths after a background/long-running command",
+    "an unquoted $VAR holding several paths in zsh; multi-line awk -v; timeout on macOS",
+    "a long remote job over SSH/gcloud, or ssh ... | bash -s with several docker exec -T calls",
+    "judging success from a wrapper's exit code, or git add with a long explicit path list",
+    "vite/vitest started in the background or piped through grep",
+    "a manage.py shell -c / < script gated on sys.argv; git add -A inside a worktree; pkill -f whose pattern is in its own argv; bash-4 syntax under macOS bash 3.2; a first command that searches from / instead of the given path",
+    "a background release/build step (gradle, xcodebuild, altool, Play upload) judged by its task notification or exit code; a script writing into a computed per-run output directory; build commands run with relative paths late in a long session",
+    "a test harness judged through `cmd | tail -N`, or a pass/fail taken from grep -c on a command's output; file tools given relative paths after Bash ran inside a worktree",
+    "a command composed as timeout N ... on a macOS host (recurs: zsh has no GNU timeout)",
+    "a GitHub Actions run: step pipes a test command into tee/grep; a shell loop over gh/git commands that prints one summary line; a python -c one-liner with quoted f-strings inside a double-quoted shell arg; a pg_restore/pg_dump flag not smoke-tested; a django.setup() one-liner run from an arbitrary cwd; git checkout -- as a mutation-test revert before any commit exists",
+    "the task prompt already gives the absolute path of the skill/context file, yet the first command is a find / or a relative path (the agent's skills directory) inside a per-run sandbox whose cwd differs from the usual checkout (recurs across parallel runs of one task, each burning the full tool timeout)",
+    "a command line interpolates a string variable holding several flags ($SSHO, $OPTS) and runs under zsh, the macOS default shell",
+    "an unquoted *, ? or [..] in a zsh command (grep --include=*.py, ls dir/*, a glob over a maybe-empty dir): zsh NOMATCH aborts the whole command instead of passing the literal through (recurs: 5x in one session)",
+    "a quoted glob handed to a program that opens paths literally (node fs, a custom script); a verification probe that regex-scrapes a port out of free-form argv/log text",
+    "a regex filter (git log --grep, grep -E) using \\b or another PCRE-only escape; a reset --soft, squash or split onto a base branch tip that keeps moving; a desktop-managed shared service relaunched with open -a",
+    "supervisor code classifies a child process's run (stopped, failed, done) from its exit code after signalling it",
+    "editing a shell script (a lane runner) while a live process is executing it - zsh and bash read scripts incrementally and resume at a shifted byte offset; a test runner (vitest/vite/playwright) launched from an agent or orchestrator shell with an inherited stdin, sitting at 0% CPU with no workers"
+   ],
+   "preventive_checks": [
+    "Use absolute paths and git -C <worktree>; never rely on the persisted cwd",
+    "Verify each step's effect, not its exit code: git diff --cached --stat, git log -1, grep remote logs for ERROR",
+    "Detach remote jobs with nohup/setsid plus a log file and poll; run background vite/vitest with </dev/null and --pool=forks --maxWorkers=1",
+    "Use ${=VAR} or arrays in zsh, and check command -v and the platform before relying on GNU-only tools",
+    "Gate apply flags on env vars and start prod scripts from one saved template; stage explicit paths; use bracketed pgrep patterns; read a task's given path directly and bound any search with a timeout",
+    "In build wrappers propagate child exit codes (set -e -o pipefail, PIPESTATUS), grep the output tail for BUILD FAILED/ERROR, and confirm uploads through the store API (list builds); mkdir -p output dirs before writing; run platform builds from an explicit absolute directory and make background-wait patterns match any error/failed line",
+    "Use set -o pipefail or PIPESTATUS[0] before trusting a piped result, and re-run a suspicious 'zero' without the pipe; pass absolute paths to every file tool; check git diff --cached --stat for build/output dirs before committing",
+    "On macOS never prefix with timeout; use the tool's own limit (ssh -o ConnectTimeout, jest --testTimeout) or a documented wrapper",
+    "Add set -o pipefail explicitly to piped CI run: steps and prove it by making the test fail once; print and re-verify each loop iteration's real result (gh pr view --json state); put throwaway scripts in a .py file; check unfamiliar flags with --help and verify row counts after a restore; save a commit or patch before reverting a mutation",
+    "Make the first action a Read/Skill call on the exact absolute path in the prompt; run pwd before any relative path; if discovery is unavoidable, scope find to the project or scratch dir with -maxdepth",
+    "Hold multi-flag options in an array (opts=(-o A=b -o C=d)) and pass them to ssh with quoted array expansion of all elements, or inline them; never an unquoted string variable",
+    "Quote every glob passed as an argument ('--include=*.py'), prefer rg -g, and use the (N) qualifier or setopt nullglob before listing maybe-empty paths",
+    "Never type `timeout` on this host: use the Bash tool's own timeout parameter or the runner's --timeout, and check ${pipestatus} rather than $? after a pipe",
+    "Have servers print one machine-readable line (LISTENING <port>) or pass the port explicitly; glob inside scripts rather than relying on shell expansion",
+    "Prove a search filter on a known-positive input before trusting a no-match (-P or -w instead of \\b in ERE); split or squash against git merge-base HEAD origin/<base> and check git diff origin/<base>...HEAD is unchanged; after relaunching a shared local service poll its health (docker info, pg_isready) and kill leftover helper PIDs if the relaunch did nothing",
+    "Record the stop reason before signalling a child process and classify the outcome from that record; test children that exit 0 and non-zero after SIGINT",
+    "Never edit a script a running process executes: check pgrep -f <script> first and put new logic in the orchestrator or a new file swapped in between runs; launch every test runner with < /dev/null, in the foreground, output redirected to a log file"
+   ],
+   "portable": true,
+   "count": 2,
+   "domains": {
+    "cross-cutting": 2
+   },
+   "n_projects": 1,
+   "related": []
+  },
+  "FS-45": {
+   "name": "Agent turn ends waiting on an unverified async mechanism",
+   "family": "agent-orchestration",
+   "moment": "dispatch",
+   "mechanism": "A (sub)agent hands its completion to something asynchronous it never verified (its own Monitor watcher, a wakeup timer, a blocking debug call, a resumed run) and ends idle, wedged or silent with uncommitted edits. The orchestrator then waits or assumes failure instead of checking git and test state directly. Release automation adds background pollers that shell out to helpers in /tmp which vanish between sessions and then fail silently every cycle, background uploads and scratch dirs from a previous session with no completion record, a background subagent that crashed at launch, and a laptop that sleeps mid-pipeline. Fan-out lifecycle gaps compound it: more agents than the runtime's concurrency cap, stopped parents whose nested helpers keep running, and consumers launched when the producer's file appears rather than when it finishes.",
+   "trigger_signals": [
+    "a worker's last action is starting a background run/Monitor and waiting for its notification",
+    "a blocking call against a live server or browser that can hang",
+    "a subagent silent for an unusually long time, or a promise of periodic updates on a timer",
+    "a subagent backgrounds its own long command and yields; multi-hour fan-out state held only in process; a fix loop planned around resuming agents via SendMessage",
+    "a background poll/loop shells out to a helper under /tmp or a scratch dir; resuming after hours or a session boundary on a background task's result; a long unattended release run on a laptop",
+    "dispatching three or more long-running worktree agents at once",
+    "an implementer has run many consecutive fix rounds in one session without committing (provider session/rate limits end it mid-round)",
+    "background implementer agents running when the parent session may hit a usage limit; planning to resume a subagent via SendMessage",
+    "dispatching more than ~20 background agents in one go (the runtime's concurrent-subagent cap)",
+    "stopping a parent agent whose brief lets it dispatch nested helpers",
+    "a producer agent still running while its output file already exists on disk, or several producers writing into one inbox that a later step globs",
+    "a bench, Playwright batch or suite whose last wall exceeded ~5 min run in the foreground: the Bash tool's 600 s limit silently moves it to the background",
+    "a next step planned as 'sleep N then read the log' (the harness blocks foreground sleep polling)",
+    "a long-lived local service (mock server, dev app) started as an agent-harness background shell",
+    "a headless lane agent (a CLI agent in print mode, e.g. claude -p, as implementer or reviewer) allowed to start a background test run or watcher; its process ends with the turn, so the pending result is never read (recurs across implementers and reviewers in one build)"
+   ],
+   "preventive_checks": [
+    "Instruct workers to run verification synchronously or poll results themselves, never ending a turn on their own watcher",
+    "Background potentially hanging calls and poll with a timeout",
+    "When a subagent stalls, check git status/log and test results directly before relaunching",
+    "Put 'never background a command, run to completion' in every agent prompt template, checkpoint fan-out progress to a durable file, and confirm the resume tool is available before planning around it",
+    "Keep automation helpers in the repo's scripts/, make poll loops exit non-zero when a helper is missing, check a dispatched agent's output file size/mtime shortly after launch, treat a missing completion record as unknown and re-verify against the target system (ASC/Play), and run caffeinate for long unattended runs",
+    "Arm a per-worktree file-write staleness watch and check the session/rate budget before the fan-out",
+    "Commit after each discrete fix and write self-contained round briefs so a fresh agent can resume a round if the previous one dies",
+    "After any session restart check each in-flight worktree's git status before assuming work landed; hand off through a persisted report file a fresh agent reads, since SendMessage may be disabled",
+    "Check the runtime's concurrent-subagent cap and dispatch in batches under it",
+    "When cancelling a parent, list and stop its descendants too, then confirm nothing is still running",
+    "Dispatch consumers only on the producer's completion notification, never on file existence; aggregation reads a closed per-producer manifest instead of globbing a shared inbox",
+    "Size each foreground run under ~8 min, or launch with run_in_background plus a Monitor until-loop on the summary line; never end the turn before the summary and exit code exist",
+    "Integrators reject any lane report whose benchmark or suite result lacks the exit code and numbers",
+    "Run long-lived services under launchd/systemd or in the user's terminal; harness background shells die at the harness time limit",
+    "Put the dispatch tripwire verbatim in every headless lane prompt: run every validator and test synchronously in the foreground, read the result yourself, never end the turn on a pending background run or watcher; the orchestrator treats an ended run with no test result as failed and resumes it"
+   ],
+   "portable": true,
+   "count": 1,
+   "domains": {
+    "cross-cutting": 1
+   },
+   "n_projects": 1,
+   "related": []
+  },
+  "FS-90": {
+   "name": "Repo tooling bound to one machine's interpreter or to an unprovisioned worktree",
+   "family": "test-env",
+   "moment": "merge",
+   "mechanism": "Git hooks and test entry points hardcode an absolute interpreter path (a python.org framework build) or assume `python` is on PATH, and new worktrees ship without a venv. On another machine or worktree the hook can't start, or runs an interpreter that lacks native wheels and blocks by design. Each session then rediscovers which Python has pytest and the parsers, installs them by hand, and pushes with --no-verify.",
+   "trigger_signals": [
+    "a committed git hook or script references an absolute interpreter path (/Library/Frameworks/Python.framework/..., /opt/homebrew/bin/python3.x)",
+    "the first git push from this machine or worktree in the session",
+    "starting work in a fresh agent worktree checkout with no .venv and no `python` on PATH, on a host with several system Pythons",
+    "the hook needs native extension wheels (tree_sitter parsers) that only one installed interpreter has",
+    "e2e/backend scripts or spec helpers that resolve Python as <checkout>/.venv/bin/python run from a worktree with no venv",
+    "bot lanes or hooks running repo commands under the host's default node/python instead of the repo pin; a fresh per-lane DB used by the test command",
+    "an orchestrator creates lane worktrees whose hooks or scripts read a git-ignored runtime file (a hook mode file, .env, local settings) that a fresh git worktree does not carry"
+   ],
+   "preventive_checks": [
+    "Make hooks resolve the interpreter in order (repo .venv, then PATH python3) and check required imports up front with a clear message instead of a silent block",
+    "Ship one bootstrap command (make venv / scripts/setup) that builds the pinned-version venv with requirements plus test deps, and run it as step 0 in every new worktree",
+    "Before any documented --no-verify escape, run the exact gate the hook would run with the working venv and paste its green result into the PR body",
+    "After the second bypass, fix the hook on main instead of bypassing it again (FS-53)",
+    "Route every helper's interpreter through one resolver honoring an interpreter-override env variable, and create or link the venv as part of worktree creation",
+    "Pin the runtime per repo (.nvmrc, .python-version) in every lane env and hook, and make the lane test command provision its DB (migrate deploy) first",
+    "At dispatch, have the orchestrator write every git-ignored runtime file the hooks read (e.g. a hook mode file set to unattended) into each lane worktree at creation, and assert it exists before starting the lane"
+   ],
+   "portable": true,
+   "count": 1,
+   "domains": {
+    "cross-cutting": 1
+   },
+   "n_projects": 1,
+   "related": []
+  },
+  "FS-97": {
+   "name": "Base branch changes behaviour a feature branch relies on, with no textual conflict",
+   "family": "integration-merge",
+   "moment": "merge",
+   "mechanism": "While a feature or integration branch is in flight, the base branch changes the behaviour of something it calls: a list/query service is re-scoped (a document list service narrowed to workspace members, so the bot principal sees nothing), a service the branch is rewriting gains new get semantics, a duplicate mechanism or new consumer of a shared component lands, or a module an e2e spec imports is removed. Git merges cleanly because the edits touch different lines, so the break surfaces only when the merged tree is tested, often after the branch was reported green.",
+   "trigger_signals": [
+    "a feature or integration branch more than a day old whose base received merges touching services, managers, components or modules the branch calls",
+    "the branch rewrites or depends on a shared service (list/get scoping, annotations) or shared component while other tickets land on base",
+    "a principal other than a workspace member (bot, service account) reads through a shared list service",
+    "e2e specs import product modules from src/ instead of API/driver helpers",
+    "base merged into the branch cleanly and no tests were run afterwards",
+    "a stale branch hundreds of commits behind a base that upgraded tool majors (Vitest, lint plugins); two branches that each fixed the same spec's date/clock setup differently",
+    "two parallel lanes change the same table or component in different dimensions (one adds a column, another polishes spacing or styling) and merge separately, each green alone"
+   ],
+   "preventive_checks": [
+    "Merge the base branch into the feature/integration branch every wave (at least daily) and re-run the scoped tests and touched e2e specs on the merged tree before reporting green",
+    "Before merging, grep base's diff since the fork (git diff $(git merge-base HEAD origin/staging) origin/staging) for every service, manager, component and module your branch calls; read each behaviour change and pin the behaviour you rely on with a test",
+    "Pin cross-principal behaviour with one test per principal type (member user, bot, service account) on any shared service the branch reads through",
+    "Keep e2e specs on API/driver helpers, never product modules, and type-check tests/e2e after every merge",
+    "Before merging a stale branch diff package.json/tool majors between merge-base and base; after merging run git log origin/base -- <file> for every file touched on both sides and rerun those specs",
+    "After the last lane of a wave merges, re-run every touched e2e spec on the merged tree, with layout overflow assertions at the target widths (e.g. 1280), before reporting the build done"
+   ],
+   "portable": true,
+   "count": 1,
+   "domains": {
+    "web-frontend": 1
+   },
+   "n_projects": 1,
+   "related": []
+  }
+ },
+ "tasks": {
+  "run-local-verification": {
+   "title": "Run the app, dev server, tests or e2e stack locally to verify a change",
+   "domain": "cross-cutting",
+   "keywords": [
+    "local",
+    "dev",
+    "server",
+    "verify",
+    "run",
+    "e2e",
+    "stack",
+    "port",
+    "database",
+    "restart",
+    "vite",
+    "daphne",
+    "localhost",
+    "test"
+   ],
+   "description": "Standing up or reusing a local environment for verification: dev servers and autoreload, shared ports/DBs between sessions, health checks, host/IPv6/CORS bindings, test DB lifecycle.",
+   "predicts": {
+    "FS-18": 1
+   }
+  },
+  "merge-promote-branch": {
+   "title": "Merge, rebase or promote a branch (integration branches, conflicts, PRs)",
+   "domain": "cross-cutting",
+   "keywords": [
+    "merge",
+    "rebase",
+    "promote",
+    "promotion",
+    "pr",
+    "conflict",
+    "staging",
+    "main",
+    "cherry-pick",
+    "revert",
+    "integration",
+    "migration",
+    "backflow"
+   ],
+   "description": "Moving work between branches: merging or rebasing onto a moved base, promotion hops (feature to dev/test/staging/main), migration-graph collisions, phantom conflicts, reverts and cherry-picks on shared branches.",
+   "predicts": {
+    "FS-97": 1
+   }
+  },
+  "shell-scripting": {
+   "title": "Run shell commands or write a shell / CLI script",
+   "domain": "cross-cutting",
+   "keywords": [
+    "shell",
+    "bash",
+    "zsh",
+    "script",
+    "command",
+    "pipe",
+    "pkill",
+    "grep",
+    "find",
+    "cwd",
+    "path",
+    "git",
+    "cli",
+    "exit"
+   ],
+   "description": "Shell mechanics: exit codes through pipes, pkill/pgrep self-matches, cwd and relative paths, quoting and word-splitting, bash versions, inline code in commands, gitignore/pathspec semantics.",
+   "predicts": {
+    "FS-18": 1
+   }
+  },
+  "agent-fleet-lanes": {
+   "title": "Run or supervise a fleet of coding bots in delivery lanes (implement, review, QA) that merge PRs into a shared branch",
+   "domain": "cross-cutting",
+   "description": "Autonomous multi-bot delivery: implementer, reviewer and QA bots woken per ticket, parallel PRs merged into a shared dev/integration branch, overnight unattended runs, wake delivery, result callbacks, lane prompts, supervision and recovery.",
+   "keywords": [
+    "bots",
+    "fleet",
+    "overnight",
+    "unattended",
+    "implementer",
+    "parallel",
+    "dev",
+    "supervise",
+    "lanes",
+    "wake",
+    "reviewer",
+    "merge"
+   ],
+   "predicts": {
+    "FS-90": 1,
+    "FS-45": 1
+   }
+  }
+ }
+}

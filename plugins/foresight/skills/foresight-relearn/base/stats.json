@@ -745,7 +745,8 @@
         "an unquoted *, ? or [..] in a zsh command (grep --include=*.py, ls dir/*, a glob over a maybe-empty dir): zsh NOMATCH aborts the whole command instead of passing the literal through (recurs: 5x in one session)",
         "a quoted glob handed to a program that opens paths literally (node fs, a custom script); a verification probe that regex-scrapes a port out of free-form argv/log text",
         "a regex filter (git log --grep, grep -E) using \\b or another PCRE-only escape; a reset --soft, squash or split onto a base branch tip that keeps moving; a desktop-managed shared service relaunched with open -a",
-        "supervisor code classifies a child process's run (stopped, failed, done) from its exit code after signalling it"
+        "supervisor code classifies a child process's run (stopped, failed, done) from its exit code after signalling it",
+        "editing a shell script (a lane runner) while a live process is executing it - zsh and bash read scripts incrementally and resume at a shifted byte offset; a test runner (vitest/vite/playwright) launched from an agent or orchestrator shell with an inherited stdin, sitting at 0% CPU with no workers"
       ],
       "preventive_checks": [
         "Use absolute paths and git -C <worktree>; never rely on the persisted cwd",
@@ -763,16 +764,17 @@
         "Never type `timeout` on this host: use the Bash tool's own timeout parameter or the runner's --timeout, and check ${pipestatus} rather than $? after a pipe",
         "Have servers print one machine-readable line (LISTENING <port>) or pass the port explicitly; glob inside scripts rather than relying on shell expansion",
         "Prove a search filter on a known-positive input before trusting a no-match (-P or -w instead of \\b in ERE); split or squash against git merge-base HEAD origin/<base> and check git diff origin/<base>...HEAD is unchanged; after relaunching a shared local service poll its health (docker info, pg_isready) and kill leftover helper PIDs if the relaunch did nothing",
-        "Record the stop reason before signalling a child process and classify the outcome from that record; test children that exit 0 and non-zero after SIGINT"
+        "Record the stop reason before signalling a child process and classify the outcome from that record; test children that exit 0 and non-zero after SIGINT",
+        "Never edit a script a running process executes: check pgrep -f <script> first and put new logic in the orchestrator or a new file swapped in between runs; launch every test runner with < /dev/null, in the foreground, output redirected to a log file"
       ],
       "portable": true,
-      "count": 116,
+      "count": 118,
       "domains": {
-        "cross-cutting": 107,
+        "cross-cutting": 109,
         "backend": 6,
         "mobile": 3
       },
-      "n_projects": 10,
+      "n_projects": 11,
       "related": [
         "FS-71",
         "FS-92",
@@ -1739,7 +1741,8 @@
         "a producer agent still running while its output file already exists on disk, or several producers writing into one inbox that a later step globs",
         "a bench, Playwright batch or suite whose last wall exceeded ~5 min run in the foreground: the Bash tool's 600 s limit silently moves it to the background",
         "a next step planned as 'sleep N then read the log' (the harness blocks foreground sleep polling)",
-        "a long-lived local service (mock server, dev app) started as an agent-harness background shell"
+        "a long-lived local service (mock server, dev app) started as an agent-harness background shell",
+        "a headless lane agent (a CLI agent in print mode, e.g. claude -p, as implementer or reviewer) allowed to start a background test run or watcher; its process ends with the turn, so the pending result is never read (recurs across implementers and reviewers in one build)"
       ],
       "preventive_checks": [
         "Instruct workers to run verification synchronously or poll results themselves, never ending a turn on their own watcher",
@@ -1755,15 +1758,16 @@
         "Dispatch consumers only on the producer's completion notification, never on file existence; aggregation reads a closed per-producer manifest instead of globbing a shared inbox",
         "Size each foreground run under ~8 min, or launch with run_in_background plus a Monitor until-loop on the summary line; never end the turn before the summary and exit code exist",
         "Integrators reject any lane report whose benchmark or suite result lacks the exit code and numbers",
-        "Run long-lived services under launchd/systemd or in the user's terminal; harness background shells die at the harness time limit"
+        "Run long-lived services under launchd/systemd or in the user's terminal; harness background shells die at the harness time limit",
+        "Put the dispatch tripwire verbatim in every headless lane prompt: run every validator and test synchronously in the foreground, read the result yourself, never end the turn on a pending background run or watcher; the orchestrator treats an ended run with no test result as failed and resumes it"
       ],
       "portable": true,
-      "count": 45,
+      "count": 46,
       "domains": {
-        "cross-cutting": 43,
+        "cross-cutting": 44,
         "mobile": 2
       },
-      "n_projects": 8,
+      "n_projects": 9,
       "related": [
         "FS-73",
         "FS-64",
@@ -3094,7 +3098,8 @@
         "starting work in a fresh agent worktree checkout with no .venv and no `python` on PATH, on a host with several system Pythons",
         "the hook needs native extension wheels (tree_sitter parsers) that only one installed interpreter has",
         "e2e/backend scripts or spec helpers that resolve Python as <checkout>/.venv/bin/python run from a worktree with no venv",
-        "bot lanes or hooks running repo commands under the host's default node/python instead of the repo pin; a fresh per-lane DB used by the test command"
+        "bot lanes or hooks running repo commands under the host's default node/python instead of the repo pin; a fresh per-lane DB used by the test command",
+        "an orchestrator creates lane worktrees whose hooks or scripts read a git-ignored runtime file (a hook mode file, .env, local settings) that a fresh git worktree does not carry"
       ],
       "preventive_checks": [
         "Make hooks resolve the interpreter in order (repo .venv, then PATH python3) and check required imports up front with a clear message instead of a silent block",
@@ -3102,14 +3107,15 @@
         "Before any documented --no-verify escape, run the exact gate the hook would run with the working venv and paste its green result into the PR body",
         "After the second bypass, fix the hook on main instead of bypassing it again (FS-53)",
         "Route every helper's interpreter through one resolver honoring an interpreter-override env variable, and create or link the venv as part of worktree creation",
-        "Pin the runtime per repo (.nvmrc, .python-version) in every lane env and hook, and make the lane test command provision its DB (migrate deploy) first"
+        "Pin the runtime per repo (.nvmrc, .python-version) in every lane env and hook, and make the lane test command provision its DB (migrate deploy) first",
+        "At dispatch, have the orchestrator write every git-ignored runtime file the hooks read (e.g. a hook mode file set to unattended) into each lane worktree at creation, and assert it exists before starting the lane"
       ],
       "portable": true,
-      "count": 33,
+      "count": 34,
       "domains": {
-        "cross-cutting": 33
+        "cross-cutting": 34
       },
-      "n_projects": 5,
+      "n_projects": 6,
       "related": [
         "FS-18",
         "FS-115",
@@ -3280,23 +3286,25 @@
         "a principal other than a workspace member (bot, service account) reads through a shared list service",
         "e2e specs import product modules from src/ instead of API/driver helpers",
         "base merged into the branch cleanly and no tests were run afterwards",
-        "a stale branch hundreds of commits behind a base that upgraded tool majors (Vitest, lint plugins); two branches that each fixed the same spec's date/clock setup differently"
+        "a stale branch hundreds of commits behind a base that upgraded tool majors (Vitest, lint plugins); two branches that each fixed the same spec's date/clock setup differently",
+        "two parallel lanes change the same table or component in different dimensions (one adds a column, another polishes spacing or styling) and merge separately, each green alone"
       ],
       "preventive_checks": [
         "Merge the base branch into the feature/integration branch every wave (at least daily) and re-run the scoped tests and touched e2e specs on the merged tree before reporting green",
         "Before merging, grep base's diff since the fork (git diff $(git merge-base HEAD origin/staging) origin/staging) for every service, manager, component and module your branch calls; read each behaviour change and pin the behaviour you rely on with a test",
         "Pin cross-principal behaviour with one test per principal type (member user, bot, service account) on any shared service the branch reads through",
         "Keep e2e specs on API/driver helpers, never product modules, and type-check tests/e2e after every merge",
-        "Before merging a stale branch diff package.json/tool majors between merge-base and base; after merging run git log origin/base -- <file> for every file touched on both sides and rerun those specs"
+        "Before merging a stale branch diff package.json/tool majors between merge-base and base; after merging run git log origin/base -- <file> for every file touched on both sides and rerun those specs",
+        "After the last lane of a wave merges, re-run every touched e2e spec on the merged tree, with layout overflow assertions at the target widths (e.g. 1280), before reporting the build done"
       ],
       "portable": true,
-      "count": 10,
+      "count": 11,
       "domains": {
         "cross-cutting": 6,
         "backend": 3,
-        "web-frontend": 1
+        "web-frontend": 2
       },
-      "n_projects": 2,
+      "n_projects": 3,
       "related": [
         "FS-34",
         "FS-35",
@@ -5233,7 +5241,7 @@
       "description": "Standing up or reusing a local environment for verification: dev servers and autoreload, shared ports/DBs between sessions, health checks, host/IPv6/CORS bindings, test DB lifecycle.",
       "predicts": {
         "FS-05": 33,
-        "FS-18": 7,
+        "FS-18": 8,
         "FS-02": 34,
         "FS-29": 8,
         "FS-20": 2,
@@ -5426,7 +5434,7 @@
         "FS-53": 7,
         "FS-24": 2,
         "FS-46": 26,
-        "FS-97": 8,
+        "FS-97": 9,
         "FS-07": 1,
         "FS-18": 1
       }
@@ -5582,7 +5590,7 @@
       ],
       "description": "Shell mechanics: exit codes through pipes, pkill/pgrep self-matches, cwd and relative paths, quoting and word-splitting, bash versions, inline code in commands, gitignore/pathspec semantics.",
       "predicts": {
-        "FS-18": 80,
+        "FS-18": 81,
         "FS-20": 1,
         "FS-06": 3,
         "FS-29": 6,
@@ -5785,7 +5793,7 @@
         "FS-101": 2,
         "FS-93": 1,
         "FS-19": 1,
-        "FS-45": 1,
+        "FS-45": 2,
         "FS-03": 3,
         "FS-36": 1,
         "FS-55": 1,
@@ -5796,7 +5804,8 @@
         "FS-07": 1,
         "FS-29": 1,
         "FS-18": 1,
-        "FS-111": 1
+        "FS-111": 1,
+        "FS-90": 1
       }
     },
     "test-result-reporting": {

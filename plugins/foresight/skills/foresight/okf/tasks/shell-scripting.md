@@ -13,7 +13,7 @@ Shell mechanics: exit codes through pipes, pkill/pgrep self-matches, cwd and rel
 in-domain: [cross-cutting](../domains/cross-cutting.md)
 
 predicts (incidents while doing this task):
-- [FS-18](../patterns/fs-18.md) Shell and CLI step semantics assumed (80)
+- [FS-18](../patterns/fs-18.md) Shell and CLI step semantics assumed (81)
 - [FS-29](../patterns/fs-29.md) Code assumes the host environment it was written on (6)
 - [FS-03](../patterns/fs-03.md) Code written against an assumed interface instead of the real one (5)
 - [FS-06](../patterns/fs-06.md) Per-row queries and unbounded fetches invisible at seed scale (3)
