@@ -16,4 +16,5 @@ predicts (incidents while doing this task):
 - [FS-105](../patterns/fs-105.md) Unattended agent fleet loses work at runtime boundaries with no durable replay, liveness sweep or idempotent recovery (6)
 - [FS-03](../patterns/fs-03.md) Code written against an assumed interface instead of the real one (3)
 - [FS-101](../patterns/fs-101.md) Verification and review gates applied uniformly across a large multi-agent run (2)
+- [FS-45](../patterns/fs-45.md) Agent turn ends waiting on an unverified async mechanism (2)
 - [FS-111](../patterns/fs-111.md) Branches merged inside a worktree that a running dev stack serves (1)

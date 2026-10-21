@@ -18,7 +18,7 @@ tasks:
 - [mobile-store-release](../tasks/mobile-store-release.md) Release a mobile build or change store-facing config (upload, signing, listing, in-app purchases)
 
 patterns (most frequent first):
-- [FS-18](../patterns/fs-18.md) Shell and CLI step semantics assumed (116)
+- [FS-18](../patterns/fs-18.md) Shell and CLI step semantics assumed (118)
 - [FS-42](../patterns/fs-42.md) Third-party system semantics not honored (63)
 - [FS-13](../patterns/fs-13.md) Styling correct only in the context that was eyeballed (49)
 - [FS-67](../patterns/fs-67.md) On-device check runs a stale JS bundle or a dev-client path unlike the shipped build (9)

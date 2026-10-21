@@ -16,7 +16,7 @@ predicts (incidents while doing this task):
 - [FS-46](../patterns/fs-46.md) Stage branch merged into a feature branch or promotion hop bypassed (26)
 - [FS-30](../patterns/fs-30.md) Working from a stale base or without checking existing work (14)
 - [FS-39](../patterns/fs-39.md) Parallel agents dispatched onto overlapping files or allocators (10)
-- [FS-97](../patterns/fs-97.md) Base branch changes behaviour a feature branch relies on, with no textual conflict (8)
+- [FS-97](../patterns/fs-97.md) Base branch changes behaviour a feature branch relies on, with no textual conflict (9)
 - [FS-53](../patterns/fs-53.md) Known fix or learned rule not made durable, so the same trap recurs (7)
 - [FS-09](../patterns/fs-09.md) Green signal whose scope doesn't cover the claim (4)
 - [FS-20](../patterns/fs-20.md) Concurrent sessions share one working tree or branch (2)
